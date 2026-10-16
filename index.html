@@ -612,6 +612,14 @@ table.bal tr:last-child td{border-bottom:none;}
   </div>
 
   <div class="card">
+    <h3>主被动图 <span class="tag">v1.1 新增</span></h3>
+    <p style="font-size:12.5px;color:var(--tx2);margin-bottom:10px;">
+      给每个描述符算两个数：它<b>对外施加</b>的影响总和（主动和）和它<b>承受</b>的影响总和（被动和）。
+      横轴是被动和、纵轴是主动和，四个象限对应四种角色——这张图回答的是「<b>我该动哪个描述符</b>」。</p>
+    <div id="apFig"></div>
+  </div>
+
+  <div class="card">
     <h3>时间轴 <span class="tag">双锚点</span></h3>
     <div id="timeline"></div>
   </div>
@@ -2006,10 +2014,72 @@ function downloadReportJSON(){
     JSON.stringify(reportData(), null, 2), 'application/json');
 }
 
+/* ================= 主被动图（v1.1 新增） ================= */
+function renderAP(){
+  const el=document.getElementById('apFig'); if(!el) return;
+  const ds=Object.keys(sel.desc);
+  if(ds.length<2){
+    el.innerHTML='<div style="padding:34px;text-align:center;color:var(--tx3);font-size:12.5px;line-height:1.9;">'
+      +'先在第 3 步勾选至少两个描述符，并在「交叉影响打分」完成判断，'
+      +'这里会算出每个描述符的主动和与被动和。</div>';
+    return;
+  }
+  const rows=ds.map(d=>{
+    let a=0,p=0;
+    ds.forEach(o=>{
+      if(o===d) return;
+      const x=cim[d+'>'+o]; if(x) a+=Math.abs(x.v);
+      const y=cim[o+'>'+d]; if(y) p+=Math.abs(y.v);
+    });
+    return {d:d,a:a,p:p};
+  });
+  const M=Math.max(1, ...rows.map(r=>Math.max(r.a,r.p)));
+  const mA=rows.reduce((s,r)=>s+r.a,0)/rows.length;
+  const mP=rows.reduce((s,r)=>s+r.p,0)/rows.length;
+  const W=680,H=470,L=68,R=28,T=30,B=58;
+  const pw=W-L-R, ph=H-T-B;
+  const X=v=>L+(v/M)*pw, Y=v=>T+ph-(v/M)*ph;
+  const gx=X(mP), gy=Y(mA);
+  const bg='<rect x="'+L+'" y="'+T+'" width="'+(gx-L)+'" height="'+(gy-T)+'" fill="#EFF4FF"/>'
+    +'<rect x="'+gx+'" y="'+T+'" width="'+(L+pw-gx)+'" height="'+(gy-T)+'" fill="#ECFDF5"/>'
+    +'<rect x="'+L+'" y="'+gy+'" width="'+(gx-L)+'" height="'+(T+ph-gy)+'" fill="#FAFBFC"/>'
+    +'<rect x="'+gx+'" y="'+gy+'" width="'+(L+pw-gx)+'" height="'+(T+ph-gy)+'" fill="#FFFAEB"/>';
+  const axes='<line x1="'+L+'" y1="'+T+'" x2="'+L+'" y2="'+(T+ph)+'" stroke="#98A2B3" stroke-width="0.8"/>'
+    +'<line x1="'+L+'" y1="'+(T+ph)+'" x2="'+(L+pw)+'" y2="'+(T+ph)+'" stroke="#98A2B3" stroke-width="0.8"/>'
+    +'<line x1="'+gx+'" y1="'+T+'" x2="'+gx+'" y2="'+(T+ph)+'" stroke="#98A2B3" stroke-width="0.7" stroke-dasharray="4 3"/>'
+    +'<line x1="'+L+'" y1="'+gy+'" x2="'+(L+pw)+'" y2="'+gy+'" stroke="#98A2B3" stroke-width="0.7" stroke-dasharray="4 3"/>';
+  let ticks='';
+  for(let k=0;k<=4;k++){
+    const v=M*k/4;
+    ticks+='<text x="'+(L-8)+'" y="'+Y(v).toFixed(1)+'" text-anchor="end" dominant-baseline="central" font-size="10.5" fill="#98A2B3">'+v.toFixed(0)+'</text>';
+    ticks+='<text x="'+X(v).toFixed(1)+'" y="'+(T+ph+16)+'" text-anchor="middle" font-size="10.5" fill="#98A2B3">'+v.toFixed(0)+'</text>';
+  }
+  const q='<text x="'+(L+8)+'" y="'+(T+16)+'" font-size="11" fill="#2563EB">驱动者（影响别人多）</text>'
+    +'<text x="'+(L+pw-8)+'" y="'+(T+16)+'" text-anchor="end" font-size="11" fill="#059669">关键枢纽（两头都高）</text>'
+    +'<text x="'+(L+8)+'" y="'+(T+ph-8)+'" font-size="11" fill="#98A2B3">惰性（两头都低）</text>'
+    +'<text x="'+(L+pw-8)+'" y="'+(T+ph-8)+'" text-anchor="end" font-size="11" fill="#B54708">结果型（被影响多）</text>';
+  let pts='';
+  rows.forEach(r=>{
+    const x=X(r.p), y=Y(r.a), lab=DSHORT[r.d]||r.d;
+    pts+='<circle cx="'+x.toFixed(1)+'" cy="'+y.toFixed(1)+'" r="5.5" fill="#2563EB" opacity=".82">'
+      +'<title>'+r.d+'：主动和 '+r.a.toFixed(0)+'　被动和 '+r.p.toFixed(0)+'</title></circle>'
+      +'<text x="'+(x+8).toFixed(1)+'" y="'+y.toFixed(1)+'" dominant-baseline="central" font-size="11" fill="#101828">'+lab+'</text>';
+  });
+  const ax='<text x="'+(L+pw/2)+'" y="'+(H-14)+'" text-anchor="middle" font-size="11.5" fill="#667085">被动和 —— 承受的影响总量</text>'
+    +'<text x="16" y="'+(T+ph/2)+'" text-anchor="middle" font-size="11.5" fill="#667085" transform="rotate(-90 16 '+(T+ph/2)+')">主动和 —— 施加的影响总量</text>';
+  const top=rows.slice().sort((a,b)=>b.a-a.a).slice(0,3);
+  el.innerHTML='<svg viewBox="0 0 '+W+' '+H+'" style="width:100%;height:auto;display:block;">'
+    +bg+axes+ticks+q+pts+ax+'</svg>'
+    +'<div style="font-size:12px;color:var(--tx3);margin-top:8px;line-height:1.8;">'
+    +'虚线是平均值分界。当前主动和最高的三个是 <b>'+top.map(r=>r.d).join('、')+'</b>——'
+    +'它们是这个系统里的"发动机"，动它们最容易带动全局；右下角那些被影响多、影响别人少的，'
+    +'则是政策发力后最先出现变化的地方。</div>';
+}
+
 /* ================= 主渲染 ================= */
 function render(){
   renderSteps(); renderCmp(); layerTable(); renderTree(); renderStates();
-  expDetail(); scaleSum(); renderPolicy(); renderCim(); modelDetail(); checkResult(); confList(); timeline(); renderImpact();
+  expDetail(); scaleSum(); renderPolicy(); renderCim(); modelDetail(); checkResult(); confList(); timeline(); renderImpact(); renderAP();
   el('outPreview', preview());
   el('fmtTag', fmtTag());
   el('fmtNote', curModel==='gcam'
