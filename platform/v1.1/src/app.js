@@ -1400,10 +1400,47 @@ function renderAP(){
     +'则是政策发力后最先出现变化的地方。</div>';
 }
 
+/* ================= 情景表（v1.1 新增） ================= */
+function renderTableau(){
+  const el=document.getElementById('tabFig'); if(!el) return;
+  if(!cimResult || !cimResult.consistent.length){
+    el.innerHTML='<div style="padding:32px;text-align:center;color:var(--tx3);font-size:12.5px;line-height:1.9;">'
+      +'运行一致性检验后，这里会把所有自洽情景排成一张表：列是情景、行是描述符，'
+      +'相邻情景里取同一状态的格子会自动合并。</div>';
+    return;
+  }
+  const ds=cimResult.ds, list=cimResult.consistent;
+  const cols=Math.min(list.length, 30);
+  let h='<table class="tab"><thead><tr><th class="tabh">描述符</th>';
+  for(let c=0;c<cols;c++) h+='<th>情景 '+(c+1)+'</th>';
+  h+='</tr></thead><tbody>';
+  ds.forEach((d,ri)=>{
+    const sts=((dOf(d)||{}).s)||[];
+    h+='<tr><td class="tabh">'+(DSHORT[d]||d)+'</td>';
+    let c=0;
+    while(c<cols){
+      const v=list[c][ri];
+      let span=1;
+      while(c+span<cols && list[c+span][ri]===v) span++;
+      const txt=sts[v]||'?';
+      h+='<td class="s'+(v%6)+'" colspan="'+span+'" title="'+d+'：'+txt+'">'
+        +(span>1?(txt+'　×'+span):txt)+'</td>';
+      c+=span;
+    }
+    h+='</tr>';
+  });
+  el.innerHTML=h+'</tbody></table>'
+    +'<div style="font-size:12px;color:var(--tx3);margin-top:10px;line-height:1.8;">共 '
+    +cimResult.consistent.length+' 个自洽情景'
+    +(cimResult.consistent.length>cols?('，此处显示前 '+cols+' 个'):'')
+    +'。同一行里颜色相同的整块，表示这些情景在该描述符上取了同一个状态——'
+    +'整块越大，说明这条判断在这些情景里越没有争议。</div>';
+}
+
 /* ================= 主渲染 ================= */
 function render(){
   renderSteps(); renderCmp(); layerTable(); renderTree(); renderStates();
-  expDetail(); scaleSum(); renderPolicy(); renderCim(); modelDetail(); checkResult(); confList(); timeline(); renderImpact(); renderAP();
+  expDetail(); scaleSum(); renderPolicy(); renderCim(); modelDetail(); checkResult(); renderTableau(); confList(); timeline(); renderImpact(); renderAP();
   el('outPreview', preview());
   el('fmtTag', fmtTag());
   el('fmtNote', curModel==='gcam'

@@ -332,6 +332,23 @@ table.bal tr:last-child td{border-bottom:none;}
 .rok{background:var(--ok-s);border-left:3px solid var(--ok);color:var(--ok);
   padding:9px 14px;font-size:12.5px;border-radius:0 6px 6px 0;margin:12px 0;}
 
+/* ================= v1.1 情景表 ================= */
+.tabwrap{overflow:auto;max-height:430px;border:1px solid var(--line);border-radius:var(--r);}
+table.tab{border-collapse:separate;border-spacing:0;font-size:11.5px;}
+table.tab th{background:var(--panel2);border-right:1px solid var(--line2);border-bottom:1px solid var(--line);
+  padding:6px 8px;font-weight:600;color:var(--tx2);white-space:nowrap;position:sticky;top:0;z-index:2;}
+table.tab th.tabh{left:0;z-index:3;}
+table.tab td{border-right:1px solid var(--line2);border-bottom:1px solid var(--line2);
+  padding:6px 9px;text-align:center;white-space:nowrap;color:var(--tx);}
+table.tab td.tabh{position:sticky;left:0;background:var(--panel2);text-align:left;
+  font-weight:600;color:var(--tx2);z-index:1;}
+table.tab td.s0{background:#EFF4FF;}
+table.tab td.s1{background:#ECFDF5;}
+table.tab td.s2{background:#FFFAEB;}
+table.tab td.s3{background:#FEF3F2;}
+table.tab td.s4{background:#F5F3FF;}
+table.tab td.s5{background:#F0FDFA;}
+
 </style>
 </head>
 <body>
@@ -594,6 +611,14 @@ table.bal tr:last-child td{border-bottom:none;}
   <div class="card">
     <h3>检验结果 <span class="tag">点击可展开判断链</span></h3>
     <div id="checkResult"></div>
+  </div>
+
+  <div class="card">
+    <h3>情景表 <span class="tag">v1.1 新增</span></h3>
+    <p style="font-size:12.5px;color:var(--tx2);margin-bottom:10px;">
+      列是自洽情景，行是描述符。相邻情景里取同一个状态的格子会自动合并，并用颜色区分——
+      几十个情景的异同一眼扫出来。</p>
+    <div class="tabwrap" id="tabFig"></div>
   </div>
 
   <div class="card">
@@ -2076,10 +2101,47 @@ function renderAP(){
     +'则是政策发力后最先出现变化的地方。</div>';
 }
 
+/* ================= 情景表（v1.1 新增） ================= */
+function renderTableau(){
+  const el=document.getElementById('tabFig'); if(!el) return;
+  if(!cimResult || !cimResult.consistent.length){
+    el.innerHTML='<div style="padding:32px;text-align:center;color:var(--tx3);font-size:12.5px;line-height:1.9;">'
+      +'运行一致性检验后，这里会把所有自洽情景排成一张表：列是情景、行是描述符，'
+      +'相邻情景里取同一状态的格子会自动合并。</div>';
+    return;
+  }
+  const ds=cimResult.ds, list=cimResult.consistent;
+  const cols=Math.min(list.length, 30);
+  let h='<table class="tab"><thead><tr><th class="tabh">描述符</th>';
+  for(let c=0;c<cols;c++) h+='<th>情景 '+(c+1)+'</th>';
+  h+='</tr></thead><tbody>';
+  ds.forEach((d,ri)=>{
+    const sts=((dOf(d)||{}).s)||[];
+    h+='<tr><td class="tabh">'+(DSHORT[d]||d)+'</td>';
+    let c=0;
+    while(c<cols){
+      const v=list[c][ri];
+      let span=1;
+      while(c+span<cols && list[c+span][ri]===v) span++;
+      const txt=sts[v]||'?';
+      h+='<td class="s'+(v%6)+'" colspan="'+span+'" title="'+d+'：'+txt+'">'
+        +(span>1?(txt+'　×'+span):txt)+'</td>';
+      c+=span;
+    }
+    h+='</tr>';
+  });
+  el.innerHTML=h+'</tbody></table>'
+    +'<div style="font-size:12px;color:var(--tx3);margin-top:10px;line-height:1.8;">共 '
+    +cimResult.consistent.length+' 个自洽情景'
+    +(cimResult.consistent.length>cols?('，此处显示前 '+cols+' 个'):'')
+    +'。同一行里颜色相同的整块，表示这些情景在该描述符上取了同一个状态——'
+    +'整块越大，说明这条判断在这些情景里越没有争议。</div>';
+}
+
 /* ================= 主渲染 ================= */
 function render(){
   renderSteps(); renderCmp(); layerTable(); renderTree(); renderStates();
-  expDetail(); scaleSum(); renderPolicy(); renderCim(); modelDetail(); checkResult(); confList(); timeline(); renderImpact(); renderAP();
+  expDetail(); scaleSum(); renderPolicy(); renderCim(); modelDetail(); checkResult(); renderTableau(); confList(); timeline(); renderImpact(); renderAP();
   el('outPreview', preview());
   el('fmtTag', fmtTag());
   el('fmtNote', curModel==='gcam'
