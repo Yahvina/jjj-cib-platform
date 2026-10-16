@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>京津冀政策情景快速评估平台 · 原型 v1.0</title>
+<title>京津冀政策情景快速评估平台 · 原型 v1.1</title>
   <style>
 :root{
   --bg:#F6F7F9; --panel:#FFFFFF; --panel2:#FAFBFC;
@@ -339,14 +339,14 @@ table.bal tr:last-child td{border-bottom:none;}
 <header class="topbar">
   <div class="logo">京</div>
   <div class="brand">京津冀政策情景快速评估平台
-    <small>Scenario Rapid Assessment · 原型 v1.0 · 19 个描述符</small></div>
+    <small>Scenario Rapid Assessment · 原型 v1.1 · 19 个描述符 · 106 条政策路径</small></div>
   <div class="sp"></div>
   <span class="badge hi">支持三级描述符</span>
   <span class="badge">国家—省—市三级联动</span>
   <button class="btn" onclick="backToCmp()">功能对比</button>
   <button class="btn" onclick="saveCfg()">保存配置</button>
   <button class="btn" onclick="loadCfg()">载入配置</button>
-  <button class="btn" onclick="alert('原型 v1.0 · 概念验证用\n\n一致性检验数值与政策数据库查询为模拟实现；\n导出结构已按下游模型真实配置格式书写。')">关于</button>
+  <button class="btn" onclick="alert('原型 v1.1\n\n一致性检验已接入真实算法（枚举状态组合、算影响平衡、筛自洽情景）；\n政策库内置 106 条政策路径及其与描述符的映射，映射为模型侧首版判断；\n交叉影响判断带依据与置信度，支持 AI 预填后人工审核；\n导出结构按下游模型真实配置格式书写。')">关于</button>
 </header>
 
 <div class="steps" id="steps"></div>
@@ -961,7 +961,7 @@ function renderCmp(){
      <div class="vc b"><div class="n">${s.c}</div><div class="l">事前发现的矛盾组合（现有做法为 0）</div></div>
      <div class="vc b"><div class="n">${rest}</div><div class="l">可直接进模型的自洽情景</div></div>`;
   document.getElementById('verdictNote').textContent=
-    '口径说明：人工核对项＝描述符数 × 联动层数 × 3 − 8；矛盾组合与自洽情景为模拟数值，接入算法后由实际检验生成。';
+    '口径说明：人工核对项＝描述符数 × 联动层数 × 3 − 8，为估算量；矛盾组合与自洽情景由平台的一致性检验实际算出（见第 7 步「运行一致性检验」）。';
 }
 SCEN.forEach(x=>x.applied=()=>Math.min(2,x.c>=12?2:(x.c>=9?1:0)));
 
@@ -1409,8 +1409,20 @@ function xmlFile(d,i){
 }
 function csvParam(d){ return d.v.split(/[；;]/)[0].trim().slice(0,32).replace(/\s/g,'_'); }
 function download(){ dl(preview().replace(/<[^>]+>/g,''), curModel==='gcam'?'xml':'csv','JJJ-CIB-情景1'); }
-function downloadAll(){ dl('（原型 v1.0 示意）共 '+Math.max(1,(nSel()*0.6|0))+' 组自洽情景，此处为打包占位。',
-  'txt','JJJ-CIB-全部自洽情景'); }
+function downloadAll(){
+  if(!cimResult){ toast('先在第 7 步运行一致性检验'); return; }
+  const kds=cimResult.ds;
+  let txt='京津冀政策情景快速评估平台 — 自洽情景清单\n'
+    +'生成时间：'+nowStr()+'\n'
+    +'组合空间：'+cimResult.total+' 种，'+(cimResult.sampled?'随机抽样检查 ':'全枚举 ')
+    +cimResult.checked+' 种\n'
+    +'自洽情景：'+cimResult.consistent.length+' 组\n\n';
+  cimResult.consistent.forEach((cb,i)=>{
+    txt+='情景 '+(i+1)+'：'
+      +kds.map((d,j)=>d+'＝'+((((dOf(d)||{}).s)||[])[cb[j]]||'?')).join('；')+'\n';
+  });
+  dl(txt,'txt','JJJ-CIB-自洽情景清单');
+}
 function dl(txt,ext,name){
   const clean=txt.replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&quot;/g,'"').replace(/&amp;/g,'&');
   const b=new Blob([clean],{type:'text/plain;charset=utf-8'});

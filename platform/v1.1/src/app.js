@@ -293,7 +293,7 @@ function renderCmp(){
      <div class="vc b"><div class="n">${s.c}</div><div class="l">事前发现的矛盾组合（现有做法为 0）</div></div>
      <div class="vc b"><div class="n">${rest}</div><div class="l">可直接进模型的自洽情景</div></div>`;
   document.getElementById('verdictNote').textContent=
-    '口径说明：人工核对项＝描述符数 × 联动层数 × 3 − 8；矛盾组合与自洽情景为模拟数值，接入算法后由实际检验生成。';
+    '口径说明：人工核对项＝描述符数 × 联动层数 × 3 − 8，为估算量；矛盾组合与自洽情景由平台的一致性检验实际算出（见第 7 步「运行一致性检验」）。';
 }
 SCEN.forEach(x=>x.applied=()=>Math.min(2,x.c>=12?2:(x.c>=9?1:0)));
 
@@ -741,8 +741,20 @@ function xmlFile(d,i){
 }
 function csvParam(d){ return d.v.split(/[；;]/)[0].trim().slice(0,32).replace(/\s/g,'_'); }
 function download(){ dl(preview().replace(/<[^>]+>/g,''), curModel==='gcam'?'xml':'csv','JJJ-CIB-情景1'); }
-function downloadAll(){ dl('（原型 v1.0 示意）共 '+Math.max(1,(nSel()*0.6|0))+' 组自洽情景，此处为打包占位。',
-  'txt','JJJ-CIB-全部自洽情景'); }
+function downloadAll(){
+  if(!cimResult){ toast('先在第 7 步运行一致性检验'); return; }
+  const kds=cimResult.ds;
+  let txt='京津冀政策情景快速评估平台 — 自洽情景清单\n'
+    +'生成时间：'+nowStr()+'\n'
+    +'组合空间：'+cimResult.total+' 种，'+(cimResult.sampled?'随机抽样检查 ':'全枚举 ')
+    +cimResult.checked+' 种\n'
+    +'自洽情景：'+cimResult.consistent.length+' 组\n\n';
+  cimResult.consistent.forEach((cb,i)=>{
+    txt+='情景 '+(i+1)+'：'
+      +kds.map((d,j)=>d+'＝'+((((dOf(d)||{}).s)||[])[cb[j]]||'?')).join('；')+'\n';
+  });
+  dl(txt,'txt','JJJ-CIB-自洽情景清单');
+}
 function dl(txt,ext,name){
   const clean=txt.replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&quot;/g,'"').replace(/&amp;/g,'&');
   const b=new Blob([clean],{type:'text/plain;charset=utf-8'});
