@@ -3,6 +3,11 @@
 > 平台原型 v1.0 及其亮点模块的版本归档。
 > 依托 **CIB（Cross-Impact Balance，交叉影响平衡）** 方法，把政策文本转译为下游模型（GCAM-China / CHEER-CGE）可用的情景配置。
 
+**在线预览**
+
+- 平台原型：https://yahvina.github.io/jjj-cib-platform/
+- 亮点模块索引：https://yahvina.github.io/jjj-cib-platform/highlights/index.html
+
 ---
 
 ## 目录结构
