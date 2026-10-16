@@ -575,6 +575,14 @@ table.bal tr:last-child td{border-bottom:none;}
   </div>
 
   <div class="card">
+    <h3>影响关系图 <span class="tag">v1.1 新增</span></h3>
+    <p style="font-size:12.5px;color:var(--tx2);margin-bottom:10px;">
+      把当前打分画成一张关系图：每个描述符是一个节点，连线代表影响。<b>绿线是促进、红线是抑制</b>，
+      线越粗表示影响越强。鼠标悬停任一连线，可以看到这条判断的依据。</p>
+    <div id="impactFig"></div>
+  </div>
+
+  <div class="card">
     <h3>时间轴 <span class="tag">双锚点</span></h3>
     <div id="timeline"></div>
   </div>
@@ -1621,10 +1629,67 @@ function cimBalance(ds){
     +'这是描述符级的简化预览，完整的影响平衡值需在状态级打分后给出。</div>';
 }
 
+/* ================= 影响关系图（v1.1 新增） ================= */
+function renderImpact(){
+  const el=document.getElementById('impactFig'); if(!el) return;
+  const ds=Object.keys(sel.desc);
+  if(ds.length<2){
+    el.innerHTML='<div style="padding:36px;color:var(--tx3);font-size:12.5px;text-align:center;line-height:1.9;">'
+      +'先在「描述符与状态」勾选至少两个描述符，并在「交叉影响打分」里做出判断，这里就会画出关系图。</div>';
+    return;
+  }
+  const W=700, H=Math.max(470, ds.length*30+160);
+  const cx=W/2, cy=H/2, R=Math.min(W/2-96, H/2-66);
+  const pos={};
+  ds.forEach((d,i)=>{
+    const a=-Math.PI/2+i*2*Math.PI/ds.length;
+    pos[d]={x:cx+R*Math.cos(a), y:cy+R*Math.sin(a)};
+  });
+  const POS='#1B7F52', NEG='#B42318';
+  const defs='<defs>'
+    +'<marker id="ahp" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">'
+    +'<path d="M2 1L8 5L2 9" fill="none" stroke="'+POS+'" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></marker>'
+    +'<marker id="ahn" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">'
+    +'<path d="M2 1L8 5L2 9" fill="none" stroke="'+NEG+'" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></marker>'
+    +'</defs>';
+  let edges='', n=0;
+  ds.forEach(s=>ds.forEach(t=>{
+    if(s===t) return;
+    const r=cim[s+'>'+t]; if(!r||!r.v) return;
+    n++;
+    const p1=pos[s], p2=pos[t];
+    const mx=(p1.x+p2.x)/2, my=(p1.y+p2.y)/2;
+    const dx=mx-cx, dy=my-cy, L=Math.hypot(dx,dy)||1;
+    const dist=Math.hypot(p2.x-p1.x, p2.y-p1.y)||1;
+    const k=(s<t?1:-1)*0.15*dist;
+    const qx=mx+dx/L*k, qy=my+dy/L*k;
+    const w=(Math.abs(r.v)*0.85+0.6).toFixed(1);
+    const op=(0.28+Math.abs(r.v)*0.15).toFixed(2);
+    edges+='<path d="M'+p1.x.toFixed(1)+','+p1.y.toFixed(1)+' Q'+qx.toFixed(1)+','+qy.toFixed(1)
+      +' '+p2.x.toFixed(1)+','+p2.y.toFixed(1)+'" fill="none" stroke="'+(r.v>0?POS:NEG)
+      +'" stroke-width="'+w+'" opacity="'+op+'" marker-end="url(#'+(r.v>0?'ahp':'ahn')+')">'
+      +'<title>'+(DSHORT[s]||s)+' → '+(DSHORT[t]||t)+'：'+(r.v>0?'+':'')+r.v
+      +'（'+(VWORD[String(r.v)]||'')+'）｜'+(r.why||'无依据')+'</title></path>';
+  }));
+  let nodes='';
+  ds.forEach(d=>{
+    const p=pos[d], lab=DSHORT[d]||d;
+    const w=Math.max(48, lab.length*12.5+18);
+    nodes+='<ellipse cx="'+p.x.toFixed(1)+'" cy="'+p.y.toFixed(1)+'" rx="'+(w/2).toFixed(1)
+      +'" ry="15" fill="#fff" stroke="#2563EB" stroke-width="1.2"/>'
+      +'<text x="'+p.x.toFixed(1)+'" y="'+p.y.toFixed(1)+'" text-anchor="middle" dominant-baseline="central"'
+      +' font-size="11.5" fill="#101828">'+lab+'</text>';
+  });
+  el.innerHTML='<svg viewBox="0 0 '+W+' '+H+'" style="width:100%;height:auto;display:block;overflow:visible;">'
+    +defs+edges+nodes+'</svg>'
+    +'<div style="font-size:12px;color:var(--tx3);text-align:center;margin-top:8px;">'
+    +'绿线＝促进，红线＝抑制；线越粗越浓，影响越强。当前非零影响 '+n+' 条。悬停任一连线可看这条判断的依据。</div>';
+}
+
 /* ================= 主渲染 ================= */
 function render(){
   renderSteps(); renderCmp(); layerTable(); renderTree(); renderStates();
-  expDetail(); scaleSum(); renderPolicy(); renderCim(); modelDetail(); checkResult(); confList(); timeline();
+  expDetail(); scaleSum(); renderPolicy(); renderCim(); modelDetail(); checkResult(); confList(); timeline(); renderImpact();
   el('outPreview', preview());
   el('fmtTag', fmtTag());
   el('fmtNote', curModel==='gcam'
