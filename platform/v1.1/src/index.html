@@ -299,6 +299,17 @@
   </div>
 
   <div class="card">
+    <h3>情景报告 <span class="tag">v1.1 新增</span></h3>
+    <p style="font-size:12.5px;color:var(--tx2);margin-bottom:12px;">
+      把这次配置整体写成一份可以拿给别人看的报告：选了哪些描述符、每个分数是怎么判的、哪些情景自洽、
+      矛盾在哪、参数的双锚点依据是什么。<b>既能给人看，也能导出成 JSON 交给别的系统。</b></p>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;">
+      <button class="btn pri" onclick="openReport()">生成情景报告</button>
+      <button class="btn" onclick="downloadReportJSON()">导出 JSON</button>
+    </div>
+  </div>
+
+  <div class="card">
     <h3>本次配置摘要</h3>
     <div id="finalSum"></div>
   </div>
@@ -311,6 +322,18 @@
   <div class="sp"></div>
   <button class="btn" id="prevBtn" onclick="go(-1)">上一步</button>
   <button class="btn pri" id="nextBtn" onclick="nextStep()">下一步</button>
+</div>
+<div class="modal" id="reportModal">
+  <div class="mbox">
+    <div class="mhead">
+      <b>情景报告</b>
+      <div class="sp"></div>
+      <button class="btn" onclick="downloadReport()">下载 HTML</button>
+      <button class="btn" onclick="downloadReportJSON()">下载 JSON</button>
+      <button class="btn" onclick="closeReport()">关闭</button>
+    </div>
+    <div class="mbody" id="reportBody"></div>
+  </div>
 </div>
 <div class="toast" id="toast"></div>
 

@@ -295,3 +295,32 @@ table.bal tr:last-child td{border-bottom:none;}
 .conf.ok{background:var(--ok-s);color:var(--ok);}
 .conf.wn{background:var(--wn-s);color:var(--wn);}
 .conf.rd{background:var(--rd-s);color:var(--rd);}
+
+/* ================= v1.1 情景报告 ================= */
+.modal{position:fixed;inset:0;background:rgba(16,24,40,.45);z-index:80;display:none;padding:34px 20px;overflow:auto;}
+.modal.on{display:block;}
+.mbox{max-width:840px;margin:0 auto;background:#fff;border-radius:var(--r2);overflow:hidden;
+  box-shadow:0 12px 40px rgba(0,0,0,.22);}
+.mhead{display:flex;align-items:center;gap:10px;padding:14px 20px;
+  border-bottom:1px solid var(--line);position:sticky;top:0;background:#fff;z-index:1;}
+.mhead b{font-size:14.5px;}
+.mhead .sp{flex:1;}
+.mbody{padding:26px 30px 40px;font-size:13.5px;line-height:1.78;max-height:calc(100vh - 150px);overflow:auto;}
+.mbody h1{font-size:20px;margin:0 0 4px;}
+.mbody .rsub{font-size:12.5px;color:var(--tx3);margin-bottom:22px;}
+.mbody h2{font-size:15px;margin:26px 0 8px;padding-left:9px;border-left:3px solid var(--pri);}
+.mbody h3{font-size:13.5px;margin:16px 0 6px;color:var(--tx2);}
+.mbody p{margin:0 0 10px;}
+.mbody table{border-collapse:collapse;width:100%;margin:10px 0 16px;font-size:12.5px;}
+.mbody th{background:var(--panel2);color:var(--tx2);font-weight:600;padding:7px 10px;
+  text-align:left;border:1px solid var(--line);}
+.mbody td{padding:6px 10px;border:1px solid var(--line);vertical-align:top;}
+.mbody ul{margin:0 0 12px;padding-left:20px;}
+.mbody li{margin-bottom:4px;}
+.rmeta{background:var(--panel2);border-radius:var(--r);padding:12px 16px;margin-bottom:18px;font-size:12.5px;}
+.rmeta div{display:flex;gap:10px;padding:3px 0;}
+.rmeta span:first-child{color:var(--tx2);min-width:104px;flex:none;}
+.rnote{background:var(--wn-s);border-left:3px solid var(--wn);color:var(--wn);
+  padding:9px 14px;font-size:12.5px;border-radius:0 6px 6px 0;margin:12px 0;}
+.rok{background:var(--ok-s);border-left:3px solid var(--ok);color:var(--ok);
+  padding:9px 14px;font-size:12.5px;border-radius:0 6px 6px 0;margin:12px 0;}
