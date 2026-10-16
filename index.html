@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>京津冀政策情景快速评估平台 · 原型 v1.0</title>
-<style>
+  <style>
 :root{
   --bg:#F6F7F9; --panel:#FFFFFF; --panel2:#FAFBFC;
   --line:#E4E7EC; --line2:#EFF1F4;
@@ -204,6 +204,105 @@ pre.out{background:#0F172A;color:#E2E8F0;border-radius:var(--r);padding:14px 16p
 .toast.on{opacity:1;}
 @media (max-width:920px){ .grid2,.grid3,.verdict{grid-template-columns:1fr;}
   .crow{grid-template-columns:92px 1fr 1fr;} }
+
+/* ================= v1.1 交叉影响打分 ================= */
+.cimbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.cimbar .sp{flex:1;}
+.cimf{font-size:12.5px;color:var(--tx2);display:flex;align-items:center;gap:6px;}
+.cimf select{height:30px;width:auto;padding:0 8px;flex:none;}
+.cimstat{display:flex;flex-wrap:wrap;gap:20px;margin-top:12px;}
+.cimstat .kv{display:flex;gap:6px;align-items:baseline;font-size:12.5px;}
+.cimstat .kv span:first-child{color:var(--tx2);}
+.cimwrap{display:grid;grid-template-columns:1fr 268px;gap:14px;margin-top:16px;align-items:start;}
+@media (max-width:980px){ .cimwrap{grid-template-columns:1fr;} }
+.cimscroll{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);
+  overflow:auto;max-height:470px;box-shadow:var(--sh);}
+table.cim{border-collapse:separate;border-spacing:0;font-size:11.5px;}
+table.cim th,table.cim td{border-right:1px solid var(--line2);border-bottom:1px solid var(--line2);}
+table.cim thead th{position:sticky;top:0;background:var(--panel2);z-index:2;
+  font-weight:600;color:var(--tx2);padding:6px 4px;min-width:50px;white-space:nowrap;}
+table.cim th.cnr{position:sticky;left:0;top:0;z-index:3;background:var(--panel2);
+  padding:6px 10px;text-align:left;color:var(--tx3);font-weight:400;font-size:10.5px;min-width:96px;}
+table.cim th.crh{position:sticky;left:0;background:var(--panel2);z-index:1;
+  font-weight:600;color:var(--tx2);padding:6px 10px;text-align:left;white-space:nowrap;}
+table.cim td.cc{text-align:center;padding:6px 4px;cursor:pointer;color:var(--tx3);
+  transition:background .1s;user-select:none;}
+table.cim td.cc:hover{background:var(--pri-s);}
+table.cim td.cc.sel{outline:2px solid var(--pri);outline-offset:-2px;}
+table.cim td.cc.dimout{opacity:.16;}
+table.cim td.cdiag{background:var(--line2);color:var(--tx3);text-align:center;}
+table.cim td.v3{background:#0B4A2F;color:#fff;font-weight:600;}
+table.cim td.v2{background:#1B7F52;color:#fff;font-weight:600;}
+table.cim td.v1{background:#D6F2E4;color:#0B4A2F;}
+table.cim td.v0{color:var(--tx3);}
+table.cim td.v-1{background:#FBE3E3;color:#8C1D1D;}
+table.cim td.v-2{background:#E0605E;color:#fff;font-weight:600;}
+table.cim td.v-3{background:#8C1D1D;color:#fff;font-weight:600;}
+table.cim td.cc.low{box-shadow:inset 0 0 0 2px #F0B429;}
+table.cim td.cc.rev::after{content:"✓";font-size:8px;vertical-align:super;opacity:.75;}
+.cimside{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);
+  padding:15px;box-shadow:var(--sh);}
+.cimside .empty{font-size:12.5px;color:var(--tx3);text-align:center;padding:40px 10px;line-height:1.8;}
+.cimside .shead{font-size:11px;color:var(--tx3);margin-bottom:7px;letter-spacing:.3px;}
+.cimside .spair{font-size:14.5px;font-weight:600;margin-bottom:4px;}
+.cimside .spair .ar{color:var(--pri);margin:0 6px;font-weight:400;}
+.cimside .slabel{font-size:11.5px;color:var(--tx2);margin:14px 0 7px;}
+.cimside .sline{font-size:12px;color:var(--tx2);margin-top:7px;min-height:18px;}
+.cimside .vrow{display:flex;gap:4px;}
+.cimside .vb{flex:1;height:30px;border:1px solid var(--line);border-radius:6px;
+  font-size:12.5px;background:#fff;color:var(--tx2);}
+.cimside .vb:hover{border-color:var(--pri-b);}
+.cimside .vb.on{background:var(--pri);border-color:var(--pri);color:#fff;font-weight:600;}
+.cimside .crow{display:flex;gap:6px;}
+.cimside .cb{flex:1;height:28px;border:1px solid var(--line);border-radius:6px;
+  font-size:12.5px;background:#fff;color:var(--tx2);}
+.cimside .cb.on{background:var(--pri-s);border-color:var(--pri-b);color:var(--pri-d);font-weight:600;}
+.cimside textarea.why{height:78px;padding:8px 10px;font-size:12.5px;resize:vertical;line-height:1.6;}
+table.bal{width:100%;border-collapse:collapse;font-size:12.5px;}
+table.bal th{background:var(--panel2);color:var(--tx2);font-weight:600;
+  padding:7px 10px;text-align:left;border-bottom:1px solid var(--line);}
+table.bal td{padding:6px 10px;border-bottom:1px solid var(--line2);}
+table.bal td.top{color:var(--ok);font-weight:600;}
+table.bal tr:last-child td{border-bottom:none;}
+
+/* ================= v1.1 政策库与映射 ================= */
+.polwrap{display:grid;grid-template-columns:1fr 302px;gap:14px;margin-top:16px;align-items:start;}
+@media (max-width:980px){ .polwrap{grid-template-columns:1fr;} }
+.pollist{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);
+  max-height:540px;overflow:auto;box-shadow:var(--sh);}
+.pgh{position:sticky;top:0;background:var(--panel2);color:var(--tx2);font-size:11.5px;
+  font-weight:600;padding:7px 14px;border-bottom:1px solid var(--line);z-index:1;}
+.pitem{display:flex;align-items:center;gap:8px;padding:8px 14px;
+  border-bottom:1px solid var(--line2);cursor:pointer;font-size:13px;}
+.pitem:hover{background:var(--pri-s);}
+.pitem.sel{background:var(--pri-s);box-shadow:inset 3px 0 0 var(--pri);}
+.pitem .pn{flex:1;color:var(--tx);}
+.pitem .pa{font-size:11px;color:var(--tx3);background:var(--panel2);
+  border:1px solid var(--line);border-radius:4px;padding:1px 6px;flex:none;}
+.pitem .pm{font-size:11px;font-weight:600;color:var(--ok);background:var(--ok-s);
+  border-radius:99px;padding:1px 7px;flex:none;}
+.pitem .pm.no{color:var(--tx3);background:var(--line2);}
+.polside{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);
+  padding:15px;box-shadow:var(--sh);}
+.polside .empty{font-size:12.5px;color:var(--tx3);text-align:center;padding:40px 10px;line-height:1.8;}
+.polside .shead{font-size:11px;color:var(--tx3);margin-bottom:8px;letter-spacing:.3px;}
+.polside .pname{font-size:14.5px;font-weight:600;line-height:1.5;margin-bottom:5px;}
+.polside .pmeta{font-size:11.5px;color:var(--tx3);margin-bottom:4px;}
+.polside .slabel{font-size:11.5px;color:var(--tx2);margin:15px 0 8px;}
+.covrow{display:flex;align-items:center;justify-content:space-between;gap:8px;
+  padding:5px 0;border-bottom:1px solid var(--line2);font-size:12.5px;}
+.covrow:last-child{border-bottom:none;}
+.cvd{color:var(--tx);}
+.cvc{font-size:11.5px;color:var(--ok);font-weight:600;flex:none;}
+.cvc.zero{color:var(--tx3);font-weight:400;}
+.maprow{border-left:2px solid var(--pri-b);padding:2px 0 2px 10px;margin-bottom:11px;}
+.maprow .mr1{display:flex;align-items:center;gap:7px;font-size:13px;}
+.maprow .mr2{font-size:11.5px;color:var(--tx2);margin-top:3px;line-height:1.6;}
+.conf{font-size:10.5px;border-radius:4px;padding:1px 6px;font-weight:600;flex:none;}
+.conf.ok{background:var(--ok-s);color:var(--ok);}
+.conf.wn{background:var(--wn-s);color:var(--wn);}
+.conf.rd{background:var(--rd-s);color:var(--rd);}
+
 </style>
 </head>
 <body>
@@ -239,7 +338,7 @@ pre.out{background:#0F172A;color:#E2E8F0;border-radius:var(--r);padding:14px 16p
   </div>
 </section>
 
-<!-- ============ 步骤 1 ============ -->
+<!-- ============ 步骤 2 ============ -->
 <section class="pane" id="p0">
   <h2 class="pt">选择分析尺度</h2>
   <p class="pd">勾选本次情景覆盖的层级。现有下游模型各自只在自己那一层工作，跨层要靠人工对；本平台把三层放在同一套假设下检验。</p>
@@ -285,8 +384,43 @@ pre.out{background:#0F172A;color:#E2E8F0;border-radius:var(--r);padding:14px 16p
   </div>
 </section>
 
-<!-- ============ 步骤 2 ============ -->
+<!-- ============ 步骤 2：政策库与映射（v1.1 新增） ============ -->
 <section class="pane" id="p1">
+  <h2 class="pt">政策库与映射</h2>
+  <p class="pd">把政策数据集装进平台。内置 106 条政策路径（89 条来自 CCPID 国家库、17 条为京津冀地方补充），
+    也可以上传自己的清单。点开任一条路径，右侧立刻显示它对应到模型的哪些描述符——这就是政策语言与模型语言之间的那层对照表。</p>
+
+  <div class="card">
+    <div class="cimbar">
+      <button class="btn pri" onclick="applyPolicy()">按政策库预填来源</button>
+      <button class="btn" onclick="uploadPolicy()">上传政策清单</button>
+      <div class="sp"></div>
+      <span class="cimf">类别
+        <select class="txt" id="polCat" onchange="renderPolicy()">
+          <option value="all">全部</option>
+          <option>经济工具</option><option>规制工具</option><option>政府投资与消费</option>
+          <option>信息工具</option><option>自愿措施</option>
+        </select></span>
+      <span class="cimf">只看
+        <select class="txt" id="polOnly" onchange="renderPolicy()">
+          <option value="all">全部路径</option>
+          <option value="hit">有对应的</option>
+          <option value="miss">无对应的</option>
+        </select></span>
+    </div>
+    <div class="cimstat" id="polStat"></div>
+  </div>
+
+  <div class="polwrap">
+    <div class="pollist" id="polList"></div>
+    <div class="polside" id="polSide">
+      <div class="empty">点左侧任一条政策路径，查看它对应到哪些描述符</div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 步骤 3 ============ -->
+<section class="pane" id="p2">
   <h2 class="pt">选择描述符与状态</h2>
   <p class="pd">描述符按三级组织。勾选后点名称展开，可以看到它的<b>翻译依据</b>与<b>时间锚点</b>——这一步是整个流程的核心。</p>
 
@@ -319,8 +453,8 @@ pre.out{background:#0F172A;color:#E2E8F0;border-radius:var(--r);padding:14px 16p
   </div>
 </section>
 
-<!-- ============ 步骤 3 ============ -->
-<section class="pane" id="p2">
+<!-- ============ 步骤 4 ============ -->
+<section class="pane" id="p3">
   <h2 class="pt">设置校验方式</h2>
   <p class="pd">描述符两两之间的交叉影响需要打分。这里决定由谁来打、以及是否引入历史数据。</p>
 
@@ -367,8 +501,45 @@ pre.out{background:#0F172A;color:#E2E8F0;border-radius:var(--r);padding:14px 16p
   </div>
 </section>
 
-<!-- ============ 步骤 4 ============ -->
-<section class="pane" id="p3">
+<!-- ============ 步骤 5：交叉影响打分（v1.1 新增） ============ -->
+<section class="pane" id="p4">
+  <h2 class="pt">交叉影响打分</h2>
+  <p class="pd">这是 CIB 的核心环节：逐个判断"一个描述符取某个状态"会怎样影响"另一个描述符的状态"，用 −3 到 +3 表达。
+    可以直接用 AI 预填一版，再由人来审——只重点看那些低置信度的格子。</p>
+
+  <div class="card">
+    <div class="cimbar">
+      <button class="btn pri" id="aiBtn" onclick="aiFill()">AI 预填一版</button>
+      <button class="btn" onclick="resetCim()">清空重来</button>
+      <div class="sp"></div>
+      <span class="cimf">筛选
+        <select class="txt" id="confFilter" onchange="renderCim()">
+          <option value="all">全部格</option>
+          <option value="low">仅低置信度</option>
+          <option value="unrev">仅未审核</option>
+        </select></span>
+    </div>
+    <div class="cimstat" id="cimStat"></div>
+  </div>
+
+  <div class="cimwrap">
+    <div class="cimscroll"><table class="cim" id="cimGrid"></table></div>
+    <div class="cimside" id="cimSide">
+      <div class="empty">点击矩阵中任意一格，查看或修改这条判断</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>影响平衡预览 <span class="tag">随打分自动重算</span></h3>
+    <p style="font-size:12.5px;color:var(--tx2);margin-bottom:10px;">
+      把某个状态下的所有来向影响相加，就得到该描述符的<b>影响平衡值</b>。箭头标出的是当前取值中得分最高的一项——
+      如果这一项正好是情景里选定的状态，就说明该假设是自洽的。</p>
+    <div id="cimBalance"></div>
+  </div>
+</section>
+
+<!-- ============ 步骤 6 ============ -->
+<section class="pane" id="p5">
   <h2 class="pt">选择目标模型</h2>
   <p class="pd">选中后平台按其所需的文件格式生成情景配置。选择模型就像选择系统版本，选中即可下载对应配置。</p>
   <div class="grid2">
@@ -386,8 +557,8 @@ pre.out{background:#0F172A;color:#E2E8F0;border-radius:var(--r);padding:14px 16p
   <div class="card" style="margin-top:16px;" id="modelDetail"></div>
 </section>
 
-<!-- ============ 步骤 5 ============ -->
-<section class="pane" id="p4">
+<!-- ============ 步骤 7 ============ -->
+<section class="pane" id="p6">
   <h2 class="pt">检验与导出</h2>
   <p class="pd">先看一致性检验的结果，再导出目标模型可直接读取的情景配置文件。</p>
 
@@ -551,6 +722,116 @@ const TREE=[
       a30:'全国碳市场已扩围至钢铁、水泥、电解铝；价格水平与三地覆盖范围待核定',
       a35:'统一标注为待定'}]}
  ]}
+];
+
+/* 政策数据集：106 条路径（89 条 CCPID 国家库 ＋ 17 条京津冀地方补充） */
+const POLICY=[
+{c:'经济工具',g:'交易机制',n:'排放交易体系（ETS）',a:'ETS',s:'能源；工业',t:2,m:[['碳价水平与碳市场覆盖','高','直接设定碳价与覆盖范围']]},
+{c:'经济工具',g:'交易机制',n:'可交易绩效标准',a:'TPS',s:'交通',t:0,m:[['单位产品能耗限额强度','中','以绩效基准形成交易约束']]},
+{c:'经济工具',g:'交易机制',n:'可交易可再生能源证书/配额/RPS',a:'REC',s:'能源',t:2,m:[['本地可再生能源开发规模','高','配额直接要求可再生能源占比']]},
+{c:'经济工具',g:'补贴',n:'优惠贷款、贷款担保和信用支持',a:'CLG',s:'跨部门',t:8,m:[['研发与示范投入强度','低','融资支持间接影响技术投入']]},
+{c:'经济工具',g:'补贴',n:'可再生电力差价合约（CfD）',a:'ECD',s:'能源',t:0,m:[['本地可再生能源开发规模','高','以价格保障撬动装机']]},
+{c:'经济工具',g:'补贴',n:'低碳车辆购置补贴',a:'VPS',s:'交通',t:10,m:[['新能源汽车渗透强度','高','直接拉动新能源车销量占比']]},
+{c:'经济工具',g:'补贴',n:'生态系统服务付费',a:'ESP',s:'农业、林业和其他土地利用',t:3,m:[['碳移除规模','高','付费购买生态碳汇服务']]},
+{c:'经济工具',g:'补贴',n:'以旧换新补贴',a:'TIS',s:'交通；农业、林业和其他土地利用；建筑',t:0,m:[['新能源汽车渗透强度','中','以置换拉动存量更新'],['终端电气化率','低','家电以旧换新影响用电结构']]},
+{c:'经济工具',g:'补贴',n:'清洁取暖补贴',a:'CHS',s:'建筑',t:14,m:[['清洁取暖替代强度','高','直接推动取暖方式替代']]},
+{c:'经济工具',g:'补贴',n:'回收处理奖补',a:'RTS',s:'废弃物',t:2,m:[['产业结构','低','影响循环利用产业比重']]},
+{c:'经济工具',g:'补贴',n:'低排放机械购置补贴',a:'MPS',s:'农业、林业和其他土地利用',t:8,m:[['单位产品能耗限额强度','中','更新机械降低单位能耗'],['新能源汽车渗透强度','低','非道路机械电动化']]},
+{c:'经济工具',g:'税收',n:'企业所得税优惠',a:'CIT',s:'工业；建筑；废弃物；能源',t:0,m:[['产业结构','低','税收优惠引导行业投资方向']]},
+{c:'经济工具',g:'税收',n:'车辆购置税优惠',a:'VPT',s:'交通',t:0,m:[['新能源汽车渗透强度','高','购置成本直降，强激励']]},
+{c:'经济工具',g:'税收',n:'燃料消费税',a:'FET',s:'能源',t:0,m:[['新能源汽车渗透强度','中','抬高燃油车使用成本']]},
+{c:'经济工具',g:'税收',n:'差别化车辆税',a:'DVT',s:'交通',t:0,m:[['新能源汽车渗透强度','中','按排放差别征税']]},
+{c:'经济工具',g:'税收',n:'车船税优惠',a:'VOT',s:'交通',t:0,m:[['新能源汽车渗透强度','中','持有成本激励']]},
+{c:'经济工具',g:'税收',n:'增值税优惠',a:'VAT',s:'工业；废弃物；农业、林业和其他土地利用；能源',t:0,m:[['产业结构','低','间接影响行业投资']]},
+{c:'经济工具',g:'税收',n:'环境污染税',a:'EPT',s:'跨部门',t:0,m:[['碳价水平与碳市场覆盖','中','形成准碳价信号']]},
+{c:'经济工具',g:'税收',n:'消费税优惠',a:'CTI',s:'工业；交通',t:0,m:[['新能源汽车渗透强度','低','间接激励']]},
+{c:'经济工具',g:'税收',n:'政府性基金减免',a:'PLE',s:'能源',t:0,m:[['产业结构','低','降低行业成本']]},
+{c:'经济工具',g:'税收',n:'城镇土地使用税优惠',a:'ULT',s:'能源',t:0,m:[['产业结构','低','用地成本激励']]},
+{c:'经济工具',g:'行政定价',n:'工业差别电价',a:'IDP',s:'工业',t:1,m:[['工业节能改造强度','中','电价差推动节能改造'],['单位产品能耗限额强度','中','抬高高耗能成本']]},
+{c:'经济工具',g:'行政定价',n:'居民阶梯电价',a:'RIT',s:'建筑',t:1,m:[['清洁取暖替代强度','低','影响取暖用能成本'],['终端电气化率','低','影响居民用电行为']]},
+{c:'经济工具',g:'行政定价',n:'容量电价机制',a:'CPM',s:'能源',t:1,m:[['区域电力互济强度','中','影响调峰与跨区受电经济性']]},
+{c:'规制工具',g:'技术标准',n:'化石燃料供暖系统禁止和淘汰',a:'BFH',s:'工业；建筑',t:4,m:[['清洁取暖替代强度','高','强制淘汰，替代力度最强']]},
+{c:'规制工具',g:'技术标准',n:'陆路交通燃料生物燃料配额',a:'BQL',s:'交通',t:1,m:[['新能源汽车渗透强度','中','配额约束燃油路径'],['一次能源结构','低','影响交通用能品种']]},
+{c:'规制工具',g:'技术标准',n:'电动机最低能源绩效标准（MEPS）',a:'MEM',s:'工业',t:0,m:[['单位产品能耗限额强度','中','设备能效下限约束']]},
+{c:'规制工具',g:'技术标准',n:'消耗臭氧层物质禁止和淘汰',a:'ODS',s:'工业',t:0,m:[]},
+{c:'规制工具',g:'技术标准',n:'含氟温室气体禁止和淘汰',a:'FGA',s:'工业',t:0,m:[]},
+{c:'规制工具',g:'技术标准',n:'塑料制品禁止和淘汰',a:'BPP',s:'工业',t:2,m:[]},
+{c:'规制工具',g:'绩效标准',n:'燃油经济性标准',a:'FEC',s:'交通',t:0,m:[['新能源汽车渗透强度','中','约束燃油车能效，间接推动替代']]},
+{c:'规制工具',g:'绩效标准',n:'建筑最低能源绩效标准（MEPS）',a:'MEB',s:'建筑',t:6,m:[['建筑能效标准强度','高','建筑节能的强制底线']]},
+{c:'规制工具',g:'绩效标准',n:'烹饪系统最低能源绩效标准（MEPS）',a:'MEC',s:'建筑',t:0,m:[['终端电气化率','低','炊事电气化'],['清洁取暖替代强度','低','炊事用能替代']]},
+{c:'规制工具',g:'绩效标准',n:'电器最低能源绩效标准（MEPS）',a:'MEA',s:'工业；建筑',t:0,m:[['终端电气化率','中','电器效率下限影响用电量']]},
+{c:'规制工具',g:'绩效标准',n:'照明系统最低能源绩效标准（MEPS）',a:'MEL',s:'建筑；工业；交通',t:0,m:[['终端电气化率','低','照明效率影响用电']]},
+{c:'规制工具',g:'绩效标准',n:'空间制冷最低能源绩效标准（MEPS）',a:'MCS',s:'建筑',t:0,m:[['建筑能效标准强度','中','建筑用能设备效率']]},
+{c:'规制工具',g:'绩效标准',n:'空间供暖最低能源绩效标准（MEPS）',a:'MHS',s:'建筑；工业',t:0,m:[['建筑能效标准强度','中','供暖设备效率'],['清洁取暖替代强度','中','供暖方式约束']]},
+{c:'规制工具',g:'绩效标准',n:'热水系统最低能源绩效标准（MEPS）',a:'MWH',s:'建筑',t:0,m:[['建筑能效标准强度','中','热水系统效率']]},
+{c:'规制工具',g:'绩效标准',n:'工业热工设备最低能源绩效标准（MEPS）',a:'MIT',s:'工业',t:0,m:[['单位产品能耗限额强度','中','工业设备能效下限']]},
+{c:'规制工具',g:'绩效标准',n:'制冷设备最低能源绩效标准（MEPS）',a:'MRE',s:'工业；建筑',t:0,m:[['终端电气化率','低','制冷设备效率']]},
+{c:'规制工具',g:'绩效标准',n:'单位产品能源消耗限额',a:'EIL',s:'工业；能源',t:0,m:[['单位产品能耗限额强度','高','直接就是该描述符的政策工具']]},
+{c:'规制工具',g:'绩效标准',n:'速度限值',a:'SPD',s:'交通',t:0,m:[['新能源汽车渗透强度','低','交通需求侧管理']]},
+{c:'规制工具',g:'框架性规制',n:'农业污染管控',a:'APC',s:'农业、林业和其他土地利用',t:1,m:[['碳移除规模','低','影响农业碳汇与土地利用'],['用水总量与结构','低','影响农业用水']]},
+{c:'规制工具',g:'框架性规制',n:'产能置换',a:'CAP',s:'工业',t:1,m:[['钢铁工艺路线','高','产能置换直接决定工艺结构']]},
+{c:'规制工具',g:'框架性规制',n:'生态系统保护制度',a:'ECM',s:'农业、林业和其他土地利用',t:2,m:[['碳移除规模','高','生态系统的保护与恢复']]},
+{c:'规制工具',g:'框架性规制',n:'生态保护补偿',a:'ECO',s:'农业、林业和其他土地利用',t:1,m:[['碳移除规模','中','以补偿换生态修复']]},
+{c:'规制工具',g:'框架性规制',n:'企业能源管理义务',a:'EEM',s:'跨部门',t:2,m:[['工业节能改造强度','高','强制建立能源管理体系']]},
+{c:'规制工具',g:'框架性规制',n:'公共机构能源绩效管理框架',a:'EPM',s:'建筑',t:3,m:[['建筑能效标准强度','中','公共建筑用能管理']]},
+{c:'规制工具',g:'框架性规制',n:'生产者责任延伸',a:'EPR',s:'跨部门；废弃物；工业',t:0,m:[['产业结构','低','影响回收与制造环节结构']]},
+{c:'规制工具',g:'框架性规制',n:'生态环境分区管控',a:'EEZ',s:'跨部门',t:1,m:[['京津冀协同机制强度','中','跨区域空间管控'],['用水总量与结构','低','生态空间约束']]},
+{c:'规制工具',g:'框架性规制',n:'产业转型治理',a:'ITG',s:'跨部门',t:27,m:[['产业结构','高','直接调整产业结构']]},
+{c:'规制工具',g:'框架性规制',n:'排污许可管理',a:'PDP',s:'工业',t:0,m:[['产业结构','低','约束高排放行业']]},
+{c:'规制工具',g:'框架性规制',n:'绿色金融治理框架',a:'GFG',s:'跨部门',t:1,m:[['研发与示范投入强度','低','引导资金流向低碳技术']]},
+{c:'规制工具',g:'框架性规制',n:'生产调度管控',a:'PSM',s:'工业',t:1,m:[['钢铁工艺路线','中','限产调度影响产量与工艺']]},
+{c:'规制工具',g:'框架性规制',n:'可再生能源优先调度',a:'RPD',s:'能源',t:0,m:[['区域电力互济强度','高','决定跨区送受电安排'],['本地可再生能源开发规模','中','消纳保障促进装机']]},
+{c:'规制工具',g:'框架性规制',n:'目标责任制度',a:'TRS',s:'跨部门',t:123,m:[['京津冀协同机制强度','高','目标分解与考核的核心机制']]},
+{c:'政府投资与消费',g:'公共投资',n:'政府资助研发与示范计划',a:'RDD',s:'交通；工业；能源；建筑',t:0,m:[['研发与示范投入强度','高','直接对应研发示范投入']]},
+{c:'政府投资与消费',g:'公共投资',n:'中央预算内投资',a:'CBI',s:'交通；工业；能源；建筑；农业、林业和其他土地利用',t:0,m:[['研发与示范投入强度','中','投资方向决定技术投入']]},
+{c:'政府投资与消费',g:'公共投资',n:'政府投资基金',a:'GIF',s:'跨部门',t:0,m:[['研发与示范投入强度','中','基金带动技术投资']]},
+{c:'政府投资与消费',g:'公共采购',n:'绿色公共采购',a:'GPP',s:'工业；建筑；交通',t:8,m:[['单位产品能耗限额强度','低','采购标准影响供给端'],['产业结构','低','引导产业方向']]},
+{c:'政府投资与消费',g:'公共评估规则',n:'战略环境评价',a:'SEA',s:'跨部门',t:0,m:[['京津冀协同机制强度','低','跨区域评价协同']]},
+{c:'政府投资与消费',g:'公共评估规则',n:'气候绩效评估考核',a:'CPA',s:'跨部门',t:1,m:[['京津冀协同机制强度','中','考核机制强化协同']]},
+{c:'政府投资与消费',g:'公共评估规则',n:'环境影响评价',a:'EIA',s:'跨部门',t:0,m:[]},
+{c:'政府投资与消费',g:'公共评估规则',n:'投资项目节能减排评价',a:'ECR',s:'跨部门',t:7,m:[['单位产品能耗限额强度','中','项目层面能效门槛']]},
+{c:'政府投资与消费',g:'公共评估规则',n:'环境合规审计',a:'ECA',s:'工业',t:1,m:[['单位产品能耗限额强度','低','合规约束']]},
+{c:'信息工具',g:'比较性能效标签',n:'建筑能效标签',a:'ELB',s:'建筑',t:0,m:[['建筑能效标准强度','中','信息工具配合标准']]},
+{c:'信息工具',g:'比较性能效标签',n:'产品和电器能效标签',a:'ELP',s:'工业；建筑；能源',t:0,m:[['终端电气化率','低','影响电器选择']]},
+{c:'信息工具',g:'比较性能效标签',n:'车辆能效标签',a:'ELV',s:'交通',t:0,m:[['新能源汽车渗透强度','低','信息引导']]},
+{c:'信息工具',g:'报告与披露要求',n:'能源统计与审计',a:'ESA',s:'建筑；交通',t:1,m:[['单位产品能耗限额强度','中','计量基础上建立能效约束']]},
+{c:'信息工具',g:'报告与披露要求',n:'可持续信息披露',a:'SID',s:'跨部门',t:0,m:[]},
+{c:'信息工具',g:'报告与披露要求',n:'温室气体排放报告',a:'GRV',s:'能源；工业；交通',t:3,m:[['碳价水平与碳市场覆盖','中','碳市场运行的数据基础']]},
+{c:'信息工具',g:'报告与披露要求',n:'绿色金融统计',a:'GFS',s:'跨部门',t:0,m:[]},
+{c:'信息工具',g:'报告与披露要求',n:'绿色金融业绩评价',a:'GFE',s:'跨部门',t:1,m:[]},
+{c:'信息工具',g:'能力建设与公众意识',n:'技术推广目录',a:'TPC',s:'工业；跨部门；废弃物',t:1,m:[['研发与示范投入强度','低','技术扩散通道']]},
+{c:'信息工具',g:'能力建设与公众意识',n:'产业指导目录',a:'IGC',s:'跨部门',t:0,m:[['产业结构','中','直接引导产业方向']]},
+{c:'信息工具',g:'能力建设与公众意识',n:'技术指南',a:'TGC',s:'工业；农业、林业和其他土地利用',t:0,m:[]},
+{c:'信息工具',g:'能力建设与公众意识',n:'能力建设计划',a:'CBP',s:'工业',t:5,m:[]},
+{c:'信息工具',g:'能力建设与公众意识',n:'公众宣传教育活动',a:'PAC',s:'废弃物；跨部门；交通',t:0,m:[]},
+{c:'信息工具',g:'能力建设与公众意识',n:'公民行为规范',a:'COC',s:'跨部门',t:0,m:[]},
+{c:'信息工具',g:'能力建设与公众意识',n:'职业资格认证',a:'PCE',s:'跨部门',t:0,m:[]},
+{c:'信息工具',g:'能力建设与公众意识',n:'教育体系建设',a:'ESI',s:'跨部门',t:1,m:[]},
+{c:'信息工具',g:'能力建设与公众意识',n:'绿色标准体系',a:'GSS',s:'工业',t:2,m:[['单位产品能耗限额强度','低','标准体系的底层支撑']]},
+{c:'自愿措施',g:'自愿交易体系',n:'自愿碳市场',a:'VCM',s:'农业、林业和其他土地利用；能源；交通；工业；建筑',t:10,m:[['碳价水平与碳市场覆盖','中','碳价的另一条形成路径']]},
+{c:'自愿措施',g:'自愿性信息工具',n:'可持续金融分类目录',a:'SFT',s:'跨部门',t:0,m:[]},
+{c:'自愿措施',g:'自愿性信息工具',n:'自愿碳中和方法',a:'VCN',s:'跨部门',t:0,m:[]},
+{c:'自愿措施',g:'自愿性信息工具',n:'自愿性采购指南',a:'VPG',s:'跨部门',t:0,m:[]},
+{c:'自愿措施',g:'自愿性信息工具',n:'自愿性认证标识',a:'VLB',s:'跨部门；建筑；工业',t:2,m:[]},
+{c:'自愿措施',g:'自愿性信息工具',n:'自愿性信息披露',a:'VID',s:'跨部门',t:1,m:[]},
+{c:'自愿措施',g:'自愿性目标',n:'自愿性目标',a:'VTG',s:'工业；能源',t:0,m:[['京津冀协同机制强度','低','自愿性承诺反映协同意愿']]},
+{c:'经济工具',g:'补贴',n:'低排放运输运营奖励',a:'地方补充',s:'交通',t:2,m:[['新能源汽车渗透强度','中','从运营端拉动新能源化']]},
+{c:'经济工具',g:'补贴',n:'减污降碳技术研发与示范补贴',a:'地方补充',s:'能源；工业；交通；废弃物；跨部门',t:19,m:[['研发与示范投入强度','高','直接补贴技术研发示范'],['碳捕集利用与封存部署规模','中','CCUS 示范的主要资金渠道']]},
+{c:'经济工具',g:'补贴',n:'节能技术改造补贴',a:'地方补充',s:'能源；工业；建筑；交通；农业、林业和其他土地利用；跨部门',t:27,m:[['工业节能改造强度','高','直接对应工业节能改造']]},
+{c:'经济工具',g:'补贴',n:'节能降碳专业服务补贴',a:'地方补充',s:'工业；跨部门',t:7,m:[['工业节能改造强度','中','以服务购买推动改造']]},
+{c:'经济工具',g:'补贴',n:'可再生能源项目建设补贴',a:'地方补充',s:'能源；工业；建筑',t:12,m:[['本地可再生能源开发规模','高','直接支持装机建设']]},
+{c:'经济工具',g:'补贴',n:'绿电消费奖励',a:'地方补充',s:'能源',t:8,m:[['区域电力互济强度','中','激励跨区购绿电'],['本地可再生能源开发规模','中','拉动本地消纳']]},
+{c:'经济工具',g:'补贴',n:'绿色低碳评价认定奖励',a:'地方补充',s:'工业；跨部门',t:21,m:[['产业结构','中','以认定引导产业升级']]},
+{c:'经济工具',g:'补贴',n:'绿色建筑发展补贴',a:'地方补充',s:'建筑；跨部门',t:18,m:[['建筑能效标准强度','高','直接推动建筑节能']]},
+{c:'经济工具',g:'补贴',n:'绿色债券承销奖励',a:'地方补充',s:'跨部门',t:1,m:[]},
+{c:'经济工具',g:'补贴',n:'碳足迹管理奖励',a:'地方补充',s:'工业；跨部门',t:1,m:[]},
+{c:'规制工具',g:'框架性规制',n:'可再生能源项目开发管理',a:'地方补充',s:'能源；跨部门',t:8,m:[['本地可再生能源开发规模','中','项目审批与管理约束']]},
+{c:'政府投资与消费',g:'公共评估规则',n:'气候友好型企业认定',a:'地方补充',s:'跨部门',t:1,m:[['产业结构','低','企业层面的引导']]},
+{c:'经济工具',g:'补贴',n:'可再生能源发电量补贴',a:'地方补充',s:'能源',t:1,m:[['本地可再生能源开发规模','高','按发电量直接补贴']]},
+{c:'规制工具',g:'技术标准',n:'建筑可再生能源设施配置要求',a:'地方补充',s:'建筑；能源',t:1,m:[['建筑能效标准强度','中','建筑本体节能要求'],['本地可再生能源开发规模','中','强制配置建筑光伏等']]},
+{c:'经济工具',g:'补贴',n:'低碳交通基础设施建设补贴',a:'地方补充',s:'交通；能源',t:2,m:[['新能源汽车渗透强度','中','补能设施是渗透前提']]},
+{c:'经济工具',g:'补贴',n:'储能设施建设补贴',a:'地方补充',s:'能源；工业',t:1,m:[['本地可再生能源开发规模','中','储能配套提升消纳'],['区域电力互济强度','中','储能增强跨区调节能力']]},
+{c:'经济工具',g:'补贴',n:'高能效家电购置补贴',a:'地方补充',s:'建筑',t:3,m:[['终端电气化率','低','家电效率影响用电量']]},
 ];
 
 const LAYERS=[
@@ -1018,7 +1299,7 @@ function tglModel(node){
   curModel=node.dataset.model; render();
 }
 function renderSteps(){
-  const NM=['选择尺度','描述符与状态','校验方式','目标模型','检验与导出'];
+  const NM=['选择尺度','政策库与映射','描述符与状态','校验方式','交叉影响打分','目标模型','检验与导出'];
   let h='';
   NM.forEach((nm,i)=>{
     if(i>0) h+='<div class="stepbar"></div>';
@@ -1028,9 +1309,9 @@ function renderSteps(){
   });
   document.getElementById('steps').innerHTML=h;
 }
-function goto(i){ cur=Math.max(0,Math.min(4,i)); render(); window.scrollTo({top:0,behavior:'smooth'}); }
+function goto(i){ cur=Math.max(0,Math.min(6,i)); render(); window.scrollTo({top:0,behavior:'smooth'}); }
 function go(d){ goto(cur+d); }
-function nextStep(){ if(cur===4){ inCmp=true; render(); window.scrollTo({top:0,behavior:'smooth'}); } else goto(cur+1); }
+function nextStep(){ if(cur===6){ inCmp=true; render(); window.scrollTo({top:0,behavior:'smooth'}); } else goto(cur+1); }
 function pickScen(i){ scenIdx=i; renderCmp(); }
 function enterWizard(){ inCmp=false; cur=0; render(); window.scrollTo({top:0,behavior:'smooth'}); }
 function backToCmp(){ inCmp=true; render(); window.scrollTo({top:0,behavior:'smooth'}); }
@@ -1065,10 +1346,285 @@ function loadCfg(){
   }catch(e){ toast('载入失败'); }
 }
 
+/* ================= 政策库与映射（v1.1 新增） ================= */
+let polSel=null, polUser=[];
+function PALLC(){ return POLICY.concat(polUser); }
+function renderPolicy(){
+  const list=document.getElementById('polList'); if(!list) return;
+  const cat=(document.getElementById('polCat')||{}).value||'all';
+  const only=(document.getElementById('polOnly')||{}).value||'all';
+  const all=PALLC();
+  const arr=all.filter(p=>(cat==='all'||p.c===cat)&&(only==='all'||(only==='hit')===(p.m.length>0)));
+  if(!arr.length){
+    list.innerHTML='<div class="empty" style="padding:34px;">没有符合条件的路径</div>';
+  }else{
+    let h='', last='';
+    arr.forEach(p=>{
+      const i=all.indexOf(p);
+      if(p.c!==last){ h+='<div class="pgh">'+p.c+'</div>'; last=p.c; }
+      h+='<div class="pitem'+(i===polSel?' sel':'')+'" onclick="pickPolicy('+i+')">'+
+         '<span class="pn">'+p.n+'</span>'+
+         '<span class="pa">'+(p.a==='地方补充'?'地方':(p.a||'—'))+'</span>'+
+         (p.m.length?('<span class="pm">'+p.m.length+'</span>'):'<span class="pm no">0</span>')+
+         '</div>';
+    });
+    list.innerHTML=h;
+  }
+  const hit=all.filter(p=>p.m.length>0).length;
+  const covered={};
+  all.forEach(p=>p.m.forEach(x=>{ covered[x[0]]=1; }));
+  document.getElementById('polStat').innerHTML=
+    '<span class="kv"><span>政策路径</span><span>'+all.length+' 条</span></span>'+
+    '<span class="kv"><span>有对应描述符</span><span style="color:var(--ok)">'+hit+' 条</span></span>'+
+    '<span class="kv"><span>无对应</span><span style="color:var(--tx2)">'+(all.length-hit)+' 条</span></span>'+
+    '<span class="kv"><span>覆盖描述符</span><span>'+Object.keys(covered).length+' / 19 个</span></span>'+
+    '<div class="dim" style="margin-top:8px;font-size:12px;">列表右侧的小数字是这条路径对应到的描述符个数，'
+    +'标灰的 0 表示这条政策工具不落在本模型变量口径内——它本身就是一条有用的属性。</div>';
+  polSidePanel();
+}
+function pickPolicy(i){ polSel=i; renderPolicy(); }
+function polSidePanel(){
+  const el=document.getElementById('polSide'); if(!el) return;
+  const all=PALLC();
+  if(polSel==null||!all[polSel]){
+    const cov={};
+    all.forEach(p=>p.m.forEach(x=>{ cov[x[0]]=(cov[x[0]]||0)+1; }));
+    el.innerHTML='<div class="shead">政策库对描述符的覆盖</div>'+
+      allDescs().map(d=>{
+        const c=cov[d.n]||0;
+        return '<div class="covrow"><span class="cvd">'+d.n+'</span>'+
+          '<span class="cvc'+(c?'':' zero')+'">'+(c?c+' 条路径':'无政策覆盖')+'</span></div>';
+      }).join('')+
+      '<div class="dim" style="font-size:12px;margin-top:11px;line-height:1.7;">'
+      +'「经济增长速度」与「人口空间分布与收缩态势」零覆盖是正常的——'
+      +'它们是外生的社会经济假设，不由政策工具驱动。</div>';
+    return;
+  }
+  const p=all[polSel];
+  el.innerHTML=
+   '<div class="shead">'+(p.a==='地方补充'||p.a==='自定义'?'京津冀地方补充':'CCPID 国家库')+'</div>'+
+   '<div class="pname">'+p.n+'</div>'+
+   '<div class="pmeta">'+p.c+' · '+p.g+(p.s?' · '+p.s:'')+(p.t?'　工具 '+p.t+' 项':'')+'</div>'+
+   '<div class="slabel">对应到的描述符</div>'+
+   (p.m.length? p.m.map(x=>
+     '<div class="maprow"><div class="mr1"><b>'+x[0]+'</b>'+
+     '<span class="conf '+(x[1]==='高'?'ok':(x[1]==='中'?'wn':'rd'))+'">'+x[1]+'</span></div>'+
+     '<div class="mr2">'+x[2]+'</div></div>').join('')
+   : '<div class="dim" style="font-size:12.5px;line-height:1.7;">这条路径与本模型的描述符没有直接对应。'
+     +'原因多为：控的不是 CO₂（如消耗臭氧层物质、含氟气体、塑料），或属于无定量落点的制度安排'
+     +'（如信息披露、能力建设、宣传教育）。</div>');
+}
+function applyPolicy(){
+  if(nSel()===0){ toast('先到「描述符与状态」勾选描述符，再回来预填'); return; }
+  const cov={};
+  PALLC().forEach(p=>p.m.forEach(x=>{ if(!cov[x[0]]) cov[x[0]]=x; }));
+  let n=0;
+  Object.keys(sel.desc).forEach(nm=>{
+    if(cov[nm]){ sel.desc[nm].src='政策库 · 依据「'+cov[nm][2]+'」；置信度 '+cov[nm][1]; n++; }
+    else sel.desc[nm].src='（政策库中无对应路径，属外生输入或需另行设定）';
+  });
+  pulled=true;
+  toast('已按政策库映射预填 '+n+' 个描述符的来源说明');
+  render();
+}
+function uploadPolicy(){
+  const inp=document.createElement('input');
+  inp.type='file'; inp.accept='.csv,.txt';
+  inp.onchange=e=>{
+    const f=e.target.files[0]; if(!f) return;
+    const r=new FileReader();
+    r.onload=()=>{
+      const lines=String(r.result).split(/\r?\n/).filter(x=>x.trim());
+      const add=[];
+      lines.forEach((ln,i)=>{
+        if(i===0&&/路径|path|name/i.test(ln)&&!/[，,]/.test(ln.slice(0,12))) return;
+        const p=ln.split(/[,\t]/).map(x=>x.trim());
+        if(p[0]) add.push({c:p[0]||'自定义',g:p[1]||'自定义',n:p[2]||p[0],a:'自定义',s:p[3]||'',t:0,m:[]});
+      });
+      if(!add.length){ toast('没读到有效行，请用「类别,组别,路径,部门」的 CSV'); return; }
+      polUser=polUser.concat(add);
+      toast('已载入 '+add.length+' 条自定义政策路径');
+      render();
+    };
+    r.readAsText(f,'utf-8');
+  };
+  inp.click();
+}
+
+/* ================= 交叉影响打分（v1.1 新增） ================= */
+const DSHORT={
+ '经济增长速度':'经济','人口空间分布与收缩态势':'人口','产业结构':'产业','一次能源结构':'能源',
+ '区域电力互济强度':'互济','本地可再生能源开发规模':'可再生','终端电气化率':'电气','钢铁工艺路线':'钢铁',
+ '碳捕集利用与封存部署规模':'CCUS','碳移除规模':'碳移除','用水总量与结构':'用水','京津冀协同机制强度':'协同',
+ '单位产品能耗限额强度':'能耗限','工业节能改造强度':'节能改','建筑能效标准强度':'建筑','清洁取暖替代强度':'取暖',
+ '新能源汽车渗透强度':'新能源','研发与示范投入强度':'研发','碳价水平与碳市场覆盖':'碳价'
+};
+const VWORD={'-3':'强烈抑制','-2':'中度抑制','-1':'轻度抑制','0':'不影响','1':'轻度促进','2':'中度促进','3':'强烈促进'};
+/* AI 预填参考的强关系（演示版，须经专家复核） */
+const AIRT=[
+ ['经济增长速度','产业结构',2,'高','增速上行通常伴随服务业与高端制造占比提升'],
+ ['经济增长速度','终端电气化率',1,'中','收入提高带动电气设备普及'],
+ ['经济增长速度','人口空间分布与收缩态势',1,'中','增长期人口向都市圈集聚'],
+ ['经济增长速度','一次能源结构',1,'低','用能总量扩张牵动能源结构节奏'],
+ ['产业结构','单位产品能耗限额强度',-1,'中','服务业占比上升削弱单位能耗约束的紧迫性'],
+ ['产业结构','钢铁工艺路线',1,'中','产业升级推动短流程比重上升'],
+ ['产业结构','本地可再生能源开发规模',1,'中','高端制造对绿电的需求拉动装机'],
+ ['人口空间分布与收缩态势','建筑能效标准强度',-1,'低','人口收缩降低新建建筑规模'],
+ ['人口空间分布与收缩态势','清洁取暖替代强度',-1,'低','人口流失地区改造推进更慢'],
+ ['碳价水平与碳市场覆盖','钢铁工艺路线',2,'高','碳成本直接改变长短流程的经济性'],
+ ['碳价水平与碳市场覆盖','工业节能改造强度',2,'高','碳价是节能改造最直接的经济驱动'],
+ ['碳价水平与碳市场覆盖','碳捕集利用与封存部署规模',2,'高','碳价决定 CCUS 的商业可行性'],
+ ['碳价水平与碳市场覆盖','本地可再生能源开发规模',1,'中','碳价提升可再生电力的相对竞争力'],
+ ['碳价水平与碳市场覆盖','单位产品能耗限额强度',1,'中','履约压力促使企业收紧能耗'],
+ ['本地可再生能源开发规模','区域电力互济强度',1,'中','本地装机增加改变跨区受电定位'],
+ ['本地可再生能源开发规模','一次能源结构',2,'高','可再生装机直接改善一次能源结构'],
+ ['一次能源结构','终端电气化率',1,'中','清洁电力供给增加鼓励终端电气化'],
+ ['区域电力互济强度','本地可再生能源开发规模',1,'中','跨区互济增强可提升本地消纳空间'],
+ ['终端电气化率','一次能源结构',1,'中','终端用电占比上升反向推动电力清洁化'],
+ ['钢铁工艺路线','单位产品能耗限额强度',1,'中','短流程比重上升降低吨钢综合能耗'],
+ ['工业节能改造强度','单位产品能耗限额强度',2,'高','节能改造直接改善单位产品能耗'],
+ ['工业节能改造强度','碳捕集利用与封存部署规模',-1,'低','能效提升降低末端捕集需求'],
+ ['建筑能效标准强度','清洁取暖替代强度',1,'中','建筑本体节能与取暖替代相互支撑'],
+ ['建筑能效标准强度','终端电气化率',1,'中','建筑用能效率影响电气化路径'],
+ ['清洁取暖替代强度','建筑能效标准强度',1,'低','取暖改造带动建筑能效要求'],
+ ['清洁取暖替代强度','终端电气化率',2,'高','以电代煤直接提高电气化水平'],
+ ['清洁取暖替代强度','一次能源结构',1,'中','散煤减少改善能源结构'],
+ ['新能源汽车渗透强度','终端电气化率',2,'高','交通电动化是终端电气化的主要来源'],
+ ['新能源汽车渗透强度','一次能源结构',1,'中','交通用油下降改善能源结构'],
+ ['研发与示范投入强度','碳捕集利用与封存部署规模',2,'高','研发示范投入是 CCUS 降本的前提'],
+ ['研发与示范投入强度','本地可再生能源开发规模',2,'高','技术进步降低可再生成本曲线'],
+ ['研发与示范投入强度','钢铁工艺路线',1,'中','氢冶金等技术依赖研发投入'],
+ ['研发与示范投入强度','工业节能改造强度',1,'中','技术供给支撑改造推进'],
+ ['碳移除规模','一次能源结构',1,'低','碳汇充裕可放宽能源结构调整压力'],
+ ['碳移除规模','钢铁工艺路线',-1,'低','移除能力减弱工业过程减排压力'],
+ ['用水总量与结构','本地可再生能源开发规模',-1,'低','水资源约束限制部分可再生开发'],
+ ['用水总量与结构','钢铁工艺路线',-1,'低','水约束影响长流程工序'],
+ ['京津冀协同机制强度','区域电力互济强度',2,'高','协同机制是三地电力互济的制度前提'],
+ ['京津冀协同机制强度','产业结构',1,'中','协同分工引导三地产业布局'],
+ ['京津冀协同机制强度','本地可再生能源开发规模',1,'中','协同有助风光资源跨区配置']
+];
+let cim={}, cimSelKey=null;
+function cimKeys(){
+  const a=Object.keys(sel.desc), r=[];
+  a.forEach(s=>a.forEach(t=>{ if(s!==t) r.push(s+'>'+t); }));
+  return r;
+}
+function aiFill(){
+  if(nSel()<2){ toast('先回到第 2 步，至少勾选两个描述符'); return; }
+  const keys=cimKeys();
+  cim={};
+  keys.forEach(k=>{ cim[k]={v:0,conf:'低',why:'AI 未发现明显直接影响，待人工判断',rev:false}; });
+  AIRT.forEach(a=>{
+    const k=a[0]+'>'+a[1];
+    if(cim[k]) cim[k]={v:a[2],conf:a[3],why:a[4],rev:false};
+  });
+  cimSelKey=null;
+  toast('已预填 '+keys.length+' 条判断，请重点审核低置信度项');
+  render();
+}
+function resetCim(){ cim={}; cimSelKey=null; toast('已清空打分矩阵'); render(); }
+function pickCell(s,t){ cimSelKey=s+'>'+t; if(!cim[cimSelKey]) cim[cimSelKey]={v:0,conf:'低',why:'',rev:false}; renderCim(); }
+function setV(v){ if(cimSelKey){ cim[cimSelKey].v=v; renderCim(); } }
+function setConf(c){ if(cimSelKey){ cim[cimSelKey].conf=c; renderCim(); } }
+function setWhy(w){ if(cimSelKey){ cim[cimSelKey].why=w; } }
+function toggleRev(){ if(cimSelKey){ cim[cimSelKey].rev=!cim[cimSelKey].rev; renderCim(); } }
+
+function renderCim(){
+  const g=document.getElementById('cimGrid'); if(!g) return;
+  const ds=Object.keys(sel.desc);
+  const stat=document.getElementById('cimStat');
+  if(ds.length<2){
+    g.innerHTML='';
+    stat.innerHTML='<span class="dim">尚未选择足够的描述符。请回到第 2 步勾选（至少两个）后再来打分。</span>';
+    document.getElementById('cimBalance').innerHTML='<div class="empty">等待描述符选择</div>';
+    cimSidePanel(); return;
+  }
+  const f=(document.getElementById('confFilter')||{}).value||'all';
+  let h='<thead><tr><th class="cnr">来源 ＼ 目标</th>';
+  ds.forEach(t=>{ h+='<th class="cth" title="'+t+'">'+(DSHORT[t]||t)+'</th>'; });
+  h+='</tr></thead><tbody>';
+  ds.forEach(s=>{
+    h+='<tr><th class="crh" title="'+s+'">'+(DSHORT[s]||s)+'</th>';
+    ds.forEach(t=>{
+      if(s===t){ h+='<td class="cdiag">—</td>'; return; }
+      const k=s+'>'+t, r=cim[k];
+      let cls='cc', txt='·', title='未打分';
+      if(r){
+        txt=(r.v>0?'+':'')+r.v;
+        cls='cc v'+r.v;
+        if(r.conf==='低') cls+=' low';
+        if(r.rev) cls+=' rev';
+        title=(r.why||'（无依据）')+'　｜　置信度 '+r.conf+(r.rev?'　｜　已审核':'');
+      }
+      const hide=(f==='low'&&(!r||r.conf!=='低'))||(f==='unrev'&&r&&r.rev);
+      h+='<td class="'+cls+(k===cimSelKey?' sel':'')+(hide?' dimout':'')+
+         '" onclick="pickCell(\''+s+'\',\''+t+'\')" title="'+title+'">'+txt+'</td>';
+    });
+    h+='</tr>';
+  });
+  g.innerHTML=h+'</tbody>';
+
+  const all=cimKeys(), done=all.filter(k=>cim[k]);
+  const low=done.filter(k=>cim[k].conf==='低').length;
+  const rev=done.filter(k=>cim[k].rev).length;
+  const need=all.filter(k=>!cim[k]||!cim[k].rev).length;
+  stat.innerHTML=
+    '<span class="kv"><span>应判条目</span><span>'+all.length+' 条</span></span>'+
+    '<span class="kv"><span>已填</span><span>'+done.length+' 条</span></span>'+
+    '<span class="kv"><span>低置信度</span><span style="color:var(--rd)">'+low+' 条</span></span>'+
+    '<span class="kv"><span>已审核</span><span style="color:var(--ok)">'+rev+' 条</span></span>'+
+    '<span class="kv"><span>待审核</span><span style="color:var(--wn)">'+need+' 条</span></span>'+
+    '<div class="dim" style="margin-top:8px;font-size:12px;">本版为<b>描述符级</b>粗粒度打分；完整实现应下沉到状态级'
+    +'（55 个状态两两判断）。每格都带依据与置信度，审核后留痕。</div>';
+  cimBalance(ds);
+  cimSidePanel();
+}
+function cimSidePanel(){
+  const el=document.getElementById('cimSide'); if(!el) return;
+  if(!cimSelKey||!cim[cimSelKey]){
+    el.innerHTML='<div class="empty">点击矩阵中任意一格，查看或修改这条判断</div>'; return;
+  }
+  const p=cimSelKey.split('>'), s=p[0], t=p[1], r=cim[cimSelKey];
+  const vs=[-3,-2,-1,0,1,2,3];
+  el.innerHTML=
+   '<div class="shead">这一格的判断</div>'+
+   '<div class="spair">'+(DSHORT[s]||s)+' <span class="ar">→</span> '+(DSHORT[t]||t)+'</div>'+
+   '<div class="slabel">影响强度</div>'+
+   '<div class="vrow">'+vs.map(v=>'<button class="vb'+(r.v===v?' on':'')+'" onclick="setV('+v+')">'+(v>0?'+':'')+v+'</button>').join('')+'</div>'+
+   '<div class="sline">'+VWORD[String(r.v)]+'</div>'+
+   '<div class="slabel">置信度</div>'+
+   '<div class="crow">'+['高','中','低'].map(c=>'<button class="cb'+(r.conf===c?' on':'')+'" onclick="setConf(\''+c+'\')">'+c+'</button>').join('')+'</div>'+
+   '<div class="slabel">依据（证据 / 来源）</div>'+
+   '<textarea class="txt why" oninput="setWhy(this.value)" placeholder="写下这条判断的依据……">'+(r.why||'')+'</textarea>'+
+   '<button class="btn '+(r.rev?'':'pri')+'" style="width:100%;margin-top:10px;" onclick="toggleRev()">'+(r.rev?'✓ 已审核（点击撤销）':'标记为已审核')+'</button>';
+}
+function cimBalance(ds){
+  const el=document.getElementById('cimBalance'); if(!el) return;
+  const rows=ds.map(d=>{
+    let inSum=0,outSum=0;
+    ds.forEach(o=>{ if(o===d) return;
+      const a=cim[o+'>'+d], b=cim[d+'>'+o];
+      if(a) inSum+=a.v;
+      if(b) outSum+=b.v;
+    });
+    return {d:d,inSum:inSum,outSum:outSum};
+  });
+  const maxIn=Math.max.apply(null,rows.map(r=>r.inSum));
+  el.innerHTML='<table class="bal"><thead><tr><th>描述符</th><th>来向影响合计</th><th>去向影响合计</th><th>角色</th></tr></thead><tbody>'+
+    rows.map(r=>{
+      const role=(r.outSum>=2&&r.inSum>=2)?'关键枢纽':(r.outSum>r.inSum?'驱动型':'结果型');
+      return '<tr><td>'+(DSHORT[r.d]||r.d)+'</td>'+
+        '<td class="'+(r.inSum===maxIn?'top':'')+'">'+(r.inSum>0?'+':'')+r.inSum+(r.inSum===maxIn?' ▲':'')+'</td>'+
+        '<td>'+(r.outSum>0?'+':'')+r.outSum+'</td><td class="dim">'+role+'</td></tr>';
+    }).join('')+'</tbody></table>'+
+    '<div class="dim" style="font-size:12px;margin-top:8px;">▲ 标出的是该项在当前取值下得分最高者。'
+    +'这是描述符级的简化预览，完整的影响平衡值需在状态级打分后给出。</div>';
+}
+
 /* ================= 主渲染 ================= */
 function render(){
   renderSteps(); renderCmp(); layerTable(); renderTree(); renderStates();
-  expDetail(); scaleSum(); modelDetail(); checkResult(); confList(); timeline();
+  expDetail(); scaleSum(); renderPolicy(); renderCim(); modelDetail(); checkResult(); confList(); timeline();
   el('outPreview', preview());
   el('fmtTag', fmtTag());
   el('fmtNote', curModel==='gcam'
@@ -1084,11 +1640,12 @@ function render(){
   document.querySelector('.footbar').style.display=inCmp?'none':'flex';
 
   document.getElementById('prevBtn').disabled=cur===0;
-  document.getElementById('nextBtn').textContent=cur===4?'重新开始':'下一步';
+  document.getElementById('nextBtn').textContent=cur===6?'重新开始':'下一步';
   document.getElementById('footCnt').textContent=
-    `第 ${cur+1} / 5 步　·　已选描述符 ${nSel()} 个　·　目标模型 ${curModel==='gcam'?'GCAM-China':'CHEER-CGE'}`;
+    `第 ${cur+1} / 7 步　·　已选描述符 ${nSel()} 个　·　目标模型 ${curModel==='gcam'?'GCAM-China':'CHEER-CGE'}`;
 }
 render();
+
 </script>
 </body>
 </html>
