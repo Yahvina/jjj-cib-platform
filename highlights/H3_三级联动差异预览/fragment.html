@@ -1,0 +1,40 @@
+<!-- H3 ｜ 三层差异预览与跨层约束 ｜ 摘自 index.html 第 247-267、269-285 行 -->
+  <div class="grid3">
+    <div class="opt sel" data-scale="nation" onclick="tglScale(this)">
+      <div class="t">国家级 <span class="chk on"><span class="tick"></span></span></div>
+      <div class="d">全国总量与目标，作为分解的起点</div>
+    </div>
+    <div class="opt sel" data-scale="prov" onclick="tglScale(this)">
+      <div class="t">省级 <span class="chk on"><span class="tick"></span></span></div>
+      <div class="d">北京市、天津市、河北省</div>
+    </div>
+    <div class="opt" data-scale="city" onclick="tglScale(this)">
+      <div class="t">市级 <span class="chk"></span></div>
+      <div class="d">河北 11 个地级市及省直管县级市</div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:16px;">
+    <h3>三层差异预览 <span class="tag">勾选层级后自动生成</span></h3>
+    <p style="font-size:12.5px;color:var(--tx2);margin-bottom:12px;">
+      同一套描述符在三个层级上的取值与约束关系。这一列是现有做法没有的。</p>
+    <div id="layerTable"></div>
+  </div>
+
+  <div class="card">
+    <h3>联动方式</h3>
+    <div class="grid2">
+      <div class="opt sel" onclick="pick(this,'link')">
+        <div class="t">上下联动约束 <span class="chk on"><span class="tick"></span></span></div>
+        <div class="d">下级加总须等于上级；口径须一致；下级目标不得超出上级边界</div>
+      </div>
+      <div class="opt" onclick="pick(this,'link')">
+        <div class="t">各层独立 <span class="chk"></span></div>
+        <div class="d">只在本层内检验，不做跨层核对（等同现有做法）</div>
+      </div>
+    </div>
+    <div class="note info">
+      <b>三类跨层约束</b><br>
+      分解汇总：各省人口加总应等于全国人口　｜　口径一致：都叫「人口」，定义必须是同一个　｜　边界：各省目标加总不能超出国家总目标
+    </div>
+  </div>

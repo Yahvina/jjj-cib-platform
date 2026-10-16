@@ -1,0 +1,43 @@
+/* H1 ｜ 该模块相关样式摘录（可直接用；完整样式见 _shared/base.css） */
+
+:root{
+  --bg:#F6F7F9; --panel:#FFFFFF; --panel2:#FAFBFC;
+  --line:#E4E7EC; --line2:#EFF1F4;
+  --tx:#101828; --tx2:#667085; --tx3:#98A2B3;
+  --pri:#2563EB; --pri-d:#1D4ED8; --pri-s:#EFF4FF; --pri-b:#BFD3FF;
+  --ok:#059669; --ok-s:#ECFDF5; --ok-b:#A6F4C5;
+  --wn:#B54708; --wn-s:#FFFAEB; --wn-b:#FEDF89;
+  --rd:#B42318; --rd-s:#FEF3F2; --rd-b:#FDA29B;
+  --r:10px; --r2:14px;
+  --sh:0 1px 2px rgba(16,24,40,.06);
+}
+.scen{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;}
+.scen .s{padding:8px 15px;border:1px solid var(--line);border-radius:99px;
+  font-size:13px;background:var(--panel);cursor:pointer;transition:.15s;}
+.scen .s:hover{border-color:var(--tx3);}
+.scen .s.on{background:var(--pri);border-color:var(--pri);color:#fff;font-weight:500;}
+.cmp{border:1px solid var(--line);border-radius:var(--r2);overflow:hidden;
+  background:var(--panel);box-shadow:var(--sh);}
+.crow{display:grid;grid-template-columns:118px 1fr 1fr;border-bottom:1px solid var(--line2);}
+.crow:last-child{border-bottom:none;}
+.crow.hd{background:var(--panel2);}
+.clbl{padding:13px 14px;font-size:12.5px;font-weight:600;color:var(--tx2);
+  border-right:1px solid var(--line2);}
+.cell{padding:13px 15px;font-size:13px;line-height:1.65;border-right:1px solid var(--line2);}
+.cell:last-child{border-right:none;}
+.crow.hd .cell{font-size:13px;font-weight:600;}
+.badc{background:#FFFCFA;}
+.goodc{background:#FBFDFF;}
+.crow.hd .badc{color:var(--wn);background:var(--wn-s);}
+.crow.hd .goodc{color:var(--pri);background:var(--pri-s);}
+.cell .mk{color:var(--rd);font-weight:600;}
+.cell .ok{color:var(--ok);font-weight:600;}
+.dim{color:var(--tx3);font-size:12px;}
+.verdict{margin-top:16px;display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}
+.vc{border:1px solid var(--line);border-radius:var(--r);padding:13px 15px;background:var(--panel);}
+.vc .n{font-size:22px;font-weight:700;line-height:1.2;}
+.vc .l{font-size:12px;color:var(--tx2);margin-top:3px;}
+.vc.a .n{color:var(--rd);}
+.vc.b .n{color:var(--ok);}
+.grid2,.grid3,.verdict{grid-template-columns:1fr;}
+.crow{grid-template-columns:92px 1fr 1fr;}

@@ -1,0 +1,50 @@
+<!-- H7 ｜ 双锚点时间轴 ｜ 摘自 index.html 第 389-437 行 -->
+<!-- ============ 步骤 5 ============ -->
+<section class="pane" id="p4">
+  <h2 class="pt">检验与导出</h2>
+  <p class="pd">先看一致性检验的结果，再导出目标模型可直接读取的情景配置文件。</p>
+
+  <div class="card">
+    <h3>检验结果 <span class="tag">点击可展开判断链</span></h3>
+    <div id="checkResult"></div>
+  </div>
+
+  <div class="card">
+    <h3>矛盾组合与处理建议 <span class="tag">闭环</span></h3>
+    <p style="font-size:12.5px;color:var(--tx2);margin-bottom:12px;">
+      发现矛盾只是第一步。这里给出调整建议，采纳后会自动重新检验。</p>
+    <div id="confList"></div>
+  </div>
+
+  <div class="card">
+    <h3>时间轴 <span class="tag">双锚点</span></h3>
+    <div id="timeline"></div>
+  </div>
+
+  <div class="card">
+    <h3>生成的配置文件 <span class="tag" id="fmtTag">XML</span></h3>
+    <p style="font-size:12.5px;color:var(--tx2);margin-bottom:10px;" id="fmtNote"></p>
+    <pre class="out" id="outPreview"></pre>
+    <div style="margin-top:14px;display:flex;gap:10px;flex-wrap:wrap;">
+      <button class="btn pri" onclick="download()">导出情景配置文件</button>
+      <button class="btn" onclick="downloadAll()">导出全部自洽情景</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>本次配置摘要</h3>
+    <div id="finalSum"></div>
+  </div>
+</section>
+
+</main>
+
+<div class="footbar">
+  <span class="cnt" id="footCnt"></span>
+  <div class="sp"></div>
+  <button class="btn" id="prevBtn" onclick="go(-1)">上一步</button>
+  <button class="btn pri" id="nextBtn" onclick="nextStep()">下一步</button>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>

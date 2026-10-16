@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>平台亮点模块索引 · 京津冀政策情景快速评估平台</title>
+<style>
+:root{
+  --bg:#F6F7F9; --panel:#FFFFFF; --line:#E4E7EC; --line2:#EFF1F4;
+  --tx:#101828; --tx2:#667085; --tx3:#98A2B3;
+  --pri:#2563EB; --pri-s:#EFF4FF; --pri-b:#BFD3FF;
+  --ok:#059669; --ok-s:#ECFDF5; --wn:#B54708; --wn-s:#FFFAEB;
+  --r:10px; --r2:14px;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--tx);font-family:-apple-system,"Segoe UI","Microsoft YaHei",sans-serif;
+  font-size:14px;line-height:1.7;padding:32px 20px 60px;}
+.wrap{max-width:920px;margin:0 auto;}
+h1{font-size:21px;font-weight:600;letter-spacing:.2px;}
+.sub{color:var(--tx2);font-size:13.5px;margin-top:8px;line-height:1.75;}
+.meta{margin-top:14px;display:flex;gap:8px;flex-wrap:wrap;}
+.tag{font-size:11.5px;padding:3px 10px;border-radius:99px;border:1px solid var(--line);
+  background:var(--panel);color:var(--tx2);}
+.tag.hi{color:var(--pri);border-color:var(--pri-b);background:var(--pri-s);}
+.tag.ok{color:var(--ok);border-color:#A6F4C5;background:var(--ok-s);}
+h2{font-size:15px;font-weight:600;margin:34px 0 12px;padding-bottom:8px;border-bottom:1px solid var(--line);}
+.item{background:var(--panel);border:1px solid var(--line);border-radius:var(--r2);
+  padding:16px 18px;margin-bottom:12px;}
+.item .hd{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;}
+.item .no{font-size:12px;font-weight:600;color:var(--pri);background:var(--pri-s);
+  border:1px solid var(--pri-b);border-radius:6px;padding:1px 8px;}
+.item .nm{font-size:15px;font-weight:600;}
+.item .why{color:var(--tx2);font-size:13px;margin-top:9px;line-height:1.75;}
+.item .why b{color:var(--tx);font-weight:600;}
+.item .loc{margin-top:10px;font-size:12.5px;color:var(--tx3);
+  font-family:ui-monospace,Consolas,monospace;}
+.files{margin-top:10px;display:flex;gap:7px;flex-wrap:wrap;}
+.files span{font-size:11.5px;font-family:ui-monospace,Consolas,monospace;
+  background:var(--line2);border-radius:5px;padding:2px 8px;color:var(--tx2);}
+.star{color:var(--wn);font-size:11.5px;background:var(--wn-s);border:1px solid #FEDF89;
+  border-radius:99px;padding:2px 9px;}
+.note{background:var(--pri-s);border:1px solid var(--pri-b);border-radius:var(--r);
+  padding:13px 16px;font-size:13px;color:var(--pri);margin-top:14px;line-height:1.75;}
+code{font-family:ui-monospace,Consolas,monospace;background:var(--line2);
+  padding:1px 5px;border-radius:4px;font-size:12.5px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <h1>平台亮点模块索引</h1>
+  <p class="sub">
+    从《京津冀政策情景快速评估平台 · 原型 v1.0》（单文件，1094 行）中切出的可复用功能模块。
+    每个模块单独成目录，含 HTML 片段、核心逻辑与样式摘录，可独立取用、按需拼装。
+  </p>
+  <div class="meta">
+    <span class="tag hi">8 个模块</span>
+    <span class="tag">共 8 个目录</span>
+    <span class="tag">公共样式 _shared/base.css</span>
+    <span class="tag ok">完整平台见 ../index.html</span>
+  </div>
+
+  <h2>导师当场夸赞的两处</h2>
+
+  <div class="item">
+    <div class="hd"><span class="no">H1</span><span class="nm">功能对比首屏</span>
+      <span class="star">对应「第一页要讲别人的痛点」</span></div>
+    <p class="why">
+      把「现有做法」与「本平台」并排对照，六行逐条比对，底部三个数字随所选情景联动。
+      导师在面谈中反复强调这只是全场讲得最多的一条：<b>第一页不讲清楚对方的痛点，后面讲再多都是冗余</b>。
+    </p>
+    <div class="loc">fragment.html（原 228–241 行）· logic.js（原 562–567、581–627 行）</div>
+    <div class="files"><span>fragment.html</span><span>logic.js</span><span>style.css</span><span>README.md</span></div>
+  </div>
+
+  <div class="item">
+    <div class="hd"><span class="no">H2</span><span class="nm">从政策数据库拉取预设</span>
+      <span class="star">导师原话：「我觉得你这个特别好」</span></div>
+    <p class="why">
+      一键把政策数据集的路径映射成描述符的状态定义与来源标注，不必手工逐条敲。
+      内置的映射表把 16 个描述符分别挂到具体政策路径上（如「工业节能改造强度」→ 路径「节能技术改造补贴」）。
+      <b>这是把「人拍」换成「数据给」的关键一步。</b>
+    </p>
+    <div class="loc">fragment.html（原 293–299 行）· logic.js（原 746–772 行）</div>
+    <div class="files"><span>fragment.html</span><span>logic.js</span><span>style.css</span><span>README.md</span></div>
+  </div>
+
+  <h2>方法核心与闭环</h2>
+
+  <div class="item">
+    <div class="hd"><span class="no">H4</span><span class="nm">描述符的翻译依据与时间锚点</span></div>
+    <p class="why">
+      点开任一描述符即展开「你说 X、模型吃 Y、翻译动作是把 A 反推成 B」的大白话说明，
+      并给出 2025 参照年 / 2030 政策锚点 / 2035 情景锚点三段。
+      <b>针对的正是「参数说不清依据」这一质疑。</b>
+    </p>
+    <div class="loc">fragment.html（原 314–319 行）· logic.js（原 703–706、724–745、773–783 行）</div>
+    <div class="files"><span>fragment.html</span><span>logic.js</span><span>style.css</span><span>README.md</span></div>
+  </div>
+
+  <div class="item">
+    <div class="hd"><span class="no">H5</span><span class="nm">自洽情景的判断链</span></div>
+    <p class="why">
+      每个自洽情景可展开，看到它由哪些描述符状态组成、交叉影响各打了几分（正向协同 / 轻微冲突 / 无显著影响）、
+      以及为什么判定自洽。<b>导师要求「要有评分的过程」，这一屏是它的落点。</b>
+    </p>
+    <div class="loc">fragment.html（原 389–437 行）· logic.js（原 815–848 行）</div>
+    <div class="files"><span>fragment.html</span><span>logic.js</span><span>style.css</span><span>README.md</span></div>
+  </div>
+
+  <div class="item">
+    <div class="hd"><span class="no">H6</span><span class="nm">矛盾组合与处理建议</span>
+      <span class="star">闭环</span></div>
+    <p class="why">
+      不只报出矛盾，还给出「为什么矛盾」+「建议怎么改」+「采纳并重新检验」按钮；采纳后首屏数字随之变化。
+      <b>导师说的「插件」应当是能闭环的，不是只看个结果。</b>
+    </p>
+    <div class="loc">fragment.html（原 389–437 行）· logic.js（原 849–885 行）</div>
+    <div class="files"><span>fragment.html</span><span>logic.js</span><span>style.css</span><span>README.md</span></div>
+  </div>
+
+  <h2>工程与多尺度</h2>
+
+  <div class="item">
+    <div class="hd"><span class="no">H3</span><span class="nm">三层差异预览与跨层约束</span></div>
+    <p class="why">
+      勾选层级后自动生成同一套描述符在国家级 / 省级 / 市级上的取值与约束关系，并列出三类跨层约束
+      （分解汇总 / 口径一致 / 边界不越）。<b>对应导师提出的「多尺度」，这一列是现有做法没有的。</b>
+    </p>
+    <div class="loc">fragment.html（原 247–267、269–285 行）· logic.js（原 556–561、628–649 行）</div>
+    <div class="files"><span>fragment.html</span><span>logic.js</span><span>style.css</span><span>README.md</span></div>
+  </div>
+
+  <div class="item">
+    <div class="hd"><span class="no">H7</span><span class="nm">双锚点时间轴</span></div>
+    <p class="why">
+      把 2025 参照年 / 2030 政策锚点 / 2035 情景锚点并排列出，明确「2035 统一标待定、不外推」这一已确认口径。
+    </p>
+    <div class="loc">fragment.html（原 389–437 行）· logic.js（原 885–906 行）</div>
+    <div class="files"><span>fragment.html</span><span>logic.js</span><span>style.css</span><span>README.md</span></div>
+  </div>
+
+  <div class="item">
+    <div class="hd"><span class="no">H8</span><span class="nm">一键导出真实结构的模型配置</span></div>
+    <p class="why">
+      导出的是 GCAM 真实的 <code>ScenarioComponents</code> 结构与真实文件名
+      （<code>socioeconomics_CHINA_SSP2.xml</code> 等），不是自造格式；CHEER 侧标注 CSV→GDX 的转换路径。
+      <b>「快准狠」的落点就在这里。</b>
+    </p>
+    <div class="loc">fragment.html（原 370–437 行）· logic.js（原 909–978 行）</div>
+    <div class="files"><span>fragment.html</span><span>logic.js</span><span>style.css</span><span>README.md</span></div>
+  </div>
+
+  <div class="note">
+    <b>关于版本归档</b>：完整平台在 <code>../index.html</code>，原始文件同时保留在
+    <code>../platform/v1.0/</code>。每一版的亮点都单独留档，避免后续迭代（以及 AI 改写）把好功能覆盖掉——
+    这正是导师强调的「插件式、乐高积木式沉淀」。
+  </div>
+
+</div>
+</body>
+</html>

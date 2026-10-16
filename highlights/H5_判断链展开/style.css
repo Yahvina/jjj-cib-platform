@@ -1,0 +1,47 @@
+/* H5 ｜ 该模块相关样式摘录（可直接用；完整样式见 _shared/base.css） */
+
+:root{
+  --bg:#F6F7F9; --panel:#FFFFFF; --panel2:#FAFBFC;
+  --line:#E4E7EC; --line2:#EFF1F4;
+  --tx:#101828; --tx2:#667085; --tx3:#98A2B3;
+  --pri:#2563EB; --pri-d:#1D4ED8; --pri-s:#EFF4FF; --pri-b:#BFD3FF;
+  --ok:#059669; --ok-s:#ECFDF5; --ok-b:#A6F4C5;
+  --wn:#B54708; --wn-s:#FFFAEB; --wn-b:#FEDF89;
+  --rd:#B42318; --rd-s:#FEF3F2; --rd-b:#FDA29B;
+  --r:10px; --r2:14px;
+  --sh:0 1px 2px rgba(16,24,40,.06);
+}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r2);
+  padding:18px;box-shadow:var(--sh);margin-bottom:16px;}
+.card h3{font-size:14px;font-weight:600;margin-bottom:10px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.card h3 .tag{font-size:11px;font-weight:400;padding:2px 8px;border-radius:99px;
+  background:var(--panel2);border:1px solid var(--line);color:var(--tx2);}
+.note{background:var(--wn-s);border:1px solid var(--wn-b);color:var(--wn);
+  border-radius:var(--r);padding:10px 13px;font-size:12.5px;margin-top:12px;}
+.note.ok{background:var(--ok-s);border-color:var(--ok-b);color:var(--ok);}
+.note.info{background:var(--pri-s);border-color:var(--pri-b);color:var(--pri);}
+.note.rd{background:var(--rd-s);border-color:var(--rd-b);color:var(--rd);}
+.verdict{margin-top:16px;display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}
+.vc{border:1px solid var(--line);border-radius:var(--r);padding:13px 15px;background:var(--panel);}
+.vc .n{font-size:22px;font-weight:700;line-height:1.2;}
+.vc .l{font-size:12px;color:var(--tx2);margin-top:3px;}
+.vc.a .n{color:var(--rd);}
+.vc.b .n{color:var(--ok);}
+.kv{display:flex;justify-content:space-between;padding:8px 0;font-size:13px;
+  border-bottom:1px dashed var(--line2);gap:14px;}
+.kv:last-child{border-bottom:none;}
+.kv span:first-child{color:var(--tx2);flex:none;}
+.kv span:last-child{font-weight:500;text-align:right;}
+.acc{border:1px solid var(--line);border-radius:var(--r);margin-bottom:10px;overflow:hidden;background:#fff;}
+.acc .ah{padding:11px 14px;display:flex;align-items:center;gap:10px;cursor:pointer;font-size:13px;}
+.acc .ah:hover{background:var(--panel2);}
+.acc .ah .t{font-weight:600;flex:1;}
+.acc .ab{padding:0 14px 14px;font-size:12.5px;line-height:1.7;border-top:1px solid var(--line2);
+  padding-top:12px;color:var(--tx2);}
+.conf{border-left:3px solid var(--rd);background:var(--rd-s);padding:10px 13px;
+  border-radius:0 8px 8px 0;margin-bottom:10px;font-size:12.5px;}
+.conf .h{font-weight:600;color:var(--rd);margin-bottom:4px;}
+.conf .sug{margin-top:7px;padding-top:7px;border-top:1px dashed var(--rd-b);color:var(--tx2);}
+.conf.done{border-left-color:var(--ok);background:var(--ok-s);}
+.conf.done .h{color:var(--ok);}
+.grid2,.grid3,.verdict{grid-template-columns:1fr;}
