@@ -485,38 +485,141 @@ function modelDetail(){
 }
 
 /* ================= 步骤 5 ================= */
+let cimResult=null;
+/* 状态级影响值：由描述符级分值按两端状态的高低位置展开 */
+function impactVal(fd,fi,td,ti){
+  const r=cim[fd+'>'+td];
+  if(!r||!r.v) return 0;
+  const fs=((dOf(fd)||{}).s)||[], ts=((dOf(td)||{}).s)||[];
+  const pa=fs.length>1?(fs.length-1-fi)/(fs.length-1):0.5;
+  const pb=ts.length>1?(ts.length-1-ti)/(ts.length-1):0.5;
+  return r.v*(2*pa-1)*(2*pb-1);
+}
+function runCIM(){
+  const ds=Object.keys(sel.desc);
+  if(ds.length<2){ toast('至少选两个描述符'); return; }
+  const filled=cimKeys().filter(k=>cim[k]);
+  if(!filled.length){ toast('还没有打分，先到「交叉影响打分」做判断'); return; }
+  const sizes=ds.map(d=>(((dOf(d)||{}).s)||[]).length);
+  if(sizes.some(s=>s<1)){ toast('有描述符缺少状态定义'); return; }
+  const total=sizes.reduce((a,b)=>a*b,1);
+  const MAX=200000;
+  const sampled=total>MAX;
+  const N=Math.min(total,MAX);
+  const n=ds.length;
+  /* 预计算影响值，避免内层重复解析 */
+  const IMP=[];
+  for(let k=0;k<n;k++){
+    IMP[k]=[];
+    for(let i=0;i<n;i++){
+      if(k===i){ IMP[k][i]=null; continue; }
+      const m=[];
+      for(let a=0;a<sizes[k];a++){
+        const row=[];
+        for(let b=0;b<sizes[i];b++) row.push(impactVal(ds[k],a,ds[i],b));
+        m.push(row);
+      }
+      IMP[k][i]=m;
+    }
+  }
+  const idxOf=new Array(n).fill(0);
+  const consistent=[];
+  let inconsistent=0;
+  for(let c=0;c<N;c++){
+    let x = sampled ? Math.floor(Math.random()*total) : c;
+    for(let i=n-1;i>=0;i--){ idxOf[i]=x%sizes[i]; x=Math.floor(x/sizes[i]); }
+    let ok=true;
+    for(let i=0;i<n && ok;i++){
+      let mx=-1e9, pickv=0;
+      for(let j=0;j<sizes[i];j++){
+        let s=0;
+        for(let k=0;k<n;k++){ if(k!==i) s+=IMP[k][i][idxOf[k]][j]; }
+        if(j===idxOf[i]) pickv=s;
+        if(s>mx) mx=s;
+      }
+      if(pickv<mx-1e-6) ok=false;
+    }
+    if(ok){ if(consistent.length<200) consistent.push(idxOf.slice()); }
+    else inconsistent++;
+  }
+  cimResult={ds:ds.slice(), sizes:sizes.slice(), total:total, checked:N, sampled:sampled,
+    consistent:consistent, inconsistent:inconsistent, ts:nowStr()};
+  toast('检验完成：'+(sampled?'抽样 ':'')+N.toLocaleString()+' 个组合，自洽 '+consistent.length+' 组');
+  render();
+}
 function checkResult(){
-  const n=nSel(), total=n*2;
-  const ok=Math.max(1,Math.round(n*0.6));
-  const bad=Math.max(0,Math.round(n*1.0));
-  el('checkResult', `<div class="kv"><span>参与检验的描述符</span><span>${n} 个</span></div>
-    <div class="kv"><span>状态总数</span><span>${total} 个</span></div>
-    <div class="kv"><span>发现互相矛盾的状态组合</span><span style="color:var(--rd);">${bad} 组</span></div>
-    <div class="kv"><span>通过校验的自洽情景</span><span style="color:var(--ok);">${ok} 组</span></div>
-    <div class="kv"><span>跨层级一致性</span><span style="color:var(--ok);">通过（3 层）</span></div>
-    ${useBayes?'<div class="kv"><span>参数区间</span><span>已生成并标注置信程度</span></div>':''}
-    <div style="margin-top:12px;font-size:12px;color:var(--tx3);">
-      以下为自洽情景，点击展开其判断链。</div>
-    <div style="margin-top:10px;">`+
-    Array.from({length:Math.min(4,ok)},(_,i)=>{
-      const nm='情景 '+(i+1), open=openScen===i;
-      const names=Object.keys(sel.desc).slice(0,4);
-      const chain=(names.length?names:['（尚未选择描述符）']).map((x,j)=>{
-        const st=sel.desc[x]&&sel.desc[x].states[0]?sel.desc[x].states[0]:'（未定）';
-        const v=j%3===0?[3,'正向协同']:(j%3===1?[-1,'轻微冲突·可容忍']:[0,'无显著影响']);
-        return `<div class="ci"><span class="a">${x}</span><span>${st}　→　${v[1]}</span>
-          <span class="r ${v[0]>0?'p':(v[0]<0?'n':'z')}">${v[0]>0?'+':''}${v[0]}</span></div>`;
-      }).join('');
-      return `<div class="acc"><div class="ah" onclick="toggleScen(${i})">
-        <span class="t">${nm}　<span class="dim">自洽｜跨层一致</span></span>
-        <span style="font-size:12px;color:var(--pri);">${open?'收起 ▲':'展开判断链 ▼'}</span></div>
-        ${open?`<div class="ab">
-          <div style="margin-bottom:8px;">该情景下各描述符的取值，以及两两交叉影响的判定结果：</div>
-          <div class="chain">${chain}</div>
-          <div style="margin-top:10px;padding-top:9px;border-top:1px dashed var(--line);">
-            <b>为什么自洽：</b>所有交叉影响均未低于 −2（未出现互斥），且上下级取值满足加总与边界约束。</div>
-        </div>`:''}</div>`;
-    }).join('')+'</div>');
+  const ds=Object.keys(sel.desc);
+  if(ds.length<2){ el('checkResult','<div class="empty">先在第 3 步勾选至少两个描述符</div>'); return; }
+  if(!cimResult){
+    el('checkResult','<div style="font-size:12.5px;line-height:1.8;">'
+      +'<b>还没有检验结果。</b>点下面的按钮，平台会枚举全部状态组合，逐个算出每个描述符的影响平衡值，'
+      +'把「所有描述符的选定状态都是各自平衡里得分最高的那一个」的组合挑出来——这些就是自洽情景。'
+      +'<div style="margin-top:12px;"><button class="btn pri" onclick="runCIM()">运行一致性检验</button></div>'
+      +'<div class="dim" style="font-size:12px;margin-top:9px;">组合数＝各描述符状态数之积。'
+      +'19 个描述符全选时约 3¹⁷×2² ≈ 11.6 亿种，远超可枚举范围，此时平台会自动改为随机抽样检验并标注。</div></div>');
+    return;
+  }
+  const r=cimResult;
+  let h='<div class="kv"><span>参与检验的描述符</span><span>'+r.ds.length+' 个</span></div>'
+   +'<div class="kv"><span>状态总数</span><span>'+r.sizes.reduce((a,b)=>a+b,0)+' 个</span></div>'
+   +'<div class="kv"><span>组合空间</span><span>'+r.total.toLocaleString()+' 种</span></div>'
+   +'<div class="kv"><span>实际检查</span><span>'
+   +(r.sampled?('随机抽样 '+r.checked.toLocaleString()+' 种'):(r.checked.toLocaleString()+' 种（全枚举）'))
+   +'</span></div>'
+   +'<div class="kv"><span>自洽情景</span><span style="color:var(--ok);font-weight:600;">'
+   +r.consistent.length+(r.consistent.length>=200?'+':'')+' 组</span></div>'
+   +'<div class="kv"><span>不自洽组合</span><span style="color:var(--rd);">'
+   +r.inconsistent.toLocaleString()+' 组</span></div>'
+   +'<div style="margin-top:12px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;">'
+   +'<button class="btn sm" onclick="runCIM()">重新检验</button>'
+   +'<span class="dim" style="font-size:12px;">计算时间 '+r.ts+'</span></div>';
+  if(!r.consistent.length){
+    h+='<div class="note" style="margin-top:12px;">没有找到自洽情景。这通常说明打分矩阵内部冲突较多，'
+      +'或者描述符选得太多。可以回「交叉影响打分」复核那些低置信度的判断，再跑一次。</div>';
+  }else{
+    h+='<div style="margin-top:14px;font-size:12px;color:var(--tx3);">'
+      +'以下为自洽情景，点击展开看它为什么自洽</div><div style="margin-top:10px;">';
+    r.consistent.slice(0,6).forEach((cb,i)=>{ h+=scenCard(r,i,cb); });
+    h+='</div>';
+    if(r.consistent.length>6){
+      h+='<div class="dim" style="font-size:12px;margin-top:8px;">此处仅显示前 6 个，共 '+r.consistent.length+' 个。</div>';
+    }
+  }
+  el('checkResult',h);
+}
+function scenCard(r,i,cb){
+  const open=openScen===i;
+  let t='';
+  r.ds.forEach((d,j)=>{ if(j) t+=' · '; t+=(DSHORT[d]||d)+'='+((((dOf(d)||{}).s)||[])[cb[j]]||'?'); });
+  return '<div class="acc"><div class="ah" onclick="toggleScen('+i+')">'
+    +'<span class="t">情景 '+(i+1)+'　<span class="dim">'+t+'</span></span>'
+    +'<span style="font-size:12px;color:var(--pri);">'+(open?'收起 ▲':'展开判断链 ▼')+'</span></div>'
+    +(open?('<div class="ab">'+scenDetail(r,cb)+'</div>'):'')+'</div>';
+}
+function scenDetail(r,cb){
+  let h='<div style="margin-bottom:8px;font-size:12.5px;">各描述符的取值，'
+    +'以及它在本情景下各状态的影响平衡值（加粗者为选定状态，▲ 为该描述符的最高分）：</div>';
+  r.ds.forEach((d,i)=>{
+    const sts=((dOf(d)||{}).s)||[];
+    const bal=[];
+    for(let j=0;j<sts.length;j++){
+      let s=0;
+      for(let k=0;k<r.ds.length;k++){ if(k!==i) s+=impactVal(r.ds[k],cb[k],d,j); }
+      bal.push(s);
+    }
+    let mx=-1e9, mi=0;
+    bal.forEach((v,j)=>{ if(v>mx){ mx=v; mi=j; } });
+    h+='<div style="margin:9px 0;padding-left:10px;border-left:2px solid var(--pri-b);">'
+      +'<div style="font-size:13px;"><b>'+d+'</b>　取「'+sts[cb[i]]+'」</div>'
+      +'<div style="font-size:12px;color:var(--tx2);margin-top:3px;line-height:1.9;">'
+      +sts.map((s,j)=>s+' <b'+(j===cb[i]?' style="color:var(--ok)"':'')+'>'
+        +(bal[j]>0?'+':'')+bal[j].toFixed(1)+'</b>'+(j===mi?' ▲':'')).join('　｜　')
+      +'</div></div>';
+  });
+  h+='<div style="margin-top:10px;padding-top:9px;border-top:1px dashed var(--line);font-size:12.5px;line-height:1.8;">'
+   +'<b>为什么自洽：</b>每个描述符的选定状态，都是它自身影响平衡值中得分最高的那一项——'
+   +'没有任何其他状态受到更强的合力支持。这就是 CIB 的一致性原则。</div>';
+  return h;
 }
 function toggleScen(i){ openScen=openScen===i?null:i; render(); }
 const CONFS=[
@@ -1165,9 +1268,16 @@ function buildReportHTML(d){
   }
 
   h+='<h2>三、情景检验结果</h2>';
-  h+='<div class="rok">本次校验规模：'+d.stats.n+' 个描述符、'+d.stats.cells+' 条交叉影响判断。</div>';
-  h+='<div class="rnote"><b>边界说明</b>：一致性检验的数值（矛盾组合数、自洽情景数）当前为模拟值，'
-    +'算法尚未接入；交叉影响判断为描述符级粗粒度，完整实现需下沉到状态级。</div>';
+  if(cimResult){
+    h+='<div class="rok">组合空间 '+cimResult.total.toLocaleString()+' 种，'
+      +(cimResult.sampled?'随机抽样检查 ':'全枚举 ')+cimResult.checked.toLocaleString()+' 种；'
+      +'其中自洽情景 <b>'+cimResult.consistent.length+'</b> 组，不自洽组合 '
+      +cimResult.inconsistent.toLocaleString()+' 组。</div>';
+    h+='<div class="rnote"><b>边界说明</b>：交叉影响判断目前为描述符级，'
+      +'状态级影响值由两端状态的高低位置展开得到；完整实现需下沉到状态级逐对判断。</div>';
+  }else{
+    h+='<div class="rnote">尚未运行一致性检验。请在第 7 步点击「运行一致性检验」后重新生成报告。</div>';
+  }
 
   h+='<h2>四、模型配置摘要</h2>';
   h+='<p>输出目标：<b>'+d.model+'</b>。'
