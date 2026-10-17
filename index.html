@@ -2212,39 +2212,78 @@ function allowUnder(ds,scope,parent){
     return ok;
   });
 }
+/* 求解内核（v1.3 重写，支撑 19 描述符规模）：
+   一条组合是否自洽只取决于它自己（各描述符取值 + 影响矩阵），与上级约束无关——
+   上级约束只负责「筛」，不参与「判」。所以整层只判一遍（上限 25 万次，大空间按
+   固定种子抽样），再按各组做归桶筛选；旧版是每组各枚举一遍（600 组 × 每组 20 万
+   次），19 个描述符时根本跑不完。归桶：按前三维取值建索引，每组只在自己允许的
+   桶里逐条核对其余维，避免全量×全组的两两比对。 */
+const LAYER_BUDGET=250000, LAYER_KEEP=80000;
+
 function solveLayer(ds, scope, parents, cap){
   cap=cap||600;
   const sizes=ds.map(d=>ST(d).length);
+  const IMP=buildIMP(ds,cim);
   const groups=(parents&&parents.length)?parents:[{path:[],scope:null,cb:null}];
-  const out=[]; let checked=0, incon=0, dead=0, trunc=false;
+  const space=sizes.reduce((a,b)=>a*b,1);
+  const N=Math.min(space,LAYER_BUDGET);
+  const sampled=space>N;
+  const rnd=sampled?mulberry(20261017):null;
+  const rr=mulberry(7);              // 蓄水池抽样用：超出保留上限时等概率替换，避免字典序偏置
+  const consist=[]; let kept=0;
+  let checked=0, incon=0;
+  for(let c=0;c<N;c++){
+    let x=sampled?Math.floor(rnd()*space):c;
+    const cb=new Array(ds.length);
+    for(let i=ds.length-1;i>=0;i--){ cb[i]=x%sizes[i]; x=Math.floor(x/sizes[i]); }
+    checked++;
+    if(evalCombo(IMP,sizes,cb)){
+      kept++;
+      if(consist.length<LAYER_KEEP) consist.push(cb);
+      else{ const j=Math.floor(rr()*kept); if(j<LAYER_KEEP) consist[j]=cb; }
+    }
+    else incon++;
+  }
+  const depth=Math.min(3,ds.length);
+  const buckets=new Map();
+  consist.forEach(cb=>{
+    let k=0;
+    for(let i=0;i<depth;i++) k=k*sizes[i]+cb[i];
+    let b=buckets.get(k); if(!b){ b=[]; buckets.set(k,b); }
+    b.push(cb);
+  });
+  const out=[]; let dead=0, trunc=false;
   groups.forEach(par=>{
-    const allowed=allowUnder(ds,scope,par.scope?par:null);
+    /* 上级的 scope/cb 挂在本组 path 的最后一节——v1.3 之前这里读的是顶层字段，
+       链式层级时恒为 undefined，上级约束从未真正传进 allowUnder（旧测试全零矩阵
+       恰好掩盖了它）。现在统一从 path 末节取。 */
+    const tail=(par.path&&par.path.length)?par.path[par.path.length-1]:null;
+    const pscope=par.scope||(tail?tail.scope:null);
+    const pcb=par.cb||(tail?tail.cb:null);
+    const allowed=allowUnder(ds,scope,(pscope&&pcb)?{scope:pscope,cb:pcb}:null);
     if(allowed.some(a=>!a.length)){ dead++; return; }
-    const radix=allowed.map(a=>a.length);
-    const space=radix.reduce((a,b)=>a*b,1);
-    const MAX=200000, sampled=space>MAX, N=Math.min(space,MAX);
-    for(let c=0;c<N;c++){
-      let x=sampled?Math.floor(Math.random()*space):c;
-      const cb=new Array(ds.length);
-      for(let i=ds.length-1;i>=0;i--){ const r=radix[i]; cb[i]=allowed[i][x%r]; x=Math.floor(x/r); }
+    const am=allowed.map(a=>a.reduce((m,j)=>m|(1<<j),0));
+    if(am.some(m=>!m)){ dead++; return; }
+    const cands=[];
+    const rec=(i,k)=>{
+      if(i===depth){ const b=buckets.get(k); if(b) for(let t=0;t<b.length;t++) cands.push(b[t]); return; }
+      let m=am[i];
+      for(let j=0;m;j++,m>>=1){ if(m&1) rec(i+1,k*sizes[i]+j); }
+    };
+    rec(0,0);
+    for(let t=0;t<cands.length;t++){
+      const cb=cands[t];
       let ok=true;
-      for(let i=0;i<ds.length&&ok;i++){
-        let mx=-1e9, pv=0;
-        for(let j=0;j<sizes[i];j++){
-          let s=0;
-          for(let k=0;k<ds.length;k++){ if(k!==i) s+=impactVal(ds[k],cb[k],ds[i],j); }
-          if(j===cb[i]) pv=s;
-          if(s>mx) mx=s;
-        }
-        if(pv<mx-1e-6) ok=false;
+      for(let i=depth;i<ds.length;i++){
+        if(!((am[i]>>cb[i])&1)){ ok=false; break; }
       }
-      checked++;
-      if(ok){ if(out.length<cap) out.push({path:par.path.concat([{scope:scope, cb:cb.slice()}])});
-              else trunc=true; }
-      else incon++;
+      if(!ok) continue;
+      if(out.length<cap) out.push({path:par.path.concat([{scope:scope, cb:cb.slice()}])});
+      else trunc=true;
     }
   });
-  return {sols:out, checked:checked, incon:incon, dead:dead, groups:groups.length, truncated:trunc};
+  return {sols:out, checked:checked, incon:incon, dead:dead, groups:groups.length,
+    truncated:trunc, sampled:sampled, space:space, consistN:kept};
 }
 function runLayered(){
   const order=xlayers().filter(s=>s!=='nation');     // 国家级是给定层，不参与枚举
@@ -2253,20 +2292,31 @@ function runLayered(){
   if(ds.length<2){ toast('至少选两个描述符'); return; }
   const filled=cimKeys().filter(k=>cim[k]);
   if(!filled.length){ toast('还没有打分，先到「交叉影响打分」做判断'); return; }
-  let parents=null; const layers=[];
-  for(let i=0;i<order.length;i++){
-    const scope=order[i];
-    const r=solveLayer(ds, scope, parents);
-    layers.push({scope:scope, n:r.sols.length, checked:r.checked,
-                 incon:r.incon, dead:r.dead, groups:r.groups, truncated:r.truncated});
-    parents=r.sols;
-    if(!parents.length) break;
-  }
-  layeredResult={ds:ds.slice(), order:order.slice(), layers:layers,
-    combos:parents?parents.length:0, final:parents||[], ts:nowStr()};
-  render();
-  toast('逐层求解完成：'+layers.map(x=>XL_NAME[x.scope]+' '+x.n+' 组'+(x.truncated?'+':'')).join(' → ')
-    +(layers.some(x=>x.dead)?('（'+layers.reduce((a,x)=>a+x.dead,0)+' 个上级情景下级无解）'):''));
+  const layers=[]; let parents=null;
+  layeredResult=null;
+  const host=document.getElementById('layBox');
+  const step=()=>{
+    const scope=order[layers.length];
+    if(host) host.innerHTML='<div class="empty">正在求解 '+XL_NAME[scope]
+      +'（第 '+(layers.length+1)+' / '+order.length+' 层）……</div>';
+    setTimeout(()=>{
+      const r=solveLayer(ds, scope, parents);
+      layers.push({scope:scope, n:r.sols.length, checked:r.checked,
+                   incon:r.incon, dead:r.dead, groups:r.groups, truncated:r.truncated,
+                   sampled:r.sampled, space:r.space});
+      parents=r.sols;
+      if(!parents.length||layers.length===order.length){
+        layeredResult={ds:ds.slice(), order:order.slice(), layers:layers,
+          combos:parents?parents.length:0, final:parents||[], ts:nowStr()};
+        render();
+        toast('逐层求解完成：'+layers.map(x=>XL_NAME[x.scope]+' '+x.n+' 组'+(x.truncated?'+':'')).join(' → ')
+          +(layers.some(x=>x.dead)?('（'+layers.reduce((a,x)=>a+x.dead,0)+' 个上级情景下级无解）'):'')
+          +(layers.some(x=>x.sampled)?'　·　大空间层为抽样估计':''));
+      }
+      else step();
+    }, 30);
+  };
+  step();
 }
 
 
@@ -2291,11 +2341,17 @@ function renderLay(){
   R.layers.forEach((L,i)=>{
     h+='<div class="laynode"><div class="ln">'+XL_NAME[L.scope]+'</div>'
       +'<div class="lv">'+L.n.toLocaleString()+(L.truncated?'<i>+</i>':'')+' 组</div>'
-      +'<div class="ls">检查 '+L.checked.toLocaleString()
+      +'<div class="ls">检查 '+L.checked.toLocaleString()+(L.sampled?'（抽样）':'')
       +(L.dead?('　<span class="laywarn">'+L.dead+' 个上级无解</span>'):'')+'</div></div>';
     if(i<R.layers.length-1) h+='<div class="layarrow">→</div>';
   });
   h+='</div>';
+  if(R.layers.some(x=>x.sampled)){
+    h+='<div class="dim" style="font-size:11.5px;margin:6px 0 0;">'
+      +'标注「抽样」的层组合空间超过 25 万，按固定种子抽样估计（自洽组合数是<b>下限</b>，'
+      +'小空间层仍为精确枚举）。19 个描述符全开时全空间约 11.6 亿种，逐层判一遍而非每组判一遍，'
+      +'才能在这个规模跑完。</div>';
+  }
   h+='<div class="kv" style="margin-top:4px;"><span>最终跨层相容组合</span>'
     +'<span style="color:var(--pri);font-weight:600;">'+R.combos.toLocaleString()
     +(R.layers.some(x=>x.truncated)?'+':'')+' 条</span></div>';
