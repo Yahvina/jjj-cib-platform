@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>京津冀政策情景快速评估平台 · 原型 v1.2</title>
+<title>京津冀政策情景快速评估平台 · 原型 v1.3</title>
   <style>
 :root{
   --bg:#F6F7F9; --panel:#FFFFFF; --panel2:#FAFBFC;
@@ -704,6 +704,54 @@ table.proftab tr.pgroup td{background:var(--panel2);color:var(--tx);font-weight:
 .evbox .evc b{color:var(--pri);}
 .evbox .evx{font-size:11px;color:var(--tx2);line-height:1.7;margin-top:3px;}
 
+/* 稳健性检验 */
+.robbar{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:10px;}
+.robbar .rbl{font-size:12px;color:var(--tx2);margin-right:2px;}
+.rbtn{border:1px solid var(--line);border-radius:7px;padding:4px 10px;font-size:12px;color:var(--tx2);}
+.rbtn.on{background:var(--pri-s);border-color:var(--pri);color:var(--pri);font-weight:600;}
+.robintro{font-size:12.5px;color:var(--tx2);line-height:1.95;padding:4px 2px;}
+.robintro .dim{color:var(--tx3);font-size:12px;}
+.robwarn{background:var(--wn-s);border:1px solid var(--wn-b);color:var(--wn);
+  border-radius:7px;padding:7px 11px;font-size:12px;margin-bottom:10px;}
+.robkpi{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px;}
+.rk{flex:1;min-width:110px;background:var(--panel2);border:1px solid var(--line2);
+  border-radius:8px;padding:9px 12px;}
+.rk span{display:block;font-size:11px;color:var(--tx3);}
+.rk b{font-size:16px;color:var(--tx);}
+.robsec{font-size:12.5px;font-weight:600;color:var(--tx);margin:14px 0 7px;}
+.robtbl{border:1px solid var(--line);border-radius:8px;overflow:auto;max-height:340px;}
+.robrow{display:grid;grid-template-columns:52px 1fr 120px 42px 48px;align-items:center;
+  gap:8px;padding:5px 10px;font-size:12px;border-bottom:1px solid var(--line2);}
+.robrow:last-child{border-bottom:none;}
+.robrow .rdn{color:var(--tx2);font-size:11px;}
+.robrow .rst{color:var(--tx);}
+.robrow .rv{font-variant-numeric:tabular-nums;color:var(--tx2);}
+.robrow .rj{font-size:11px;text-align:center;border-radius:4px;padding:1px 0;}
+.rj.ok{color:var(--ok);background:var(--ok-s);}
+.rj.wn{color:var(--wn);background:var(--wn-s);}
+.rj.rd{color:var(--rd);background:var(--rd-s);}
+.robrow.out .rdn,.robrow.out .rst{color:var(--tx3);}
+.rbar{background:var(--line2);border-radius:5px;height:8px;overflow:hidden;display:block;}
+.rbar i{display:block;height:100%;border-radius:5px;background:var(--pri);}
+.rbar i.ok{background:var(--ok);}
+.rbar i.wn{background:#F79009;}
+.rbar i.rd{background:var(--rd);}
+.rbar.sm{height:7px;display:inline-block;width:120px;vertical-align:middle;margin-right:7px;}
+.robnote{font-size:11.5px;color:var(--tx3);margin-top:6px;line-height:1.7;}
+.robt2{width:100%;border-collapse:collapse;font-size:12px;}
+.robt2 th,.robt2 td{border:1px solid var(--line);padding:5px 9px;text-align:left;}
+.robt2 th{background:var(--panel2);font-weight:600;color:var(--tx2);}
+.robt2 td .dim{color:var(--tx3);font-size:11px;}
+.robconcl{background:var(--pri-s);border-left:3px solid var(--pri);color:var(--tx);
+  padding:10px 14px;font-size:12.5px;line-height:1.9;border-radius:0 7px 7px 0;margin-top:14px;}
+
+/* 框架通用化 */
+.fwstat{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px;}
+.fwtools{display:flex;gap:8px;flex-wrap:wrap;align-items:center;}
+.fwtools .txt{max-width:240px;}
+.fwnote{font-size:11.5px;color:var(--tx3);line-height:1.8;margin-top:10px;}
+.fwnote b{color:var(--tx2);}
+
 </style>
 </head>
 <body>
@@ -711,7 +759,7 @@ table.proftab tr.pgroup td{background:var(--panel2);color:var(--tx);font-weight:
 <header class="topbar">
   <div class="logo">京</div>
   <div class="brand">京津冀政策情景快速评估平台
-    <small>Scenario Rapid Assessment · 原型 v1.2 · 19 个描述符 · 55 个状态 · 106 条政策路径</small></div>
+    <small>Scenario Rapid Assessment · 原型 v1.3 · 19 个描述符 · 55 个状态 · 106 条政策路径</small></div>
   <div class="sp"></div>
   <span class="badge hi">支持三级描述符</span>
   <span class="badge">国家—省—市三级联动</span>
@@ -719,7 +767,7 @@ table.proftab tr.pgroup td{background:var(--panel2);color:var(--tx);font-weight:
   <button class="btn" onclick="backToCmp()">功能对比</button>
   <button class="btn" onclick="saveCfg()">保存配置</button>
   <button class="btn" onclick="loadCfg()">载入配置</button>
-  <button class="btn" onclick="alert('原型 v1.2\n\n一致性检验已接入真实算法（枚举状态组合、算影响平衡、筛自洽情景）；\n每个状态的取值区间可编辑、状态可增删——定性标签因此成为半定量档位；\n政策库内置 106 条路径及其与描述符的映射。')">关于</button>
+  <button class="btn" onclick="alert('原型 v1.3\n\n一致性检验已接入真实算法；v1.3 新增稳健性检验、描述符框架导入导出与报告 Word 导出；\n每个状态的取值区间可编辑、状态可增删——定性标签因此成为半定量档位；\n政策库内置 106 条路径及其与描述符的映射。')">关于</button>
 </header>
 
 <div class="steps" id="steps"></div>
@@ -864,6 +912,14 @@ table.proftab tr.pgroup td{background:var(--panel2);color:var(--tx);font-weight:
       <div id="statePanel"><div class="empty">左侧勾选描述符后，这里显示它的状态选项</div></div>
       <div id="outPanel"></div>
     </div>
+  </div>
+
+  <div class="card">
+    <h3>描述符框架 <span class="tag">v1.3 新增 · 算法通用、底料本地</span></h3>
+    <p style="font-size:12.5px;color:var(--tx2);margin-bottom:10px;">
+      这套算法不认「京津冀」——它只认一组描述符、每档区间、两两判断。所以描述符集可以整体导出/导入：
+      换一套行业或区域，同一套流程照跑。落地靠本地数据，通用性就靠这一层。</p>
+    <div id="fwBox"></div>
   </div>
 </section>
 
@@ -1058,6 +1114,15 @@ table.proftab tr.pgroup td{background:var(--panel2);color:var(--tx);font-weight:
   </div>
 
   <div class="card">
+    <h3>稳健性检验 <span class="tag">v1.3 新增 · 判断改了结论还站得住吗</span></h3>
+    <p style="font-size:12.5px;color:var(--tx2);margin-bottom:10px;">
+      一致性检验的输入是人给的 −3 到 +3。这一块把每条判断按置信度随机改动一档，重算几十轮：
+      <b>出现率一直高的状态</b>可以当成结论的骨架；<b>单独改一档就让大批结论失效的那条判断</b>，
+      就是人审该优先花力气的地方。结果不是概率，只衡量结论对判断的敏感程度。</p>
+    <div id="robBox"></div>
+  </div>
+
+  <div class="card">
     <h3>矛盾组合与处理建议 <span class="tag">闭环</span></h3>
     <p style="font-size:12.5px;color:var(--tx2);margin-bottom:12px;">
       发现矛盾只是第一步。这里给出调整建议，采纳后会自动重新检验。</p>
@@ -1143,6 +1208,7 @@ table.proftab tr.pgroup td{background:var(--panel2);color:var(--tx);font-weight:
       <b>情景报告</b>
       <div class="sp"></div>
       <button class="btn" onclick="downloadReport()">下载 HTML</button>
+      <button class="btn" onclick="downloadReportDoc()">下载 Word</button>
       <button class="btn" onclick="downloadReportJSON()">下载 JSON</button>
       <button class="btn" onclick="closeReport()">关闭</button>
     </div>
@@ -1165,7 +1231,8 @@ table.proftab tr.pgroup td{background:var(--panel2);color:var(--tx);font-weight:
 
 <script>
 /* ================= 数据 ================= */
-const TREE=[
+/* 描述符框架：19 个描述符分三级组织。v1.3 起这一层可整体替换（见「框架通用化」） */
+let TREE=[
  {n:'经济与人口',c:[
   {n:'经济规模',d:[{id:'d1',n:'经济增长速度',t:'输入型',v:'GDP|MER；GDP|PPP；Investment',
     s:['高速','中速','低速'],
@@ -2627,7 +2694,7 @@ function renderPolicy(){
     '<span class="kv"><span>政策路径</span><span>'+all.length+' 条</span></span>'+
     '<span class="kv"><span>有对应描述符</span><span style="color:var(--ok)">'+hit+' 条</span></span>'+
     '<span class="kv"><span>无对应</span><span style="color:var(--tx2)">'+(all.length-hit)+' 条</span></span>'+
-    '<span class="kv"><span>覆盖描述符</span><span>'+Object.keys(covered).length+' / 19 个</span></span>'+
+    '<span class="kv"><span>覆盖描述符</span><span>'+Object.keys(covered).length+' / '+allDescs().length+' 个</span></span>'+
     '<span class="kv"><span>有工具级记录</span><span>'+evN+' 条</span></span>'+
     '<span class="kv"><span>含定量口径</span><span>'+qN+' 条</span></span>'+
     '<div class="dim" style="margin-top:8px;font-size:12px;">列表右侧的小数字是这条路径对应到的描述符个数，'
@@ -3238,6 +3305,31 @@ function downloadReport(){
 function downloadReportJSON(){
   saveFile('情景评估数据_'+nowStr().replace(/[: ]/g,'-')+'.json',
     JSON.stringify(reportData(), null, 2), 'application/json');
+}
+/* 导出 Word：Word 能直接打开带 mso 命名空间的 HTML，后缀给 .doc 即可。
+   好处是不用装任何库、也不依赖服务端，双击就能改。 */
+function downloadReportDoc(){
+  const d=reportData();
+  const css='@page{size:A4;margin:2.2cm 2.4cm;}'
+   +'body{font-family:"宋体",serif;font-size:10.5pt;line-height:1.75;color:#000;}'
+   +'h1{font-family:"黑体",sans-serif;font-size:16pt;text-align:center;margin:0 0 8pt;}'
+   +'h2{font-family:"黑体",sans-serif;font-size:12pt;margin:15pt 0 6pt;}'
+   +'h3{font-family:"黑体",sans-serif;font-size:10.5pt;margin:10pt 0 4pt;}'
+   +'table{border-collapse:collapse;width:100%;margin:6pt 0 10pt;}'
+   +'th,td{border:1px solid #000;padding:3pt 5pt;font-size:9pt;vertical-align:top;}'
+   +'th{background:#F2F2F2;font-weight:bold;}'
+   +'.rmeta{border:1px solid #000;padding:6pt 9pt;margin-bottom:10pt;font-size:10pt;}'
+   +'.rmeta div{padding:1pt 0;}.rmeta span:first-child{display:inline-block;min-width:72pt;}'
+   +'.rnote,.rok{border-left:2pt solid #666;padding:3pt 8pt;margin:6pt 0;font-size:10pt;}'
+   +'.rrng{font-size:9pt;}.rsub{text-align:center;font-size:10pt;margin-bottom:10pt;}';
+  const html='<html xmlns:o="urn:schemas-microsoft-com:office:office" '
+   +'xmlns:w="urn:schemas-microsoft-com:office:word" '
+   +'xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="utf-8">'
+   +'<title>京津冀政策情景快速评估报告</title>'
+   +'<!--[if gte mso 9]><xml><w:WordDocument><w:View>Print</w:View>'
+   +'<w:Zoom>100</w:Zoom></w:WordDocument></xml><![endif]-->'
+   +'<style>'+css+'</style></head><body>'+buildReportHTML(d)+'</body></html>';
+  saveFile('情景评估报告_'+d.generated.slice(0,10)+'.doc', html, 'application/msword');
 }
 
 /* ================= 主被动图（v1.1 新增） ================= */
@@ -4594,6 +4686,427 @@ document.addEventListener('keydown', function(e){
   if(e.key==='ArrowLeft'||e.key==='PageUp'){ e.preventDefault(); presPrev(); }
 });
 
+/* ================= 稳健性检验（v1.3 新增） =================
+   前面所有结论都建立在「−3 到 +3 那套判断」上，而判断是人给的。
+   这里做两件事：
+     ① 扰动重算：按置信度把每条判断随机改 1 档，重算 R 轮，看每个状态还在不在；
+     ② 单格翻转：逐条把某个判断改 ±1，看在基准自洽集上翻掉多少。
+   注意：结果不是概率，只回答「判断晃一下，结论会不会翻」。 */
+let robResult=null, robR=30, robSig='';
+
+function mulberry(a){
+  return function(){
+    a|=0; a=a+0x6D2B79F5|0;
+    let t=Math.imul(a^a>>>15,1|a);
+    t=t+Math.imul(t^t>>>7,61|t)^t;
+    return ((t^t>>>14)>>>0)/4294967296;
+  };
+}
+// 矩阵指纹：用来判断上次的稳健性结果是不是已经过期
+function cimSig(){
+  const s=[];
+  Object.keys(cim).sort().forEach(k=>{
+    const c=cim[k]; if(!c) return;
+    s.push(k+':'+c.v+':'+c.conf+(c.st?(':'+Object.keys(c.st).sort().map(x=>x+'='+c.st[x]).join(',')):''));
+  });
+  return s.join('|');
+}
+// 固定一批组合，基准与每一轮扰动都用它——只有组合不变，
+// 才能回答「同一个组合在判断改动后还自不自洽」。
+function comboSample(ds, cap, seed){
+  const allowed=ds.map(d=>ancAllowed(d));
+  if(allowed.some(a=>!a.length)) return {bad:true};
+  const radix=allowed.map(a=>a.length);
+  const space=radix.reduce((a,b)=>a*b,1);
+  const out=[];
+  if(space<=cap){
+    for(let c=0;c<space;c++){
+      let x=c; const idx=new Array(ds.length);
+      for(let i=ds.length-1;i>=0;i--){ const r=radix[i]; idx[i]=allowed[i][x%r]; x=Math.floor(x/r); }
+      out.push(idx);
+    }
+  }else{
+    const rnd=mulberry(seed||1);
+    for(let c=0;c<cap;c++){
+      const idx=new Array(ds.length);
+      for(let i=0;i<ds.length;i++) idx[i]=allowed[i][Math.floor(rnd()*radix[i])];
+      out.push(idx);
+    }
+  }
+  return {combos:out, space:space, sampled:space>cap};
+}
+// 用给定矩阵建影响值表，展开规则与 enumCore 内部保持一致
+function buildIMP(ds, M){
+  const n=ds.length, sizes=ds.map(d=>ST(d).length), IMP=[];
+  for(let k=0;k<n;k++){
+    IMP[k]=[];
+    for(let i=0;i<n;i++){
+      if(k===i){ IMP[k][i]=null; continue; }
+      const m=[];
+      for(let a=0;a<sizes[k];a++){
+        const row=[];
+        for(let b=0;b<sizes[i];b++){
+          const r=M[ds[k]+'>'+ds[i]];
+          let v=0;
+          if(r){
+            const ov=r.st?r.st[a+'_'+b]:undefined;
+            v=(typeof ov==='number')?ov:expandV(r.v,sizes[k],a,sizes[i],b);
+          }
+          row.push(v);
+        }
+        m.push(row);
+      }
+      IMP[k][i]=m;
+    }
+  }
+  return IMP;
+}
+// 判一个组合在给定影响值表下是否自洽（与 enumCore 的判据同一条）
+function evalCombo(IMP, sizes, idx){
+  const n=idx.length;
+  for(let i=0;i<n;i++){
+    let mx=-1e9, pickv=0;
+    for(let j=0;j<sizes[i];j++){
+      let acc=0;
+      for(let k=0;k<n;k++){ if(k!==i) acc+=IMP[k][i][idx[k]][j]; }
+      if(j===idx[i]) pickv=acc;
+      if(acc>mx) mx=acc;
+    }
+    if(pickv<mx-1e-6) return false;
+  }
+  return true;
+}
+function cloneCim(){
+  const o={};
+  Object.keys(cim).forEach(k=>{
+    const c=cim[k]; if(!c) return;
+    o[k]={v:c.v, conf:c.conf, rev:c.rev};
+    if(c.st) o[k].st=Object.assign({},c.st);
+  });
+  return o;
+}
+// 置信度决定被改动的频率：低置信度的判断本来就没底，当然更容易被动
+const CONF_P={'低':0.5, '中':0.25, '高':0.08};
+
+function computeRobust(R, seed){
+  const ds=Object.keys(sel.desc);
+  if(ds.length<2) return {err:'至少选两个描述符'};
+  let scored=0;
+  ds.forEach(a=>ds.forEach(b=>{ if(a!==b&&cim[a+'>'+b]) scored++; }));
+  if(!scored) return {err:'还没有打分，先到「交叉影响打分」做判断'};
+  const sizes=ds.map(d=>ST(d).length);
+  const S=comboSample(ds, 2000, 7);
+  if(S.bad) return {err:'有描述符在锚定下没有可用状态，先放宽锚定'};
+  const IMP0=buildIMP(ds, cim);
+  const flag0=S.combos.map(c=>evalCombo(IMP0, sizes, c));
+  const baseSet=S.combos.filter((c,i)=>flag0[i]);
+  if(!baseSet.length) return {err:'当前判断下没有一个自洽组合，稳健性无从谈起——先让基准跑出结果'};
+  R=Math.max(5, Math.min(100, Math.floor(R||30)));
+  const rnd=mulberry(seed||20261017);
+  const hit={}, cHit=new Array(S.combos.length).fill(0), counts=[];
+  for(let r=0;r<R;r++){
+    const M=cloneCim();
+    Object.keys(M).forEach(k=>{
+      const c=M[k], p=CONF_P[c.conf]===undefined?0.3:CONF_P[c.conf];
+      if(rnd()<p){
+        const d=rnd()<0.5?-1:1;
+        c.v=Math.max(-3, Math.min(3, c.v+d));
+      }
+    });
+    const IMP=buildIMP(ds, M);
+    let cnt=0; const seen={};
+    S.combos.forEach((c,i)=>{
+      if(!evalCombo(IMP, sizes, c)) return;
+      cnt++; cHit[i]++;
+      for(let q=0;q<ds.length;q++){ seen[q+'|'+c[q]]=1; }
+    });
+    Object.keys(seen).forEach(kk=>{ hit[kk]=(hit[kk]||0)+1; });
+    counts.push(cnt);
+  }
+  const states=[];
+  ds.forEach((d,i)=>ST(d).forEach((nm,j)=>{
+    const kk=i+'|'+j, f=(hit[kk]||0)/R;
+    states.push({d:d, i:i, j:j, nm:nm, rate:f, inBase:baseSet.some(c=>c[i]===j)});
+  }));
+  // 单格翻转只在基准自洽集的前 80 个上测——够看出哪条最要命，也不至于卡住
+  const scan=baseSet.slice(0,80), cells=[];
+  Object.keys(cim).forEach(k=>{
+    const sp=k.split('>');
+    if(ds.indexOf(sp[0])<0||ds.indexOf(sp[1])<0) return;
+    const v=cim[k].v;
+    let worst=0, dir=0;
+    [-1,1].forEach(dd=>{
+      const nv=v+dd; if(nv<-3||nv>3) return;
+      const M=cloneCim(); M[k].v=nv;
+      const IMP=buildIMP(ds,M);
+      let flip=0;
+      scan.forEach(c=>{ if(!evalCombo(IMP,sizes,c)) flip++; });
+      const rt=flip/scan.length;
+      if(rt>worst){ worst=rt; dir=dd; }
+    });
+    if(worst>0) cells.push({from:sp[0], to:sp[1], v:v, conf:cim[k].conf, flip:worst, dir:dir, n:scan.length});
+  });
+  cells.sort((a,b)=>b.flip-a.flip||Math.abs(b.v)-Math.abs(a.v));
+  const byRate=states.slice().sort((a,b)=>a.rate-b.rate);
+  robResult={
+    ds:ds.slice(), R:R, space:S.space, sampled:S.sampled, nCombos:S.combos.length,
+    baseCount:baseSet.length, counts:counts,
+    min:Math.min.apply(null,counts), max:Math.max.apply(null,counts),
+    avg:counts.reduce((a,b)=>a+b,0)/counts.length,
+    states:states, cells:cells.slice(0,10), cellN:cells.length,
+    fragile:byRate.slice(0,4), stable:byRate.slice(-4).reverse(),
+    ts:nowStr()
+  };
+  robSig=cimSig();
+  return robResult;
+}
+function runRobust(){
+  const host=document.getElementById('robBox');
+  if(host) host.innerHTML='<div class="empty">正在重算 '+robR+' 轮，请稍等……</div>';
+  setTimeout(()=>{
+    const r=computeRobust(robR);
+    if(r&&r.err){ if(host) host.innerHTML='<div class="empty">'+r.err+'</div>'; return; }
+    renderRobust();
+    toast('稳健性检验完成：'+robResult.R+' 轮扰动，自洽数落在 '+robResult.min+'–'+robResult.max);
+  }, 30);
+}
+function setRobR(n){ robR=n; renderRobust(); }
+
+function renderRobust(){
+  const host=document.getElementById('robBox'); if(!host) return;
+  const ds=Object.keys(sel.desc);
+  if(ds.length<2){ host.innerHTML='<div class="empty">先在第 2 步勾选描述符</div>'; return; }
+  const btns='<div class="robbar"><span class="rbl">扰动轮次</span>'
+    +[10,30,60].map(n=>'<button class="rbtn'+(robR===n?' on':'')+'" onclick="setRobR('+n+')">'+n+' 轮</button>').join('')
+    +'<button class="btn pri sm" style="margin-left:10px" onclick="runRobust()">跑稳健性检验</button></div>';
+  if(!robResult){
+    host.innerHTML=btns+'<div class="robintro">'
+      +'<b>这一步是给结论上保险。</b>这里按每条判断的置信度随机把它改 1 档——'
+      +'低置信度改得勤、高置信度几乎不动——重算几十轮，看两件事：<br>'
+      +'① <b>哪些状态经得起改</b>：出现率一直高的，说明结论不是碰巧落在那儿；<br>'
+      +'② <b>哪条判断最要命</b>：单独改它 ±1 就能让大批已有结论失效的，最该先找人复核。<br>'
+      +'<span class="dim">这不是概率，别读成「这个情景有 70% 的可能发生」。它衡量的是判断的晃动会不会改变结论。</span>'
+      +'</div>';
+    return;
+  }
+  const stale=(robSig!==cimSig());
+  let h=btns;
+  if(stale) h+='<div class="robwarn">打分矩阵在这次检验之后改过，下面的数字已经对不上当前判断，建议重跑。</div>';
+  h+='<div class="robkpi">'
+    +'<div class="rk"><span>扰动轮次</span><b>'+robResult.R+' 轮</b></div>'
+    +'<div class="rk"><span>基准自洽</span><b>'+robResult.baseCount+'</b></div>'
+    +'<div class="rk"><span>扰动后区间</span><b>'+robResult.min+' – '+robResult.max+'</b></div>'
+    +'<div class="rk"><span>平均</span><b>'+robResult.avg.toFixed(1)+'</b></div>'
+    +'<div class="rk"><span>组合样本</span><b>'+robResult.nCombos.toLocaleString()
+      +(robResult.sampled?'（抽样）':'（全枚举）')+'</b></div>'
+    +'</div>';
+
+  h+='<div class="robsec">各状态在扰动下的出现率</div>';
+  h+='<div class="robtbl">';
+  robResult.states.forEach(s=>{
+    const w=Math.round(s.rate*100);
+    const cls=s.rate>=0.9?'ok':(s.rate>=0.5?'wn':'rd');
+    const wd=s.rate>=0.9?'稳健':(s.rate>=0.5?'敏感':'脆弱');
+    h+='<div class="robrow'+(s.inBase?'':' out')+'">'
+      +'<span class="rdn">'+(DSHORT[s.d]||s.d)+'</span>'
+      +'<span class="rst">'+s.nm+'</span>'
+      +'<span class="rbar"><i class="'+cls+'" style="width:'+w+'%"></i></span>'
+      +'<span class="rv">'+w+'%</span>'
+      +'<span class="rj '+cls+'">'+wd+'</span></div>';
+  });
+  h+='</div>';
+  h+='<div class="robnote">浅色行＝在基准里就没出现过的状态，出现率低是正常的，不必当成问题。</div>';
+
+  if(robResult.cells.length){
+    h+='<div class="robsec">最该复核的判断（改 ±1 档后，基准结论被推翻的比例）</div>';
+    h+='<table class="robt2"><thead><tr><th>判断</th><th style="width:64px">原分值</th>'
+      +'<th style="width:56px">置信度</th><th style="width:150px">翻转比例</th><th style="width:96px">方向</th></tr></thead><tbody>';
+    robResult.cells.forEach(c=>{
+      const w=Math.round(c.flip*100);
+      h+='<tr><td><b>'+(DSHORT[c.from]||c.from)+'</b> → '+(DSHORT[c.to]||c.to)+'</td>'
+        +'<td>'+(c.v>0?'+':'')+c.v+'</td>'
+        +'<td>'+c.conf+'</td>'
+        +'<td><span class="rbar sm"><i class="rd" style="width:'+w+'%"></i></span>'+w+'%</td>'
+        +'<td class="dim">改为 '+(c.v+c.dir>0?'+':'')+(c.v+c.dir)+' 时</td></tr>';
+    });
+    h+='</tbody></table>';
+    h+='<div class="robnote">列表里的条目，就是「一个人拍脑袋改一档、结论就变」的地方。'
+      +'人审的力气应该优先花在这些格子上，而不是平均分配。'
+      +'本次共扫描 '+robResult.cellN+' 条会改变结论的判断，表中列出最敏感的 10 条。</div>';
+  }
+
+  const fr=robResult.fragile.filter(x=>x.rate<0.5);
+  const stb=robResult.stable.filter(x=>x.rate>=0.9);
+  h+='<div class="robconcl"><b>怎么读这张表。</b>';
+  if(stb.length){
+    h+='在扰动下始终成立的状态有 <b>'+stb.length+'</b> 个（'
+      +stb.map(x=>(DSHORT[x.d]||x.d)+'＝'+x.nm).join('、')
+      +'），这几个可以当成<b>结论的骨架</b>直接写进情景叙事。';
+  }else{
+    h+='没有任何一个状态的出现率超过 90%，说明<b>结论对判断很敏感</b>，'
+      +'写报告时要把话说软一点，或者先把低置信度的判断复核一遍。';
+  }
+  if(fr.length){
+    h+=' 相反，'+fr.map(x=>(DSHORT[x.d]||x.d)+'＝'+x.nm).join('、')
+      +' 的出现率不到 50%，它们要么依赖少数几条关键判断，要么本来就在自洽边界上——'
+      +'<b>不宜作为政策建议的主依据</b>。';
+  }
+  h+='</div>';
+  host.innerHTML=h;
+}
+
+/* ================= 框架通用化（v1.3 新增） =================
+   这套算法本身不认「京津冀」——它只认三样东西：一组描述符、每档的数值区间、两两判断。
+   把描述符集抽成可导入导出的 JSON，换一套行业或区域照样能跑：
+   落地靠本地数据，通用性靠这一层。 */
+let TREE_BASE=null;   // 京津冀原框架：第一次切换前存一份，随时能回来
+
+function flatDescs(){
+  const out=[];
+  TREE.forEach(g=>g.c.forEach(c=>c.d.forEach(d=>{
+    const rec={group:g.n, cat:c.n, id:d.id, n:d.n, t:d.t, v:d.v,
+      s:d.s.slice(), tr:d.tr, a30:d.a30, a35:d.a35};
+    if(RANGE_PRESET[d.n]) rec.r=RANGE_PRESET[d.n];
+    out.push(rec);
+  })));
+  return out;
+}
+function fwJSON(name){
+  return JSON.stringify({
+    name:name||'自定义描述符框架',
+    version:'1.0',
+    note:'descriptors 为描述符数组。t 取「输入型 / 参数型 / 结果型」；s 为状态名数组，至少两个；'
+      +'r 可选，形如 {"状态名":[下限,上限,"单位"]}；group / cat 仅用于界面分组。',
+    descriptors:flatDescs()
+  }, null, 2);
+}
+function fwName(){ return ((document.getElementById('fwName')||{}).value||'').trim()||'描述符框架'; }
+
+function exportFramework(){
+  saveFile(fwName()+'.json', fwJSON(fwName()), 'application/json');
+}
+// 导入时的校验：宁可当场报错，也不要带着半套框架跑到后面才发现对不上
+function applyFramework(txt){
+  let o;
+  try{ o=JSON.parse(txt); }
+  catch(e){ return {err:'不是合法的 JSON 文件'}; }
+  const list=o&&o.descriptors;
+  if(!Array.isArray(list)||list.length<2) return {err:'至少要两个描述符'};
+  const bad=[], names=[];
+  list.forEach((d,i)=>{
+    const tag=d&&d.n?('「'+d.n+'」'):('第 '+(i+1)+' 个');
+    if(!d||!d.n) bad.push('第 '+(i+1)+' 个缺少名称');
+    else if(!Array.isArray(d.s)||d.s.length<2) bad.push(tag+'的状态少于两个');
+    else if(['输入型','参数型','结果型'].indexOf(d.t)<0) bad.push(tag+'的类型须为输入型/参数型/结果型');
+    else names.push(d.n);
+  });
+  const dup=names.filter((x,i)=>names.indexOf(x)!==i);
+  if(dup.length) bad.push('描述符重名：'+dup.filter((x,i,a)=>a.indexOf(x)===i).join('、'));
+  if(bad.length) return {err:bad.slice(0,3).join('；')};
+
+  if(!TREE_BASE) TREE_BASE=JSON.parse(JSON.stringify(TREE));
+  const gs=[], gc={};
+  list.forEach((d,i)=>{
+    const gn=d.group||'未分组', cn=d.cat||'未分类';
+    if(!gc[gn]){ gc[gn]={n:gn, c:[], _c:{}}; gs.push(gc[gn]); }
+    const g=gc[gn];
+    if(!g._c[cn]){ g._c[cn]={n:cn, d:[]}; g.c.push(g._c[cn]); }
+    g._c[cn].d.push({id:d.id||('x'+(i+1)), n:d.n, t:d.t, v:d.v||'',
+      s:d.s.slice(), tr:d.tr||'（导入的框架未附翻译依据）',
+      a30:d.a30||'待定', a35:d.a35||'待定'});
+    if(d.r && typeof d.r==='object') RANGE_PRESET[d.n]=d.r;
+  });
+  gs.forEach(g=>delete g._c);
+  TREE=gs;
+
+  // 换框架等于换了一套变量，旧的选择、打分、结果一概不能留
+  sel.desc={};
+  Object.keys(cim).forEach(k=>delete cim[k]);
+  cimSelKey=null;
+  anchors={};
+  cimResult=null; profResult=null; corrResult=null; layeredResult=null; robResult=null;
+  Object.keys(stateDefs).forEach(k=>delete stateDefs[k]);
+  Object.keys(scopedDefs).forEach(k=>delete scopedDefs[k]);
+  return {ok:true, n:list.length, name:o.name||'导入的框架'};
+}
+function importFramework(inp){
+  const f=inp.files&&inp.files[0]; if(!f) return;
+  const r=new FileReader();
+  r.onload=()=>{
+    const res=applyFramework(String(r.result));
+    if(res.err){ toast('导入失败：'+res.err); renderFW(); return; }
+    toast('已切换为「'+res.name+'」：'+res.n+' 个描述符，打分需重做');
+    render();
+  };
+  r.readAsText(f,'utf-8');
+}
+function loadDemoFramework(){
+  const demo={name:'示例：城市客运交通（5 个描述符）', descriptors:[
+    {group:'需求', cat:'出行总量', id:'t1', n:'客运出行总量', t:'输入型', v:'Passenger-km',
+      s:['高位增长','平稳增长','达峰回落'],
+      r:{'高位增长':[2.0,3.0,'%/年'],'平稳增长':[0.5,2.0,'%/年'],'达峰回落':[-1.0,0.5,'%/年']},
+      tr:'不需翻译，模型直接读取客运周转量序列。'},
+    {group:'结构', cat:'方式分担', id:'t2', n:'公共交通分担率', t:'参数型', v:'Transit share',
+      s:['显著提升','缓慢提升','维持现状'],
+      r:{'显著提升':[60,70,'%'],'缓慢提升':[45,60,'%'],'维持现状':[35,45,'%']},
+      tr:'模型吃的是方式分担的 logit 参数，翻译动作是把分担率目标反推成效用项系数。'},
+    {group:'结构', cat:'车辆技术', id:'t3', n:'新能源车辆占比', t:'结果型', v:'EV share',
+      s:['主导','过渡','边缘'],
+      r:{'主导':[70,100,'%'],'过渡':[30,70,'%'],'边缘':[0,30,'%']},
+      tr:'不作为输入，由车辆更新模型算出。'},
+    {group:'供给', cat:'基础设施', id:'t4', n:'充电设施覆盖强度', t:'参数型', v:'Charger density',
+      s:['高覆盖','基本覆盖','覆盖不足'],
+      r:{'高覆盖':[0.8,1.0,'相对密度'],'基本覆盖':[0.5,0.8,'相对密度'],'覆盖不足':[0.2,0.5,'相对密度']},
+      tr:'模型吃的是充电桩密度对购车意愿的折减系数。'},
+    {group:'治理', cat:'需求管理', id:'t5', n:'小汽车使用约束强度', t:'参数型', v:'Pricing & restriction',
+      s:['强约束','温和约束','弱约束'],
+      r:{'强约束':[1.0,1.5,'相对成本'],'温和约束':[0.5,1.0,'相对成本'],'弱约束':[0,0.5,'相对成本']},
+      tr:'模型吃的是用车成本的相对倍数，限行日折算为等效成本。'}
+  ]};
+  const res=applyFramework(JSON.stringify(demo));
+  if(res.err){ toast('载入失败：'+res.err); return; }
+  toast('已载入示例框架：5 个描述符——同一套算法换了一套变量照样跑');
+  render();
+}
+function resetFramework(){
+  if(!TREE_BASE){ toast('当前就是京津冀原框架'); return; }
+  TREE=JSON.parse(JSON.stringify(TREE_BASE));
+  sel.desc={};
+  Object.keys(cim).forEach(k=>delete cim[k]);
+  cimSelKey=null; anchors={};
+  cimResult=null; profResult=null; corrResult=null; layeredResult=null; robResult=null;
+  Object.keys(stateDefs).forEach(k=>delete stateDefs[k]);
+  Object.keys(scopedDefs).forEach(k=>delete scopedDefs[k]);
+  render();
+  toast('已恢复京津冀原框架');
+}
+function renderFW(){
+  const host=document.getElementById('fwBox'); if(!host) return;
+  const ds=allDescs();
+  const stN=ds.reduce((a,d)=>a+d.s.length,0);
+  const ty={};
+  ds.forEach(d=>{ ty[d.t]=(ty[d.t]||0)+1; });
+  const isBase=!TREE_BASE;
+  host.innerHTML=
+    '<div class="fwstat">'
+    +'<div class="rk"><span>当前框架</span><b>'+ds.length+' 个描述符</b></div>'
+    +'<div class="rk"><span>状态合计</span><b>'+stN+' 个</b></div>'
+    +'<div class="rk"><span>类型分布</span><b>'+Object.keys(ty).map(k=>k+' '+ty[k]).join('　')+'</b></div>'
+    +'<div class="rk"><span>来源</span><b>'+(isBase?'京津冀原框架':'外部导入 / 示例')+'</b></div>'
+    +'</div>'
+    +'<div class="fwtools">'
+    +'<input class="txt" id="fwName" value="'+(isBase?'京津冀描述符框架':'自定义描述符框架')+'" style="max-width:240px;">'
+    +'<button class="btn" onclick="exportFramework()">导出框架 JSON</button>'
+    +'<label class="btn" style="display:inline-flex;align-items:center;">导入框架 JSON'
+      +'<input type="file" accept=".json,application/json" style="display:none" onchange="importFramework(this)"></label>'
+    +'<button class="btn" onclick="loadDemoFramework()">载入示例框架</button>'
+    +'<button class="btn" onclick="resetFramework()">恢复京津冀框架</button>'
+    +'</div>'
+    +'<div class="fwnote">导入的 JSON 只带变量结构（描述符、状态、区间），不带判断——'
+    +'换框架后原来的打分全部作废，需要重新判断。这就是「算法通用、底料本地」的分界：'
+    +'<b>平台本身可以换一套变量跑，但每个地方的数据和专家判断必须由本地给。</b></div>';
+}
+
 /* ================= 主渲染 ================= */
 function render(){
   renderSteps(); renderCmp(); layerTable(); renderTree(); renderStates();
@@ -4601,6 +5114,7 @@ function render(){
   renderCim(); renderEnsBar(); modelDetail(); renderAnc(); renderScopeBar(); checkResult(); renderXl(); renderLay(); renderFilt();
   renderTableau(); renderMap();
   confList(); timeline(); renderImpact(); renderPath(); renderAP(); renderProf(); renderCorr(); renderEnsPanel();
+  renderRobust(); renderFW();
   el('outPreview', preview());
   el('fmtTag', fmtTag());
   el('fmtNote', curModel==='gcam'
