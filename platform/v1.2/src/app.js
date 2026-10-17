@@ -563,9 +563,12 @@ function renderStates(){
           </div>`:'';
       const hint={direct:'区间已对齐政策目标',conv:'区间需换算后使用',example:'区间为示例值，待补政策依据',
         exo:'外生输入，不由政策工具驱动'}[ev.k]||'';
+      const showLine=(ev.k==='direct'||ev.k==='conv');
       return `<div class="stbox"><div class="hd">${nm}
         ${c.src?`<span class="src">来源：${c.src}</span>`:''}
-        <i class="evi ${ev.k}" title="${ev.t}">${EVID_WORD[ev.k]||''}</i></div>`+rows+addBox+
+        <i class="evi ${ev.k}" title="${ev.t}">${EVID_WORD[ev.k]||''}</i></div>`
+        +(showLine?`<div class="evline"><b>${ev.k==='direct'?'政策依据':'目标口径（需换算）'}</b>　${ev.t}</div>`:'')
+        +rows+addBox+
         `<div class="stfoot"><button class="btn sm" onclick="addState('${nm}')">＋ 自定义状态</button>
           <span class="sthint">${hint}</span></div>`+
         (bad.length?`<div class="stbad">区间衔接提示：${bad.join('；')}</div>`:'')+
