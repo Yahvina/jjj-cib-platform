@@ -681,3 +681,18 @@ table.proftab tr.pgroup td{background:var(--panel2);color:var(--tx);font-weight:
   .pthree{grid-template-columns:1fr;}
   .pch h1{font-size:22px;}
 }
+
+/* 政策依据区块 */
+.pitem .pe{flex:none;font-size:10px;color:var(--ok);background:var(--ok-s);
+  border:1px solid var(--ok-b);border-radius:4px;padding:0 4px;margin-left:4px;}
+.evbox{background:var(--panel2);border-radius:7px;padding:10px 12px;margin-bottom:12px;}
+.evbox.none{font-size:12px;color:var(--tx2);line-height:1.8;border-left:3px solid var(--line);}
+.evbox .evn{font-size:12px;color:var(--tx2);margin-bottom:5px;}
+.evbox .evn b{color:var(--pri);}
+.evbox .evf{font-size:12px;color:var(--tx);line-height:1.8;}
+.evbox .evq{font-size:11.5px;color:var(--tx2);line-height:1.75;margin-top:6px;
+  padding-left:8px;border-left:2px solid var(--pri-b);}
+.evbox .evd{font-size:11.5px;color:var(--tx2);line-height:1.75;margin-top:7px;}
+.evbox .evc{font-size:11.5px;color:var(--tx);margin-top:4px;}
+.evbox .evc b{color:var(--pri);}
+.evbox .evx{font-size:11px;color:var(--tx2);line-height:1.7;margin-top:3px;}
