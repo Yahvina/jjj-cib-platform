@@ -513,6 +513,18 @@ table.anctab .ancx{font-size:11.5px;color:var(--pri);cursor:pointer;}
   padding:7px 12px;line-height:1.7;border-bottom:1px solid var(--line);}
 .stbox .evline b{color:var(--pri);font-weight:500;}
 
+/* 区间视角切换（区域级 / 北京 / 天津 / 河北） */
+.scopebar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;background:var(--panel2);
+  padding:9px 12px;border-radius:7px;margin-bottom:11px;}
+.scopebar .slb{font-size:12px;color:var(--tx2);flex:none;}
+.scopebtns{display:flex;gap:5px;flex-wrap:wrap;}
+.sbtn{height:26px;padding:0 11px;border-radius:13px;border:1px solid var(--line);
+  background:var(--panel);color:var(--tx2);font-size:12px;cursor:pointer;font-family:inherit;}
+.sbtn:hover{border-color:var(--pri-b);color:var(--pri);}
+.sbtn.on{background:var(--pri);border-color:var(--pri);color:#fff;font-weight:500;}
+.scopebar .snote{font-size:11px;color:var(--tx3);flex:1 1 100%;line-height:1.7;margin-top:2px;}
+.evi.scope{background:#FDF2F8;color:#9D174D;border:1px solid #FBCFE8;}
+
 </style>
 </head>
 <body>
@@ -664,6 +676,11 @@ table.anctab .ancx{font-size:11.5px;color:var(--pri);cursor:pointer;}
     </div>
     <div>
       <div style="font-size:12.5px;color:var(--tx2);margin-bottom:8px;">状态设置 <span class="dim">（含取值区间，可编辑）</span></div>
+      <div class="scopebar">
+        <span class="slb">区间视角</span>
+        <span class="scopebtns" id="scopeBtns"></span>
+        <span class="snote">同一描述符在不同辖区可以有不同的档位边界——北京三产 86% 与河北 55%，用一套区间就都会错位。</span>
+      </div>
       <div id="statePanel"><div class="empty">左侧勾选描述符后，这里显示它的状态选项</div></div>
       <div id="outPanel"></div>
     </div>
@@ -1367,7 +1384,34 @@ const RANGE_EVID={
   '经济增长速度':{k:'exo',t:'外生输入，由 SSP 情景给定，不由政策工具驱动'},
   '人口空间分布与收缩态势':{k:'exo',t:'外生输入，由 SSP 情景给定，不由政策工具驱动'}
 };
-const EVID_WORD={direct:'政策目标',conv:'需换算',example:'示例值',exo:'外生输入',user:'已改'};
+const EVID_WORD={direct:'政策目标',conv:'需换算',example:'示例值',exo:'外生输入',user:'已改',scope:'本辖区口径'};
+
+// 区间分层：同一描述符在区域级与各省可以有不同的档位边界。
+// 不这样做的话，北京三产 86% 与河北 55% 会被塞进同一套区间，河北永远落在"转型滞后"档。
+let rngScope='region';
+const SCOPE_NAME={region:'区域级（京津冀）',bj:'北京',tj:'天津',he:'河北'};
+const stateDefsScope={};     // 描述符名 -> { bj/tj/he: { 状态名: {lo,hi,u} } }
+const scopedDefs={};         // 缓存：描述符名|scope -> 合成后的状态数组
+
+// 已按本辖区口径设定的档位：只填有政策或统计依据的，其余沿用区域级
+const SCOPE_PRESET={
+  '产业结构':{
+    bj:{'加速服务化':[84,92,'%'],'稳步演进':[76,84,'%'],'转型滞后':[65,76,'%']},
+    tj:{'加速服务化':[68,76,'%'],'稳步演进':[60,68,'%'],'转型滞后':[50,60,'%']},
+    he:{'加速服务化':[58,66,'%'],'稳步演进':[50,58,'%'],'转型滞后':[40,50,'%']}
+  },
+  '一次能源结构':{
+    bj:{'快速清洁化':[28,36,'%'],'目标节奏':[21,28,'%'],'推进迟缓':[14,21,'%']},
+    tj:{'快速清洁化':[20,28,'%'],'目标节奏':[14,20,'%'],'推进迟缓':[8,14,'%']}
+  }
+};
+const SCOPE_NOTE={
+  '产业结构|bj':'按北京现状（2025 年三产 85.99%，北京统计公报）设档，区域级区间不适用',
+  '产业结构|tj':'按天津现状（2025 年三产 65.21%，天津统计公报）设档',
+  '产业结构|he':'按河北现状（2025 年三产 55.1%，河北统计公报）设档',
+  '一次能源结构|bj':'按北京 2025 ≥14.4%、2030 25% 左右（北京市碳达峰实施方案）设档，25% 落在「目标节奏」',
+  '一次能源结构|tj':'按天津 2025 ≥11.7%、2030 ≥16%（津政发〔2022〕18 号）设档，16% 落在「目标节奏」'
+};
 
 const stateDefs={};          // 描述符名 -> [{n,lo,hi,u,custom,ev}]
 let rngEdit=null, rngAdd=null;
@@ -1380,8 +1424,53 @@ function defsOf(nm){
       const q=p[s];
       return {n:s, lo:q?q[0]:null, hi:q?q[1]:null, u:q?q[2]:'', ev:ek};
     });
+    // 该描述符有省级预设的，一并建好覆盖
+    const sp=SCOPE_PRESET[nm];
+    if(sp){
+      stateDefsScope[nm]={};
+      Object.keys(sp).forEach(sc=>{
+        stateDefsScope[nm][sc]={};
+        Object.keys(sp[sc]).forEach(k=>{
+          const v=sp[sc][k];
+          stateDefsScope[nm][sc][k]={lo:v[0],hi:v[1],u:v[2]};
+        });
+      });
+    }
   }
-  return stateDefs[nm];
+  if(rngScope==='region') return stateDefs[nm];
+  const key=nm+'|'+rngScope;
+  if(!scopedDefs[key]){
+    const ov=(stateDefsScope[nm]||{})[rngScope]||{};
+    scopedDefs[key]=stateDefs[nm].map(x=>{
+      const o=ov[x.n];
+      return o?{...x, lo:o.lo, hi:o.hi, u:o.u, ev:(o.ev||'scope'), scoped:true}
+              :{...x, scoped:false};   // 没有省级口径的，沿用区域级
+    });
+  }
+  return scopedDefs[key];
+}
+// 状态结构（有哪些档）是全辖区共享的，只有数值可以按辖区分开。
+// 所以增删改状态一律作用在基准上，再清掉各辖区的合成缓存。
+function baseOf(nm){ defsOf(nm); return stateDefs[nm]; }
+function clearScopeCache(nm){
+  Object.keys(scopedDefs).forEach(k=>{ if(k.indexOf(nm+'|')===0) delete scopedDefs[k]; });
+}
+function setScope(sc){
+  if(!SCOPE_NAME[sc]) return;
+  rngScope=sc; rngEdit=null; render();
+  toast('区间视角已切换为「'+SCOPE_NAME[sc]+'」');
+}
+function dropScopeOverride(nm){
+  if(rngScope==='region'){ toast('区域级是基准，不能在它自身清除'); return; }
+  if(stateDefsScope[nm]&&stateDefsScope[nm][rngScope]) delete stateDefsScope[nm][rngScope];
+  delete scopedDefs[nm+'|'+rngScope];
+  render(); toast('「'+nm+'」已恢复为区域级口径');
+}
+function renderScopeBar(){
+  const host=document.getElementById('scopeBtns'); if(!host) return;
+  host.innerHTML=Object.keys(SCOPE_NAME).map(k=>
+    `<button class="sbtn${rngScope===k?' on':''}" onclick="setScope('${k}')">${SCOPE_NAME[k]}</button>`
+  ).join('');
 }
 // 状态名的唯一入口：所有读取状态列表的地方都改走这里，
 // 这样用户增删改状态后，检算、报告、导出才不会与界面脱节。
@@ -1414,26 +1503,44 @@ function saveRange(nm,s){
   const changed=(nlo!==x.lo)||(nhi!==x.hi)||((nu||'')!==(x.u||''));
   x.lo=nlo; x.hi=nhi; x.u=nu;
   if(changed) x.ev='user';          // 改过区间，原政策依据不再适用，标记为已改
+  if(rngScope!=='region'){
+    stateDefsScope[nm]=stateDefsScope[nm]||{};
+    stateDefsScope[nm][rngScope]=stateDefsScope[nm][rngScope]||{};
+    stateDefsScope[nm][rngScope][s]={lo:nlo,hi:nhi,u:nu,ev:'user'};
+    delete scopedDefs[nm+'|'+rngScope];   // 下次按覆盖重建
+  }
   rngEdit=null; render();
-  toast(changed?('已更新「'+s+'」的区间，原依据标记为已改'):('已保存「'+s+'」'));
+  toast(changed?('已更新「'+s+'」的区间（'+SCOPE_NAME[rngScope]+'），原依据标记为已改')
+               :('已保存「'+s+'」'));
 }
 function renState(nm,old){
   const v=txtOf('rst'); if(!v||v===old){ rngEdit=null; renderStates(); return; }
-  const x=defsOf(nm).find(y=>y.n===old); x.n=v;
+  const x=baseOf(nm).find(y=>y.n===old); if(!x) return;
+  x.n=v;
+  Object.keys(stateDefsScope[nm]||{}).forEach(sc=>{
+    const m=stateDefsScope[nm][sc];
+    if(m[old]){ m[v]=m[old]; delete m[old]; }     // 辖区覆盖的键名一起改
+  });
+  clearScopeCache(nm);
   const c=sel.desc[nm]; if(c){ const i=c.states.indexOf(old); if(i>=0) c.states[i]=v; }
   rngEdit=null; render(); toast('已重命名为「'+v+'」');
 }
 function delState(nm,s){
-  const a=defsOf(nm); const i=a.findIndex(x=>x.n===s); if(i<0) return;
+  const a=baseOf(nm); const i=a.findIndex(x=>x.n===s); if(i<0) return;
   if(a.length<=1){ toast('至少保留一个状态'); return; }
   a.splice(i,1);
+  Object.keys(stateDefsScope[nm]||{}).forEach(sc=>{ delete stateDefsScope[nm][sc][s]; });
+  clearScopeCache(nm);
   const c=sel.desc[nm]; if(c){ const j=c.states.indexOf(s); if(j>=0) c.states.splice(j,1); }
   rngEdit=null; render(); toast('已删除状态「'+s+'」');
 }
 function doAddState(nm){
   const v=txtOf('nsn'); if(!v){ toast('请填写状态名称'); return; }
-  if(defsOf(nm).some(x=>x.n===v)){ toast('该名称已存在'); return; }
-  defsOf(nm).push({n:v, lo:numOf('nslo'), hi:numOf('nshi'), u:txtOf('nsu'), custom:true});
+  const a=baseOf(nm);
+  if(a.some(x=>x.n===v)){ toast('该名称已存在'); return; }
+  a.push({n:v, lo:numOf('nslo'), hi:numOf('nshi'), u:txtOf('nsu'), custom:true,
+          ev:(RANGE_EVID[nm]||{}).k||'example'});
+  clearScopeCache(nm);
   rngAdd=null; render(); toast('已新增自定义状态「'+v+'」');
 }
 function renderStates(){
@@ -1482,14 +1589,23 @@ function renderStates(){
           </div>`:'';
       const hint={direct:'区间已对齐政策目标',conv:'区间需换算后使用',example:'区间为示例值，待补政策依据',
         exo:'外生输入，不由政策工具驱动'}[ev.k]||'';
-      const showLine=(ev.k==='direct'||ev.k==='conv');
+      const snote=SCOPE_NOTE[nm+'|'+rngScope];
+      const hasScope=defs.some(x=>x.scoped);
+      const scopeTag=(rngScope!=='region')
+        ? `<i class="evi ${hasScope?'scope':'example'}">${hasScope?('已按'+SCOPE_NAME[rngScope]+'口径'):'沿用区域级'}</i>`
+        : '';
+      const lineTxt=snote||ev.t;
+      const lineLb=snote?'本辖区口径':(ev.k==='direct'?'政策依据':'目标口径（需换算）');
+      const showLine=!!snote || ev.k==='direct' || ev.k==='conv';
+      const hintTxt=(rngScope!=='region'&&!hasScope)?'本辖区暂无独立口径，沿用区域级区间':hint;
       return `<div class="stbox"><div class="hd">${nm}
         ${c.src?`<span class="src">来源：${c.src}</span>`:''}
-        <i class="evi ${ev.k}" title="${ev.t}">${EVID_WORD[ev.k]||''}</i></div>`
-        +(showLine?`<div class="evline"><b>${ev.k==='direct'?'政策依据':'目标口径（需换算）'}</b>　${ev.t}</div>`:'')
+        <i class="evi ${ev.k}" title="${ev.t}">${EVID_WORD[ev.k]||''}</i>${scopeTag}</div>`
+        +(showLine?`<div class="evline"><b>${lineLb}</b>　${lineTxt}</div>`:'')
         +rows+addBox+
         `<div class="stfoot"><button class="btn sm" onclick="addState('${nm}')">＋ 自定义状态</button>
-          <span class="sthint">${hint}</span></div>`+
+          ${hasScope&&rngScope!=='region'?`<button class="btn sm" onclick="dropScopeOverride('${nm}')">恢复区域级</button>`:''}
+          <span class="sthint">${hintTxt}</span></div>`+
         (bad.length?`<div class="stbad">区间衔接提示：${bad.join('；')}</div>`:'')+
         `</div>`;
     }).join('');
@@ -2028,6 +2144,7 @@ function snapshot(){
     applied:[...applied],
     xlSel: xlSel,
     anchors: anchors,
+    rngScope: rngScope,
     cim: (ens&&ens.active>=0 ? ens.people[ens.active].cim : cim),
     ens: ens?{people:ens.people, active:ens.active, merged:ens.merged}:null,
     ensRes: ensRes};
@@ -2050,6 +2167,8 @@ function loadCfg(){
     });
     // 打分矩阵与多专家状态
     ens=d.ens||null; ensRes=d.ensRes||{}; xlSel=d.xlSel||{}; anchors=d.anchors||{};
+    if(d.rngScope&&SCOPE_NAME[d.rngScope]) rngScope=d.rngScope;
+    Object.keys(scopedDefs).forEach(k=>delete scopedDefs[k]);
     if(ens&&ens.people&&ens.people.length){
       ens.active=(typeof ens.active==='number')?ens.active:0;
       cim=(ens.active<0? ens.merged : ens.people[ens.active].cim)||{};
@@ -2489,6 +2608,7 @@ function reportData(){
         v:cim[k].v, conf:cim[k].conf, why:cim[k].why, reviewed:!!cim[k].rev,
         stN:(cim[k].st?Object.keys(cim[k].st).length:0)}))
     },
+    rangeScope: {k:rngScope, n:SCOPE_NAME[rngScope]},
     anchors: Object.keys(anchors).map(k=>({name:k, lo:anchors[k].lo, hi:anchors[k].hi})),
     stats: {n:n, states:ds.reduce((a,d)=>a+ST(d).length,0), cells:n*(n-1)}
   };
@@ -2535,6 +2655,9 @@ function buildReportHTML(d){
       h+='<div class="rnote"><b>依据出处</b><br>'
         +hasEvi.map(x=>'· <b>'+x.name+'</b>：'+x.evt).join('<br>')+'</div>';
     }
+    h+='<div class="rnote"><b>当前区间视角</b>：'+((d.rangeScope&&d.rangeScope.n)||'区域级（京津冀）')+'。同一描述符在不同辖区可以有不同的档位边界——例如三产占比，北京现状约 86%、河北约 55%，'
+      +'用一套区间覆盖三地会让低值辖区永久落在「转型滞后」档。报告中凡标注「本辖区口径」的状态，'
+      +'即按该辖区数据单独设档。</div>';
     h+='<div class="rnote">区间是状态的定义，不是预测值——把「高速 / 中速」这类定性标签落到具体数值范围上，'
       +'即为半定量。区间可由使用者按自己的研究口径调整：不同研究可以采用不同标准，不必锁死在平台预置的那一套；'
       +'一旦人工改过，该状态的依据标记会变为「已改」，原政策依据不再自动适用。</div>';
@@ -3330,7 +3453,7 @@ function renderHeat(host){
 function render(){
   renderSteps(); renderCmp(); layerTable(); renderTree(); renderStates();
   expDetail(); renderEnsBox(); scaleSum(); renderPolicy();
-  renderCim(); renderEnsBar(); modelDetail(); renderAnc(); checkResult(); renderXl(); renderFilt();
+  renderCim(); renderEnsBar(); modelDetail(); renderAnc(); renderScopeBar(); checkResult(); renderXl(); renderFilt();
   renderTableau(); renderMap();
   confList(); timeline(); renderImpact(); renderAP(); renderEnsPanel();
   el('outPreview', preview());
