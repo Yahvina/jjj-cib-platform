@@ -525,6 +525,22 @@ table.anctab .ancx{font-size:11.5px;color:var(--pri);cursor:pointer;}
 .scopebar .snote{font-size:11px;color:var(--tx3);flex:1 1 100%;line-height:1.7;margin-top:2px;}
 .evi.scope{background:#FDF2F8;color:#9D174D;border:1px solid #FBCFE8;}
 
+/* 逐层求解 */
+.layflow{display:flex;align-items:stretch;flex-wrap:wrap;margin-bottom:10px;}
+.laynode{flex:1 1 118px;background:var(--panel2);border-radius:8px;padding:10px 12px;text-align:center;}
+.laynode .ln{font-size:12px;color:var(--tx2);}
+.laynode .lv{font-size:17px;font-weight:600;color:var(--pri);margin:3px 0;line-height:1.3;}
+.laynode .lv i{font-style:normal;font-size:12px;}
+.laynode .ls{font-size:11px;color:var(--tx3);line-height:1.6;}
+.layarrow{display:flex;align-items:center;padding:0 9px;color:var(--tx3);font-size:15px;}
+.laywarn{color:var(--wn);}
+.layrow{font-size:12.5px;line-height:1.85;padding:8px 10px;border-bottom:1px dashed var(--line);
+  border-radius:4px;}
+.layrow:hover{background:var(--panel2);}
+.layrow:last-child{border-bottom:none;}
+.layidx{display:inline-block;min-width:27px;color:var(--tx3);font-size:11.5px;}
+.laysep{color:var(--tx3);margin:0 7px;}
+
 </style>
 </head>
 <body>
@@ -821,6 +837,17 @@ table.anctab .ancx{font-size:11.5px;color:var(--pri);cursor:pointer;}
       这里给每个描述符在每一层各选一个状态，平台逐层比对——<b>档位跨两档即判为方向相反</b>。
       这是「纵向一致性」，与上面的 CIB「横向自洽」是两回事：横向管这套假设内部打不打架，纵向管它上下说不说得通。</p>
     <div id="xlBox"></div>
+  </div>
+
+  <div class="card">
+    <h3>逐层求解 <span class="tag">v1.2 新增 · 跨层约束进入求解</span></h3>
+    <p style="font-size:12.5px;color:var(--tx2);margin-bottom:10px;line-height:1.85;">
+      上面那张是<b>算完再查</b>：先各自求解，再比对档位差。这里是<b>算的时候就带着上级的条件</b>——
+      区域级解出的每个情景，其取值转成下级的约束，下级与它<b>区间不相交</b>的状态直接不进枚举。
+      上级定「目标节奏（21–28%）」，下级「快速清洁化（30–40%）」根本不会被算到，而不是算出来再判它矛盾。<br>
+      <b>代价是有的</b>：上级某个情景可能让下级完全无解。那不是程序出错，<b>那就是结论</b>——
+      这套上级设想在下级没有对应的实现空间。</p>
+    <div id="layBox"></div>
   </div>
 
   <div class="card">
@@ -1333,6 +1360,7 @@ function tglState(nm,st){
   const b=sel.desc[nm]; if(!b) return;
   const i=b.states.indexOf(st);
   if(i>=0) b.states.splice(i,1); else b.states.push(st);
+  cimResult=null; layeredResult=null;
   render();
 }
 /* ================= 状态半定量化（v1.2 新增） =================
@@ -1502,7 +1530,7 @@ function saveRange(nm,s){
   const nlo=numOf('rlo'), nhi=numOf('rhi'), nu=txtOf('ru');
   const changed=(nlo!==x.lo)||(nhi!==x.hi)||((nu||'')!==(x.u||''));
   x.lo=nlo; x.hi=nhi; x.u=nu;
-  if(changed) x.ev='user';          // 改过区间，原政策依据不再适用，标记为已改
+  if(changed){ x.ev='user'; layeredResult=null; }   // 改过区间，原政策依据不再适用
   if(rngScope!=='region'){
     stateDefsScope[nm]=stateDefsScope[nm]||{};
     stateDefsScope[nm][rngScope]=stateDefsScope[nm][rngScope]||{};
@@ -1692,6 +1720,7 @@ function modelDetail(){
 
 /* ================= 步骤 5 ================= */
 let cimResult=null;
+let layeredResult=null;
 /* 状态级影响值：由描述符级分值按两端状态的高低位置展开 */
 // 由描述符级分值按两端状态的高低位置展开——这是"没有人工精判时"的默认假设。
 // 它只是兜底，不是真判断：真判断应当落在状态对上，见 impactVal 里的 st 覆盖。
@@ -1731,9 +1760,11 @@ function setAnc(nm, v){
   const a=parseAnc(v);
   if(a) anchors[nm]=a; else delete anchors[nm];
   cimResult=null;                        // 锚定变了，旧结果作废
+  layeredResult=null;
   render();
 }
 function clearAnc(){ anchors={}; cimResult=null; render(); toast('已清除全部数值锚定'); }
+layeredResult=null;
 /* 锚定后还剩哪些状态可用：区间与锚定完全不相交的排除；
    没有区间的状态不排除（缺少数值依据时，不能凭锚定把它否掉） */
 function ancAllowed(nm){
@@ -1848,6 +1879,151 @@ function runCIM(){
     +(anchored?('（锚定已把空间收窄到 '+space.toLocaleString()+' 种）'):''));
   render();
 }
+/* ================= 逐层求解（v1.2 新增：让跨层约束真正进入求解） =================
+   与「跨层一致性」的区别：那个是算完之后再查档位差；这个是在求解时就用上级的取值
+   裁掉下级不相容的状态——上级定了「目标节奏（21–28%）」，下级「快速清洁化（30–40%）」
+   根本不会进入枚举，而不是等算出来再判它矛盾。 */
+let layScope='region';
+
+function rangeOf(nm,scope){
+  const base=baseOf(nm);
+  if(scope==='region') return base;
+  const ov=(stateDefsScope[nm]||{})[scope]||{};
+  return base.map(x=>{ const o=ov[x.n]; return o?{...x,...o}:{...x}; });
+}
+// 上级某状态 -> 它那一层的区间；下级哪个状态与它相交，才算相容
+function allowUnder(ds,scope,parent){
+  return ds.map(d=>{
+    const sizes=ST(d).length;
+    if(!parent) return [...Array(sizes).keys()];
+    const pi=parent.cb[ds.indexOf(d)];
+    const pName=ST(d)[pi];
+    const pR=rangeOf(d,parent.scope).find(x=>x.n===pName);
+    const cDefs=rangeOf(d,scope);
+    const ok=[];
+    for(let j=0;j<sizes;j++){
+      const c=cDefs[j];
+      if(!pR||pR.lo===null||pR.hi===null||c.lo===null||c.hi===null){ ok.push(j); continue; }
+      if(c.hi < pR.lo || c.lo > pR.hi) continue;     // 与上级区间不相交，直接排除
+      ok.push(j);
+    }
+    return ok;
+  });
+}
+function solveLayer(ds, scope, parents, cap){
+  cap=cap||600;
+  const sizes=ds.map(d=>ST(d).length);
+  const groups=(parents&&parents.length)?parents:[{path:[],scope:null,cb:null}];
+  const out=[]; let checked=0, incon=0, dead=0, trunc=false;
+  groups.forEach(par=>{
+    const allowed=allowUnder(ds,scope,par.scope?par:null);
+    if(allowed.some(a=>!a.length)){ dead++; return; }
+    const radix=allowed.map(a=>a.length);
+    const space=radix.reduce((a,b)=>a*b,1);
+    const MAX=200000, sampled=space>MAX, N=Math.min(space,MAX);
+    for(let c=0;c<N;c++){
+      let x=sampled?Math.floor(Math.random()*space):c;
+      const cb=new Array(ds.length);
+      for(let i=ds.length-1;i>=0;i--){ const r=radix[i]; cb[i]=allowed[i][x%r]; x=Math.floor(x/r); }
+      let ok=true;
+      for(let i=0;i<ds.length&&ok;i++){
+        let mx=-1e9, pv=0;
+        for(let j=0;j<sizes[i];j++){
+          let s=0;
+          for(let k=0;k<ds.length;k++){ if(k!==i) s+=impactVal(ds[k],cb[k],ds[i],j); }
+          if(j===cb[i]) pv=s;
+          if(s>mx) mx=s;
+        }
+        if(pv<mx-1e-6) ok=false;
+      }
+      checked++;
+      if(ok){ if(out.length<cap) out.push({path:par.path.concat([{scope:scope, cb:cb.slice()}])});
+              else trunc=true; }
+      else incon++;
+    }
+  });
+  return {sols:out, checked:checked, incon:incon, dead:dead, groups:groups.length, truncated:trunc};
+}
+function runLayered(){
+  const order=xlayers().filter(s=>s!=='nation');     // 国家级是给定层，不参与枚举
+  if(!order.length){ toast('第 1 步至少要勾一个参与求解的层级（区域 / 省 / 市）'); return; }
+  const ds=Object.keys(sel.desc);
+  if(ds.length<2){ toast('至少选两个描述符'); return; }
+  const filled=cimKeys().filter(k=>cim[k]);
+  if(!filled.length){ toast('还没有打分，先到「交叉影响打分」做判断'); return; }
+  let parents=null; const layers=[];
+  for(let i=0;i<order.length;i++){
+    const scope=order[i];
+    const r=solveLayer(ds, scope, parents);
+    layers.push({scope:scope, n:r.sols.length, checked:r.checked,
+                 incon:r.incon, dead:r.dead, groups:r.groups, truncated:r.truncated});
+    parents=r.sols;
+    if(!parents.length) break;
+  }
+  layeredResult={ds:ds.slice(), order:order.slice(), layers:layers,
+    combos:parents?parents.length:0, final:parents||[], ts:nowStr()};
+  render();
+  toast('逐层求解完成：'+layers.map(x=>XL_NAME[x.scope]+' '+x.n+' 组'+(x.truncated?'+':'')).join(' → ')
+    +(layers.some(x=>x.dead)?('（'+layers.reduce((a,x)=>a+x.dead,0)+' 个上级情景下级无解）'):''));
+}
+
+
+function renderLay(){
+  const host=document.getElementById('layBox'); if(!host) return;
+  const ds=Object.keys(sel.desc);
+  if(ds.length<2){ host.innerHTML='<div class="empty">先在第 3 步勾选至少两个描述符</div>'; return; }
+  const order=xlayers().filter(s=>s!=='nation');
+  if(!order.length){ host.innerHTML='<div class="empty">第 1 步至少要勾一个参与求解的层级（区域 / 省 / 市）</div>'; return; }
+  if(!layeredResult){
+    host.innerHTML='<div style="font-size:12.5px;line-height:1.85;">'
+      +'<b>还没有逐层求解结果。</b>点下面的按钮，平台先解「'+XL_NAME[order[0]]+'」，'
+      +'再把每个自洽情景的取值转成下一层的约束，逐层往下推。<br>'
+      +'<span class="dim">求解顺序：'+order.map(s=>XL_NAME[s]).join(' → ')+'　·　描述符 '+ds.length+' 个</span>'
+      +'<div style="margin-top:12px;"><button class="btn pri" onclick="runLayered()">运行逐层求解</button></div>'
+      +'<div class="dim" style="font-size:12px;margin-top:9px;">'
+      +'国家级是给定层（取值来自政策目标），不参与枚举；若第 1 步没有勾选区域/省/市中的任何一个，这里无法求解。</div></div>';
+    return;
+  }
+  const R=layeredResult;
+  let h='<div class="layflow">';
+  R.layers.forEach((L,i)=>{
+    h+='<div class="laynode"><div class="ln">'+XL_NAME[L.scope]+'</div>'
+      +'<div class="lv">'+L.n.toLocaleString()+(L.truncated?'<i>+</i>':'')+' 组</div>'
+      +'<div class="ls">检查 '+L.checked.toLocaleString()
+      +(L.dead?('　<span class="laywarn">'+L.dead+' 个上级无解</span>'):'')+'</div></div>';
+    if(i<R.layers.length-1) h+='<div class="layarrow">→</div>';
+  });
+  h+='</div>';
+  h+='<div class="kv" style="margin-top:4px;"><span>最终跨层相容组合</span>'
+    +'<span style="color:var(--pri);font-weight:600;">'+R.combos.toLocaleString()
+    +(R.layers.some(x=>x.truncated)?'+':'')+' 条</span></div>';
+  if(R.layers.some(x=>x.truncated)){
+    h+='<div class="dim" style="font-size:11.5px;margin:6px 0 10px;">'
+      +'带 + 号的层已达展示上限（600 组），实际数量可能更多。缩小描述符范围可得到完整结果。</div>';
+  }
+  if(R.combos){
+    h+='<div style="margin-top:12px;font-size:12px;color:var(--tx3);">以下为跨层相容的组合，每条都记录了它在各层的取值：</div>';
+    h+='<div style="margin-top:8px;">';
+    R.final.slice(0,6).forEach((f,i)=>{
+      const segs=f.path.map(p=>{
+        const t=p.cb.map((v,j)=>(DSHORT[R.ds[j]]||R.ds[j])+'＝'+ST(R.ds[j])[v]).join('、');
+        return '<b>'+XL_NAME[p.scope]+'</b>　'+t;
+      }).join('<span class="laysep">→</span>');
+      h+='<div class="layrow"><span class="layidx">#'+(i+1)+'</span><span>'+segs+'</span></div>';
+    });
+    h+='</div>';
+    if(R.combos>6) h+='<div class="dim" style="font-size:12px;margin-top:7px;">此处显示前 6 条，共 '+R.combos+' 条（上限 600）。</div>';
+  }else{
+    h+='<div class="note" style="margin-top:10px;">没有找到跨层相容的组合。'
+      +'常见原因是上级某层的区间设得比下级宽松太多，导致下级无解——可以切到第 3 步，'
+      +'把相应层级的区间调一调，或者换几个描述符再试。</div>';
+  }
+  h+='<div style="margin-top:12px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;">'
+    +'<button class="btn sm" onclick="runLayered()">重新求解</button>'
+    +'<span class="dim" style="font-size:12px;">计算时间 '+R.ts+'</span></div>';
+  host.innerHTML=h;
+}
+
 function checkResult(){
   const ds=Object.keys(sel.desc);
   if(ds.length<2){ el('checkResult','<div class="empty">先在第 3 步勾选至少两个描述符</div>'); return; }
@@ -2101,6 +2277,7 @@ function pick(node,g){
   render();
 }
 function tglScale(node){
+  layeredResult=null;
   node.classList.toggle('sel');
   const c=node.querySelector('.chk');
   c.classList.toggle('on'); c.innerHTML=c.classList.contains('on')?TICK:'';
@@ -2174,6 +2351,7 @@ function loadCfg(){
       cim=(ens.active<0? ens.merged : ens.people[ens.active].cim)||{};
     }else{ ens=null; cim=d.cim||{}; }
     cimSelKey=null; cimResult=null;
+    layeredResult=null;
     inCmp=false; render(); toast('配置已载入'); 
   }catch(e){ toast('载入失败'); }
 }
@@ -2344,6 +2522,7 @@ function cimKeys(){
 // 清空矩阵内容但保留对象本身——多人模式下 cim 是「当前专家那一份」的引用，
 // 直接 cim={} 会切断引用，导致改动落到一个游离对象上。
 function clearCim(){ Object.keys(cim).forEach(k=>delete cim[k]); cimResult=null; }
+layeredResult=null;
 function aiFill(){
   if(nSel()<2){ toast('先回到第 2 步，至少勾选两个描述符'); return; }
   const keys=cimKeys();
@@ -2361,6 +2540,7 @@ function aiFill(){
 function resetCim(){ clearCim(); cimSelKey=null; toast('已清空打分矩阵'); render(); }
 function pickCell(s,t){ cimSelKey=s+'>'+t; if(!cim[cimSelKey]) cim[cimSelKey]={v:0,conf:'低',why:'',rev:false}; renderCim(); }
 function setV(v){ if(cimSelKey){ cim[cimSelKey].v=v; cimResult=null; renderCim(); } }
+layeredResult=null;
 function setConf(c){ if(cimSelKey){ cim[cimSelKey].conf=c; renderCim(); } }
 function setWhy(w){ if(cimSelKey){ cim[cimSelKey].why=w; } }
 function toggleRev(){ if(cimSelKey){ cim[cimSelKey].rev=!cim[cimSelKey].rev; renderCim(); } }
@@ -2487,11 +2667,13 @@ function setSt(fi,ti,v){
   if(v==='') delete r.st[k]; else r.st[k]=+v;
   if(!Object.keys(r.st).length) delete r.st;
   cimResult=null;
+  layeredResult=null;
   renderCim();
 }
 function clearSt(){
   const r=cim[cimSelKey]; if(!r) return;
   delete r.st; cimResult=null; renderCim();
+  layeredResult=null;
   toast('已全部恢复为按整体倾向自动展开');
 }
 function cimBalance(ds){
@@ -2903,6 +3085,7 @@ function setPerson(i){
   ens.active=i;
   cim=(i<0? ens.merged : ens.people[i].cim) || {};
   cimSelKey=null; cimResult=null;
+  layeredResult=null;
   render();
 }
 function ensCopyTo(){
@@ -2949,6 +3132,7 @@ function ensMerge(){
     }
   });
   ens.merged=out; ens.active=-1; cim=out; cimSelKey=null; cimResult=null;
+  layeredResult=null;
   render();
   toast('已合并 '+st.n+' 份矩阵：一致 '+st.agree+' 条，分歧 '+st.diff.length+' 条');
 }
@@ -2960,6 +3144,7 @@ function arbit(k, v){
     ens.merged[k]={v:v, conf:'高', why:'多专家分歧（原取值 '+rec.join(' / ')+'），经裁定取 '+v, rev:true};
   }
   cimResult=null;
+  layeredResult=null;
   render();
   toast('已裁定为 '+(v>0?'+':'')+v);
 }
@@ -3453,7 +3638,7 @@ function renderHeat(host){
 function render(){
   renderSteps(); renderCmp(); layerTable(); renderTree(); renderStates();
   expDetail(); renderEnsBox(); scaleSum(); renderPolicy();
-  renderCim(); renderEnsBar(); modelDetail(); renderAnc(); renderScopeBar(); checkResult(); renderXl(); renderFilt();
+  renderCim(); renderEnsBar(); modelDetail(); renderAnc(); renderScopeBar(); checkResult(); renderXl(); renderLay(); renderFilt();
   renderTableau(); renderMap();
   confList(); timeline(); renderImpact(); renderAP(); renderEnsPanel();
   el('outPreview', preview());
