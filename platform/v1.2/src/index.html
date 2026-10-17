@@ -178,6 +178,7 @@
       </div>
     </div>
     <div id="expDetail"></div>
+    <div id="ensBox"></div>
   </div>
 
   <div class="card">
@@ -211,6 +212,7 @@
     可以直接用 AI 预填一版，再由人来审——只重点看那些低置信度的格子。</p>
 
   <div class="card">
+    <div id="ensBar"></div>
     <div class="cimbar">
       <button class="btn pri" id="aiBtn" onclick="aiFill()">AI 预填一版</button>
       <button class="btn" onclick="resetCim()">清空重来</button>
@@ -299,6 +301,14 @@
       给每个描述符算两个数：它<b>对外施加</b>的影响总和（主动和）和它<b>承受</b>的影响总和（被动和）。
       横轴是被动和、纵轴是主动和，四个象限对应四种角色——这张图回答的是「<b>我该动哪个描述符</b>」。</p>
     <div id="apFig"></div>
+  </div>
+
+  <div class="card">
+    <h3>集成与分歧 <span class="tag">多专家</span></h3>
+    <p style="font-size:12.5px;color:var(--tx2);margin-bottom:10px;">
+      选 2 人或 3 人独立打分时，这里把各份矩阵摆在一起：<b>一致的条目自动合并，分歧的条目列出来逐条裁定</b>。
+      裁定结果写回主矩阵，可直接进入一致性检验。</p>
+    <div id="ensPanel"></div>
   </div>
 
   <div class="card">

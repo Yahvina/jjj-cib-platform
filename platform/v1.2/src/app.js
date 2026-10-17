@@ -570,21 +570,22 @@ function pullDB(){
 /* ================= 步骤 3 ================= */
 function expDetail(){
   const el=document.getElementById('expDetail');
+  if(!el) return;
   if(expertN===1){ el.innerHTML='<div class="note">单人判断：全部打分由一人完成，不产生分歧项。</div>'; return; }
-  const n=nSel(), items=n>1?n*(n-1)/2:0;
-  const dv=Math.max(1,Math.round(items*0.16));
+  const n=nSel(), items=n>1?n*(n-1):0;
   el.innerHTML=`<div class="note info">
     <b>${expertN} 人独立打分</b><br>
-    待打分 ${items} 项，系统自动比对后预计标出 <b>${dv}</b> 项存疑项（打分差 ≥ 2）。<br>
-    存疑项不计入最终矩阵，需人工确认后再合并。</div>`;
+    每位专家各持一份完整的判断矩阵，应判 ${items} 条；系统按条目比对，
+    <b>打分差 ≥ 2 的列为分歧</b>，其余按共识值合并。<br>
+    分歧项不进入最终矩阵，需逐条裁定后再检验。</div>`;
 }
 function scaleSum(){
-  const n=nSel(), items=n>1?n*(n-1)/2:0;
+  const n=nSel(), items=n>1?n*(n-1):0;
   document.getElementById('scaleSum').innerHTML=
    `<div class="kv"><span>已选描述符</span><span>${n} 个</span></div>
     <div class="kv"><span>交叉影响矩阵规模</span><span>${n} × ${n} = ${n*n} 格</span></div>
-    <div class="kv"><span>待打分项（对称合并后）</span><span>${items} 项</span></div>
-    <div class="kv"><span>专家人数</span><span>${expertN} 人</span></div>
+    <div class="kv"><span>待打分项（双向分别判断）</span><span>${items} 项</span></div>
+    <div class="kv"><span>专家人数</span><span>${expertN} 人${ens?'（已建立 '+ens.people.length+' 份独立矩阵）':''}</span></div>
     <div class="kv"><span>参数生成方式</span><span>${useBayes?'贝叶斯（给区间）':'仅定性叙事'}</span></div>
     <div class="kv"><span>校验层级</span><span>${[...document.querySelectorAll('[data-scale].sel')].length} 层，含跨层一致性核对</span></div>`;
 }
@@ -893,10 +894,13 @@ function fmtTag(){ return curModel==='gcam'?'configuration.xml':'CSV → GDX'; }
 function finalSum(){
   const map={nation:'国家级',prov:'省级',city:'市级'};
   const sc=[...document.querySelectorAll('[data-scale].sel')].map(x=>map[x.dataset.scale]);
+  const st=ensStat();
   el('finalSum',
    `<div class="kv"><span>层级</span><span>${sc.join(' · ')||'—'}</span></div>
     <div class="kv"><span>描述符</span><span>${nSel()} 个（三级结构）</span></div>
     <div class="kv"><span>校验方式</span><span>${expertN} 位专家${useBayes?' · 叠加贝叶斯':''}</span></div>
+    ${st?'<div class="kv"><span>多专家集成</span><span>'+st.n+' 份矩阵 · 一致 '+st.agree+' / 分歧 '+st.diff.length
+      +'（一致率 '+st.rate+'%）</span></div>':''}
     <div class="kv"><span>目标模型</span><span>${curModel==='gcam'?'GCAM-China':'CHEER-CGE'}</span></div>
     <div class="kv"><span>状态定义来源</span><span>${pulled?'政策数据库自动预填':'手工设定'}</span></div>
     <div class="kv"><span>已采纳的调整建议</span><span>${applied.size} 条</span></div>
@@ -958,7 +962,10 @@ function toast(m){
 function snapshot(){
   return {desc:sel.desc, model:curModel, exp:expertN, bayes:useBayes, pulled,
     scales:[...document.querySelectorAll('[data-scale].sel')].map(x=>x.dataset.scale),
-    applied:[...applied]};
+    applied:[...applied],
+    cim: (ens&&ens.active>=0 ? ens.people[ens.active].cim : cim),
+    ens: ens?{people:ens.people, active:ens.active, merged:ens.merged}:null,
+    ensRes: ensRes};
 }
 function saveCfg(){
   try{ localStorage.setItem('jjj-cib-v10', JSON.stringify(snapshot())); toast('配置已保存到本机'); }
@@ -976,6 +983,13 @@ function loadCfg(){
       x.classList.toggle('sel',on);
       const c=x.querySelector('.chk'); c.classList.toggle('on',on); c.innerHTML=on?TICK:'';
     });
+    // 打分矩阵与多专家状态
+    ens=d.ens||null; ensRes=d.ensRes||{};
+    if(ens&&ens.people&&ens.people.length){
+      ens.active=(typeof ens.active==='number')?ens.active:0;
+      cim=(ens.active<0? ens.merged : ens.people[ens.active].cim)||{};
+    }else{ ens=null; cim=d.cim||{}; }
+    cimSelKey=null; cimResult=null;
     inCmp=false; render(); toast('配置已载入'); 
   }catch(e){ toast('载入失败'); }
 }
@@ -1143,22 +1157,26 @@ function cimKeys(){
   a.forEach(s=>a.forEach(t=>{ if(s!==t) r.push(s+'>'+t); }));
   return r;
 }
+// 清空矩阵内容但保留对象本身——多人模式下 cim 是「当前专家那一份」的引用，
+// 直接 cim={} 会切断引用，导致改动落到一个游离对象上。
+function clearCim(){ Object.keys(cim).forEach(k=>delete cim[k]); cimResult=null; }
 function aiFill(){
   if(nSel()<2){ toast('先回到第 2 步，至少勾选两个描述符'); return; }
   const keys=cimKeys();
-  cim={};
+  clearCim();
   keys.forEach(k=>{ cim[k]={v:0,conf:'低',why:'AI 未发现明显直接影响，待人工判断',rev:false}; });
   AIRT.forEach(a=>{
     const k=a[0]+'>'+a[1];
     if(cim[k]) cim[k]={v:a[2],conf:a[3],why:a[4],rev:false};
   });
   cimSelKey=null;
-  toast('已预填 '+keys.length+' 条判断，请重点审核低置信度项');
+  toast('已预填 '+keys.length+' 条判断，请重点审核低置信度项'
+    +(ens?'（当前为「'+ens.people[ens.active].name+'」的矩阵）':''));
   render();
 }
-function resetCim(){ cim={}; cimSelKey=null; toast('已清空打分矩阵'); render(); }
+function resetCim(){ clearCim(); cimSelKey=null; toast('已清空打分矩阵'); render(); }
 function pickCell(s,t){ cimSelKey=s+'>'+t; if(!cim[cimSelKey]) cim[cimSelKey]={v:0,conf:'低',why:'',rev:false}; renderCim(); }
-function setV(v){ if(cimSelKey){ cim[cimSelKey].v=v; renderCim(); } }
+function setV(v){ if(cimSelKey){ cim[cimSelKey].v=v; cimResult=null; renderCim(); } }
 function setConf(c){ if(cimSelKey){ cim[cimSelKey].conf=c; renderCim(); } }
 function setWhy(w){ if(cimSelKey){ cim[cimSelKey].why=w; } }
 function toggleRev(){ if(cimSelKey){ cim[cimSelKey].rev=!cim[cimSelKey].rev; renderCim(); } }
@@ -1343,6 +1361,8 @@ function reportData(){
     scales: scales.length?scales:['未选择'],
     model: curModel==='gcam'?'GCAM-China':'CHEER-CGE',
     experts: expertN,
+    ens: (function(){ const s=ensStat(); return s?{n:s.n, multi:s.multi, agree:s.agree,
+      diff:s.diff.length, rate:s.rate}:null; })(),
     bayes: useBayes,
     descriptors: ds.map(d=>{
       const o=dOf(d)||{};
@@ -1365,6 +1385,8 @@ function buildReportHTML(d){
     +'<div><span>描述符</span><span>'+d.stats.n+' 个（状态合计 '+d.stats.states+' 个）</span></div>'
     +'<div><span>交叉影响</span><span>应判 '+d.stats.cells+' 条，已填 '+d.cim.filled+' 条</span></div>'
     +'<div><span>校验方式</span><span>'+d.experts+' 人判断'+(d.bayes?'　·　叠加贝叶斯方法':'　·　仅定性叙事')+'</span></div>'
+    +(d.ens?'<div><span>多专家集成</span><span>'+d.ens.n+' 份独立矩阵，可比 '+d.ens.multi
+      +' 条；一致 '+d.ens.agree+' 条，分歧 '+d.ens.diff+' 条（一致率 '+d.ens.rate+'%）</span></div>':'')
     +'</div>';
 
   h+='<h2>一、描述符与状态</h2>';
@@ -1592,10 +1614,244 @@ function renderTableau(){
     +'每格下方小字是该状态的取值区间，情景之间的差异因此不只在标签上，也落在数值范围上。</div>';
 }
 
+/* ================= 多专家集成（v1.2 新增，对应德国软件的 Ensemble 模式） =================
+   导师要的「AI 先填一版 → 一到三个人审核」，审核结果天然是多张矩阵的比对问题：
+   谁和谁不一致、差多少、以谁为准。这一块把那个比对过程做成可操作的界面。
+   做法上不复制矩阵：cim 直接就是「当前打分人」那一份的引用，切换人只换引用，没有同步问题。 */
+
+let ens=null;    // {people:[{name, cim}], active(-1 表示看合并结果), merged}
+let ensRes={};   // 人工裁定记录：条目 -> 取值
+
+function buildEns(){
+  if(expertN<2){ toast('先在「校验方式」里把专家数设为 2 或 3'); return; }
+  const names=[]; for(let i=0;i<expertN;i++) names.push('专家 '+String.fromCharCode(65+i));
+  ens={people:names.map((nm,i)=>({name:nm, cim:i===0?cim:{}})), active:0, merged:null};
+  ensRes={};
+  render();
+  toast('已建立 '+expertN+' 份独立矩阵，可在下一步分人打分');
+}
+function dropEns(){ ens=null; ensRes={}; render(); toast('已退出多专家模式'); }
+function setPerson(i){
+  if(!ens) return;
+  ens.active=i;
+  cim=(i<0? ens.merged : ens.people[i].cim) || {};
+  cimSelKey=null; cimResult=null;
+  render();
+}
+function ensCopyTo(){
+  if(!ens||ens.active<0){ toast('先切到某一位专家的矩阵再分发'); return; }
+  const src=JSON.parse(JSON.stringify(cim));
+  ens.people.forEach((p,i)=>{ if(i!==ens.active) p.cim=JSON.parse(JSON.stringify(src)); });
+  render();
+  toast('已把「'+ens.people[ens.active].name+'」的矩阵分发为其余专家的起点');
+}
+function ensStat(){
+  if(!ens) return null;
+  const keys=cimKeys(), n=ens.people.length;
+  let multi=0, agree=0, missing=0; const diff=[];
+  keys.forEach(k=>{
+    const rec=ens.people.map(p=>p.cim[k]).filter(Boolean);
+    if(rec.length<2){ missing++; return; }
+    multi++;
+    const vs=rec.map(r=>r.v), sp=Math.max(...vs)-Math.min(...vs);
+    if(sp>=2) diff.push({k, rec, sp}); else agree++;
+  });
+  return {n, total:keys.length, multi, agree, missing, diff,
+          rate: multi?Math.round(agree/multi*100):0};
+}
+function ensMerge(){
+  const st=ensStat();
+  if(!st){ toast('请先在「校验方式」里建立多份独立矩阵'); return; }
+  if(!st.multi){ toast('还没有两份以上都打过分、可以比对的条目'); return; }
+  const out={};
+  cimKeys().forEach(k=>{
+    const rec=ens.people.map(p=>p.cim[k]).filter(Boolean);
+    if(!rec.length) return;
+    const vs=rec.map(r=>r.v), sp=Math.max(...vs)-Math.min(...vs);
+    const rv=ensRes[k];
+    if(sp>=2 && typeof rv==='number'){
+      out[k]={v:rv, conf:'高', why:'多专家分歧（原取值 '+vs.join(' / ')+'），经裁定取 '+rv, rev:true};
+    }else if(sp>=2){
+      const srt=vs.slice().sort((a,b)=>a-b);
+      out[k]={v:srt[Math.floor(srt.length/2)], conf:'低',
+        why:'多专家分歧（'+vs.join(' / ')+'），暂取中位数，待裁定', rev:false};
+    }else{
+      const avg=Math.round(vs.reduce((a,b)=>a+b,0)/vs.length);
+      const conf=rec.some(r=>r.conf==='高')?'高':(rec.some(r=>r.conf==='中')?'中':'低');
+      out[k]={v:avg, conf:conf, why:'多专家一致（'+[...new Set(vs)].join(' / ')+'）', rev:rec.every(r=>r.rev)};
+    }
+  });
+  ens.merged=out; ens.active=-1; cim=out; cimSelKey=null; cimResult=null;
+  render();
+  toast('已合并 '+st.n+' 份矩阵：一致 '+st.agree+' 条，分歧 '+st.diff.length+' 条');
+}
+function arbit(k, v){
+  if(!ens) return;
+  const rec=ens.people.map(p=>p.cim[k]).filter(Boolean).map(r=>r.v);
+  ensRes[k]=v;
+  if(ens.active<0 && ens.merged){
+    ens.merged[k]={v:v, conf:'高', why:'多专家分歧（原取值 '+rec.join(' / ')+'），经裁定取 '+v, rev:true};
+  }
+  cimResult=null;
+  render();
+  toast('已裁定为 '+(v>0?'+':'')+v);
+}
+function arbitAllMed(){
+  const st=ensStat();
+  if(!st||!st.diff.length){ toast('没有分歧项'); return; }
+  st.diff.forEach(it=>{
+    const vs=it.rec.map(r=>r.v).sort((a,b)=>a-b);
+    ensRes[it.k]=vs[Math.floor(vs.length/2)];
+  });
+  ensMerge();
+}
+function renderEnsBox(){
+  const el=document.getElementById('ensBox'); if(!el) return;
+  if(expertN<2){
+    el.innerHTML='<div class="note">单人判断：全部打分由一人完成，不产生分歧项。<br>'
+      +'若把专家数设为 <b>双人</b> 或 <b>三人</b>，平台会为每位专家各建一份独立矩阵，再自动比对差异。</div>';
+    return;
+  }
+  el.innerHTML='<div class="note info"><b>'+expertN+' 人独立打分</b>：每位专家各持一份完整矩阵，'
+    +'系统逐条比对——打分差 ≥ 2 的列为<b>分歧项</b>，其余按共识值合并；分歧项裁定后才进入一致性检验。</div>'
+    +'<div style="margin-top:12px;display:flex;gap:10px;flex-wrap:wrap;align-items:center;">'
+    +(ens
+      ? '<button class="btn" onclick="dropEns()">重建独立矩阵</button>'
+        +'<span style="font-size:12.5px;color:var(--tx2);">已建立 '+ens.people.length+' 份，'
+        +'到第 5 步分人打分</span>'
+      : '<button class="btn pri" onclick="buildEns()">建立 '+expertN+' 份独立矩阵</button>'
+        +'<span style="font-size:12.5px;color:var(--tx2);">建好后可让 AI 各填一版，再分人复核</span>')
+    +'</div>';
+}
+function renderEnsBar(){
+  const el=document.getElementById('ensBar'); if(!el) return;
+  if(!ens){ el.innerHTML=''; return; }
+  const st=ensStat();
+  el.innerHTML='<div class="ensbar">'
+    +'<span class="enslb">当前打分人</span>'
+    +ens.people.map((p,i)=>{
+      const n=Object.keys(p.cim).length;
+      return '<button class="eb'+(ens.active===i?' on':'')+'" onclick="setPerson('+i+')">'
+        +p.name+'<i>'+(n?n+' 格':'未打分')+'</i></button>';
+    }).join('')
+    +(ens.merged?'<button class="eb merged'+(ens.active<0?' on':'')+'" onclick="setPerson(-1)">'
+      +'合并结果<i>'+Object.keys(ens.merged).length+' 格</i></button>':'')
+    +'<div class="sp"></div>'
+    +(st?'<span class="ensmeta">一致 '+st.agree+'　分歧 <b>'+st.diff.length+'</b>　一致率 '+st.rate+'%</span>':'')
+    +'<button class="btn sm" onclick="ensCopyTo()">以当前为准分发</button>'
+    +'<button class="btn sm pri" onclick="ensMerge()">合并并比分歧</button>'
+    +'</div>';
+}
+function renderEnsPanel(){
+  const el=document.getElementById('ensPanel'); if(!el) return;
+  if(!ens){
+    el.innerHTML='<div class="empty">当前为单人判断。若改用双人或三人独立打分，'
+      +'这里会显示各份矩阵的差异，并提供逐条裁定的入口。</div>';
+    return;
+  }
+  const st=ensStat();
+  if(!st.multi){
+    el.innerHTML='<div class="empty">已建立 '+st.n+' 份矩阵，但还没有两份以上<b>都打过分</b>的条目可以比对。</div>';
+    return;
+  }
+  let h='<div class="ensstat">'
+    +'<span class="kv"><span>参与专家</span><span>'+st.n+' 位</span></span>'
+    +'<span class="kv"><span>可比条目</span><span>'+st.multi+' / '+st.total+'</span></span>'
+    +'<span class="kv"><span>完全一致</span><span style="color:var(--ok)">'+st.agree+' 条</span></span>'
+    +'<span class="kv"><span>存在分歧</span><span style="color:var(--rd)">'+st.diff.length+' 条</span></span>'
+    +'<span class="kv"><span>一致率</span><span>'+st.rate+'%</span></span></div>';
+  if(!st.diff.length){
+    h+='<div class="rok"><b>各专家的判断在阈值内一致</b>，没有需要裁定的条目。可直接进入一致性检验。</div>';
+  }else{
+    h+='<table class="enstab"><tr><th>分歧条目</th>'
+      +ens.people.map(p=>'<th>'+p.name+'</th>').join('')
+      +'<th style="width:54px">极差</th><th style="width:210px">裁定</th></tr>';
+    st.diff.slice(0,40).forEach(it=>{
+      const P=it.k.split('>');
+      h+='<tr><td class="enpair">'+(DSHORT[P[0]]||P[0])+' <span class="ar">→</span> '+(DSHORT[P[1]]||P[1])+'</td>'
+        +ens.people.map(p=>{
+          const r=p.cim[it.k];
+          if(!r) return '<td class="enmiss">—</td>';
+          return '<td class="env'+(r.v>0?' pos':(r.v<0?' neg':''))+'">'+(r.v>0?'+':'')+r.v
+            +'<i>'+r.conf+(r.rev?' · 已审':'')+(r.why?'<br>'+r.why:'')+'</i></td>';
+        }).join('')
+        +'<td class="ensp">'+it.sp+'</td>'
+        +'<td class="enact">'+it.rec.map(r=>'<button class="btn sm'
+            +(typeof ensRes[it.k]==='number'&&ensRes[it.k]===r.v?' pri':'')
+            +'" onclick="arbit(\''+it.k+'\','+r.v+')">取 '+(r.v>0?'+':'')+r.v+'</button>').join('')+'</td></tr>';
+    });
+    h+='</table>';
+    if(st.diff.length>40) h+='<div style="font-size:12px;color:var(--tx3);margin-top:8px;">'
+      +'共 '+st.diff.length+' 条分歧，此处显示前 40 条。</div>';
+    h+='<div style="margin-top:14px;display:flex;gap:10px;flex-wrap:wrap;">'
+      +'<button class="btn pri" onclick="ensMerge()">合并矩阵（分歧取中位数）</button>'
+      +'<button class="btn" onclick="arbitAllMed()">分歧项全部裁定为中位数</button>'
+      +'<button class="btn" onclick="exportEns()">导出集成工作簿</button></div>';
+  }
+  el.innerHTML=h;
+}
+function exportEns(){
+  const st=ensStat();
+  if(!st||!st.multi){ toast('还没有可以比对的条目'); return; }
+  const P=ens.people;
+  let h='<h1>多专家打分集成工作簿</h1>';
+  h+='<div class="rsub">生成时间 '+nowStr()+'　·　'+st.n+' 位专家独立打分　·　模型侧 · 清华大学</div>';
+  h+='<div class="rmeta">'
+    +'<div><span>可比条目</span><span>'+st.multi+' 条（应判 '+st.total+' 条）</span></div>'
+    +'<div><span>完全一致</span><span>'+st.agree+' 条</span></div>'
+    +'<div><span>存在分歧</span><span>'+st.diff.length+' 条</span></div>'
+    +'<div><span>一致率</span><span>'+st.rate+'%</span></div></div>';
+  h+='<h2>一、分歧条目明细</h2>';
+  if(!st.diff.length){ h+='<div class="rok">无分歧条目。</div>'; }
+  else{
+    h+='<table><tr><th>条目</th>'+P.map(p=>'<th>'+p.name+'</th>').join('')
+      +'<th style="width:50px">极差</th><th style="width:90px">裁定</th></tr>';
+    st.diff.forEach(it=>{
+      const q=it.k.split('>');
+      h+='<tr><td><b>'+(DSHORT[q[0]]||q[0])+'</b> → <b>'+(DSHORT[q[1]]||q[1])+'</b></td>'
+        +P.map(p=>{const r=p.cim[it.k];
+          if(!r) return '<td>—</td>';
+          return '<td>'+(r.v>0?'+':'')+r.v+'<br><span class="rrng">'+r.conf
+            +(r.why?'　'+r.why:'')+'</span></td>';}).join('')
+        +'<td>'+it.sp+'</td>'
+        +'<td>'+(typeof ensRes[it.k]==='number'?('取 '+(ensRes[it.k]>0?'+':'')+ensRes[it.k]):'待裁定')+'</td></tr>';
+    });
+    h+='</table>';
+  }
+  h+='<h2>二、合并后的矩阵</h2>';
+  h+='<p>合并规则：打分差小于 2 的条目取共识值；达到 2 及以上者列为分歧，'
+    +'按裁定结果取值，未裁定者暂取中位数并标为低置信度。</p>';
+  const src=ens.merged||cim;
+  h+='<table><tr><th style="width:200px">来源</th><th style="width:200px">目标</th>'
+    +'<th style="width:60px">取值</th><th style="width:110px">置信度</th><th>说明</th></tr>';
+  Object.keys(src).sort().forEach(k=>{
+    const q=k.split('>'), r=src[k];
+    h+='<tr><td>'+(DSHORT[q[0]]||q[0])+'</td><td>'+(DSHORT[q[1]]||q[1])+'</td>'
+      +'<td>'+(r.v>0?'+':'')+r.v+'</td><td>'+r.conf+(r.rev?'（已审）':'')+'</td>'
+      +'<td>'+(r.why||'')+'</td></tr>';
+  });
+  h+='</table>';
+  const css='body{font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;max-width:900px;'
+   +'margin:40px auto;padding:0 24px;font-size:14px;line-height:1.8;color:#101828;}'
+   +'h1{font-size:22px;}h2{font-size:16px;margin:28px 0 8px;padding-left:9px;border-left:3px solid #2563EB;}'
+   +'table{border-collapse:collapse;width:100%;margin:10px 0 16px;font-size:13px;}'
+   +'th{background:#FAFBFC;font-weight:600;padding:7px 10px;text-align:left;border:1px solid #E4E7EC;}'
+   +'td{padding:6px 10px;border:1px solid #E4E7EC;vertical-align:top;}'
+   +'.rmeta{background:#FAFBFC;border-radius:10px;padding:12px 16px;margin-bottom:18px;font-size:13px;}'
+   +'.rmeta div{display:flex;gap:10px;padding:3px 0;}.rmeta span:first-child{color:#667085;min-width:104px;}'
+   +'.rok{background:#ECFDF5;border-left:3px solid #059669;color:#059669;padding:9px 14px;font-size:13px;margin:12px 0;}'
+   +'.rrng{color:#475467;font-size:12px;}.rsub{font-size:12.5px;color:#98A2B3;}';
+  const html='<!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8">'
+   +'<title>多专家打分集成工作簿</title><style>'+css+'</style></head><body>'+h+'</body></html>';
+  saveFile('集成工作簿_'+nowStr().replace(/[: ]/g,'-')+'.html', html, 'text/html');
+}
+
 /* ================= 主渲染 ================= */
 function render(){
   renderSteps(); renderCmp(); layerTable(); renderTree(); renderStates();
-  expDetail(); scaleSum(); renderPolicy(); renderCim(); modelDetail(); checkResult(); renderTableau(); confList(); timeline(); renderImpact(); renderAP();
+  expDetail(); renderEnsBox(); scaleSum(); renderPolicy();
+  renderCim(); renderEnsBar(); modelDetail(); checkResult(); renderTableau();
+  confList(); timeline(); renderImpact(); renderAP(); renderEnsPanel();
   el('outPreview', preview());
   el('fmtTag', fmtTag());
   el('fmtNote', curModel==='gcam'
