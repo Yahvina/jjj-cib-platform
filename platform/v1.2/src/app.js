@@ -613,13 +613,23 @@ function modelDetail(){
 /* ================= 步骤 5 ================= */
 let cimResult=null;
 /* 状态级影响值：由描述符级分值按两端状态的高低位置展开 */
+// 由描述符级分值按两端状态的高低位置展开——这是"没有人工精判时"的默认假设。
+// 它只是兜底，不是真判断：真判断应当落在状态对上，见 impactVal 里的 st 覆盖。
+function expandV(v, fn, fi, tn, ti){
+  if(!v) return 0;
+  const pa=fn>1?(fn-1-fi)/(fn-1):0.5;
+  const pb=tn>1?(tn-1-ti)/(tn-1):0.5;
+  return v*(2*pa-1)*(2*pb-1);
+}
+// 状态级影响值：有人工精判就用精判值，否则退回默认展开
 function impactVal(fd,fi,td,ti){
   const r=cim[fd+'>'+td];
-  if(!r||!r.v) return 0;
-  const fs=ST(fd), ts=ST(td);
-  const pa=fs.length>1?(fs.length-1-fi)/(fs.length-1):0.5;
-  const pb=ts.length>1?(ts.length-1-ti)/(ts.length-1):0.5;
-  return r.v*(2*pa-1)*(2*pb-1);
+  if(!r) return 0;
+  if(r.st){
+    const ov=r.st[fi+'_'+ti];
+    if(typeof ov==='number') return ov;
+  }
+  return expandV(r.v, ST(fd).length, fi, ST(td).length, ti);
 }
 function runCIM(){
   const ds=Object.keys(sel.desc);
@@ -1222,7 +1232,8 @@ function renderCim(){
       }
       const hide=(f==='low'&&(!r||r.conf!=='低'))||(f==='unrev'&&r&&r.rev);
       h+='<td class="'+cls+(k===cimSelKey?' sel':'')+(hide?' dimout':'')+
-         '" onclick="pickCell(\''+s+'\',\''+t+'\')" title="'+title+'">'+txt+'</td>';
+         '" onclick="pickCell(\''+s+'\',\''+t+'\')" title="'+title+(r&&r.st?'（含状态级精判）':'')+'">'+txt
+         +(r&&r.st?'<i class="stdot"></i>':'')+'</td>';
     });
     h+='</tr>';
   });
@@ -1232,14 +1243,18 @@ function renderCim(){
   const low=done.filter(k=>cim[k].conf==='低').length;
   const rev=done.filter(k=>cim[k].rev).length;
   const need=all.filter(k=>!cim[k]||!cim[k].rev).length;
+  const stK=done.filter(k=>cim[k].st).length;
+  const stC=done.reduce((a,k)=>a+Object.keys(cim[k].st||{}).length,0);
   stat.innerHTML=
     '<span class="kv"><span>应判条目</span><span>'+all.length+' 条</span></span>'+
     '<span class="kv"><span>已填</span><span>'+done.length+' 条</span></span>'+
     '<span class="kv"><span>低置信度</span><span style="color:var(--rd)">'+low+' 条</span></span>'+
     '<span class="kv"><span>已审核</span><span style="color:var(--ok)">'+rev+' 条</span></span>'+
     '<span class="kv"><span>待审核</span><span style="color:var(--wn)">'+need+' 条</span></span>'+
-    '<div class="dim" style="margin-top:8px;font-size:12px;">本版为<b>描述符级</b>粗粒度打分；完整实现应下沉到状态级'
-    +'（55 个状态两两判断）。每格都带依据与置信度，审核后留痕。</div>';
+    '<span class="kv"><span>状态级精判</span><span>'+stK+' 条 / '+stC+' 格</span></span>'+
+    '<div class="dim" style="margin-top:8px;font-size:12px;">整体为<b>描述符级</b>（19×19）；'
+    +'点开任一格可展开到<b>状态级逐对精判</b>，精判值优先进入一致性检验，未精判的按整体倾向自动展开。'
+    +'每格都带依据与置信度，审核后留痕。</div>';
   cimBalance(ds);
   cimSidePanel();
 }
@@ -1250,6 +1265,7 @@ function cimSidePanel(){
   }
   const p=cimSelKey.split('>'), s=p[0], t=p[1], r=cim[cimSelKey];
   const vs=[-3,-2,-1,0,1,2,3];
+  const nSt=r.st?Object.keys(r.st).length:0;
   el.innerHTML=
    '<div class="shead">这一格的判断</div>'+
    '<div class="spair">'+(DSHORT[s]||s)+' <span class="ar">→</span> '+(DSHORT[t]||t)+'</div>'+
@@ -1261,7 +1277,48 @@ function cimSidePanel(){
    '<div class="crow">'+['高','中','低'].map(c=>'<button class="cb'+(r.conf===c?' on':'')+'" onclick="setConf(\''+c+'\')">'+c+'</button>').join('')+'</div>'+
    '<div class="slabel">依据（证据 / 来源）</div>'+
    '<textarea class="txt why" oninput="setWhy(this.value)" placeholder="写下这条判断的依据……">'+(r.why||'')+'</textarea>'+
-   '<button class="btn '+(r.rev?'':'pri')+'" style="width:100%;margin-top:10px;" onclick="toggleRev()">'+(r.rev?'✓ 已审核（点击撤销）':'标记为已审核')+'</button>';
+   '<button class="btn '+(r.rev?'':'pri')+'" style="width:100%;margin-top:10px;" onclick="toggleRev()">'+(r.rev?'✓ 已审核（点击撤销）':'标记为已审核')+'</button>'+
+   '<div class="slabel" style="margin-top:16px;border-top:1px dashed var(--line);padding-top:12px;">'
+     +'状态级精判 <span class="dim">'+(nSt?'已改 '+nSt+' 格':'全部默认展开')+'</span></div>'+
+   stTable(s,t,r)+
+   '<div class="dim" style="font-size:11px;line-height:1.7;margin-top:6px;">'
+     +'上面选的是<b>整体倾向</b>，这里才是逐对判断。不改的格子按整体倾向自动展开；'
+     +'改了就以你填的为准——<b>一致性检验优先用这里的值</b>。</div>'+
+   (nSt?'<button class="btn sm" style="width:100%;margin-top:8px;" onclick="clearSt()">全部恢复默认展开</button>':'');
+}
+function stTable(s,t,r){
+  const fs=ST(s), ts=ST(t);
+  const fmt=v=>(Math.abs(v-Math.round(v))<0.05?String(Math.round(v)):v.toFixed(1));
+  let h='<table class="stmat"><tr><th>源＼目标</th>'
+    +ts.map(x=>'<th title="'+x+'">'+x.slice(0,2)+'</th>').join('')+'</tr>';
+  fs.forEach((sn,fi)=>{
+    h+='<tr><th title="'+sn+'">'+sn.slice(0,2)+'</th>';
+    ts.forEach((tn,ti)=>{
+      const ov=r.st?r.st[fi+'_'+ti]:undefined;
+      const has=(typeof ov==='number');
+      const defV=expandV(r.v, fs.length, fi, ts.length, ti);
+      h+='<td><select class="sts'+(has?' on':'')+'" onchange="setSt('+fi+','+ti+',this.value)" title="'+sn+' → '+tn+'">'
+        +'<option value=""'+(has?'':' selected')+'>默('+(defV>0?'+':'')+fmt(defV)+')</option>'
+        +[-3,-2,-1,0,1,2,3].map(v=>'<option value="'+v+'"'+(has&&ov===v?' selected':'')+'>'+(v>0?'+':'')+v+'</option>').join('')
+        +'</select></td>';
+    });
+    h+='</tr>';
+  });
+  return h+'</table>';
+}
+function setSt(fi,ti,v){
+  const r=cim[cimSelKey]; if(!r) return;
+  r.st=r.st||{};
+  const k=fi+'_'+ti;
+  if(v==='') delete r.st[k]; else r.st[k]=+v;
+  if(!Object.keys(r.st).length) delete r.st;
+  cimResult=null;
+  renderCim();
+}
+function clearSt(){
+  const r=cim[cimSelKey]; if(!r) return;
+  delete r.st; cimResult=null; renderCim();
+  toast('已全部恢复为按整体倾向自动展开');
 }
 function cimBalance(ds){
   const el=document.getElementById('cimBalance'); if(!el) return;
@@ -1370,8 +1427,11 @@ function reportData(){
     }),
     cim: {
       total: all.length, filled: done.length, low: low.length, unreviewed: unreviewed.length,
+      stK: done.filter(k=>cim[k].st).length,
+      stC: done.reduce((a,k)=>a+Object.keys(cim[k].st||{}).length,0),
       edges: done.map(k=>({from:k.split('>')[0], to:k.split('>')[1],
-        v:cim[k].v, conf:cim[k].conf, why:cim[k].why, reviewed:!!cim[k].rev}))
+        v:cim[k].v, conf:cim[k].conf, why:cim[k].why, reviewed:!!cim[k].rev,
+        stN:(cim[k].st?Object.keys(cim[k].st).length:0)}))
     },
     stats: {n:n, states:ds.reduce((a,d)=>a+ST(d).length,0), cells:n*(n-1)}
   };
@@ -1455,8 +1515,11 @@ function buildReportHTML(d){
       +(cimResult.sampled?'随机抽样检查 ':'全枚举 ')+cimResult.checked.toLocaleString()+' 种；'
       +'其中自洽情景 <b>'+cimResult.consistent.length+'</b> 组，不自洽组合 '
       +cimResult.inconsistent.toLocaleString()+' 组。</div>';
-    h+='<div class="rnote"><b>边界说明</b>：交叉影响判断目前为描述符级，'
-      +'状态级影响值由两端状态的高低位置展开得到；完整实现需下沉到状态级逐对判断。</div>';
+    h+='<div class="rnote"><b>边界说明</b>：交叉影响判断的记录单位为「描述符对」。'
+      +'每条判断可展开到<b>状态级逐对精判</b>：已精判的格子直接采用所填分值，'
+      +'未精判的按两端状态的高低位置由整体倾向展开。'
+      +'本报告中的判断共 <b>'+(d.cim.stK||0)+'</b> 条含状态级精判（合计 '+(d.cim.stC||0)+' 格），'
+      +'其余为整体倾向的自动展开。</div>';
   }else{
     h+='<div class="rnote">尚未运行一致性检验。请在第 7 步点击「运行一致性检验」后重新生成报告。</div>';
   }

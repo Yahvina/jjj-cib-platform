@@ -446,3 +446,15 @@ table.filttab td.num.on{color:var(--pri);font-weight:600;}
 .filtbar .sp{flex:1;}
 .filtmeta{font-size:12.5px;color:var(--tx2);}
 .filtmeta b{color:var(--pri);}
+
+/* ================= v1.2 状态级精判 ================= */
+table.cim td{position:relative;}
+table.cim td .stdot{position:absolute;right:2px;bottom:2px;width:4px;height:4px;
+  border-radius:99px;background:var(--pri);}
+table.stmat{border-collapse:collapse;width:100%;font-size:11px;margin-top:6px;}
+table.stmat th{font-weight:400;color:var(--tx3);font-size:10.5px;padding:3px 2px;text-align:center;}
+table.stmat th:first-child{text-align:left;width:50px;font-size:10px;}
+table.stmat td{padding:2px;}
+table.stmat select.sts{width:100%;height:26px;border:1px solid var(--line);border-radius:5px;
+  background:#fff;font-size:11px;color:var(--tx2);padding:0 2px;text-align:center;}
+table.stmat select.sts.on{border-color:var(--pri);color:var(--pri);font-weight:600;background:var(--pri-s);}
