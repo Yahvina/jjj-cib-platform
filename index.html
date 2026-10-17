@@ -518,12 +518,17 @@ table.xltab td.xlcell.bad select{border-color:var(--rd);color:var(--rd);}
 <!-- ============ 步骤 2 ============ -->
 <section class="pane" id="p0">
   <h2 class="pt">选择分析尺度</h2>
-  <p class="pd">勾选本次情景覆盖的层级。现有下游模型各自只在自己那一层工作，跨层要靠人工对；本平台把三层放在同一套假设下检验。</p>
+  <p class="pd">勾选本次情景覆盖的层级。现有下游模型各自只在自己那一层工作，跨层要靠人工对；本平台把各层放在同一套假设下检验。
+    <b>国家级是「给定层」</b>——它的取值来自国家政策目标，是外部条件，不参与组合枚举；其余各层才是需要探索的变量。</p>
 
-  <div class="grid3">
+  <div class="grid2">
     <div class="opt sel" data-scale="nation" onclick="tglScale(this)">
-      <div class="t">国家级 <span class="chk on"><span class="tick"></span></span></div>
-      <div class="d">全国总量与目标，作为分解的起点</div>
+      <div class="t">国家级 <span class="tag" style="font-size:10px;">给定</span> <span class="chk on"><span class="tick"></span></span></div>
+      <div class="d">全国总量与目标，作为分解的起点；不参与枚举</div>
+    </div>
+    <div class="opt sel" data-scale="region" onclick="tglScale(this)">
+      <div class="t">区域级（京津冀） <span class="chk on"><span class="tick"></span></span></div>
+      <div class="d">三地合计口径，是省级加总的落点</div>
     </div>
     <div class="opt sel" data-scale="prov" onclick="tglScale(this)">
       <div class="t">省级 <span class="chk on"><span class="tick"></span></span></div>
@@ -536,9 +541,9 @@ table.xltab td.xlcell.bad select{border-color:var(--rd);color:var(--rd);}
   </div>
 
   <div class="card" style="margin-top:16px;">
-    <h3>三层差异预览 <span class="tag">勾选层级后自动生成</span></h3>
+    <h3>各层差异预览 <span class="tag">勾选层级后自动生成</span></h3>
     <p style="font-size:12.5px;color:var(--tx2);margin-bottom:12px;">
-      同一套描述符在三个层级上的取值与约束关系。这一列是现有做法没有的。</p>
+      同一套描述符在各层级上的取值与约束关系。这一列是现有做法没有的。</p>
     <div id="layerTable"></div>
   </div>
 
@@ -1097,9 +1102,10 @@ const POLICY=[
 ];
 
 const LAYERS=[
-  {k:'nation', n:'国家级', pop:'全国常住人口', eco:'全国 GDP 增速', fmt:'总量口径'},
-  {k:'prov',   n:'省级',   pop:'北京 2180 万 / 天津 1363 万 / 河北 7354 万', eco:'5.4% / 4.8% / 5.6%', fmt:'分省口径'},
-  {k:'city',   n:'市级',   pop:'河北 11 个地级市（合计 7354 万）', eco:'按各市公布值', fmt:'分市口径'}
+  {k:'nation', n:'国家级', g:1, pop:'全国常住人口', eco:'全国 GDP 增速', fmt:'总量口径 · 给定'},
+  {k:'region', n:'区域级', g:0, pop:'三地合计 10897 万', eco:'三地加权约 5.3%', fmt:'区域合计口径'},
+  {k:'prov',   n:'省级',   g:0, pop:'北京 2180 万 / 天津 1363 万 / 河北 7354 万', eco:'5.4% / 4.8% / 5.6%', fmt:'分省口径'},
+  {k:'city',   n:'市级',   g:0, pop:'河北 11 个地级市（合计 7354 万）', eco:'按各市公布值', fmt:'分市口径'}
 ];
 
 const SCEN=[
@@ -1183,9 +1189,13 @@ function layerTable(){
       <div class="cell">${L.pop}</div><div class="cell">${L.eco}</div>
       <div class="cell" style="border-right:none;">${L.fmt}</div></div>`;
   });
-  h+=`<div style="padding:11px 14px;font-size:12.5px;color:var(--tx2);background:var(--panel2);">
-    跨层约束：${on.length>1?'省级人口加总须等于国家级；市级加总须等于省级；三处口径须一致。'
-      :'只勾了一个层级，不做跨层核对——这与现有做法相同。'}</div>`;
+  const hasRegion=on.indexOf('region')>=0;
+  h+=`<div style="padding:11px 14px;font-size:12.5px;color:var(--tx2);background:var(--panel2);line-height:1.85;">
+    跨层关系：${on.length>1
+      ? '<b>国家级是给定层</b>（取值来自政策目标，不参与枚举）；'
+        +(hasRegion?'有了「区域级」，三地加总才有可比对的落点':'未勾区域级，省级加总暂时没有落点，只能查档位方向')
+        +'；相邻层级之间按「档位不反向」核对。'
+      : '只勾了一个层级，不做跨层核对——这与现有做法相同。'}</div>`;
   document.getElementById('layerTable').innerHTML=h;
 }
 
@@ -1457,7 +1467,10 @@ function scaleSum(){
     <div class="kv"><span>待打分项（双向分别判断）</span><span>${items} 项</span></div>
     <div class="kv"><span>专家人数</span><span>${expertN} 人${ens?'（已建立 '+ens.people.length+' 份独立矩阵）':''}</span></div>
     <div class="kv"><span>参数生成方式</span><span>${useBayes?'贝叶斯（给区间）':'仅定性叙事'}</span></div>
-    <div class="kv"><span>校验层级</span><span>${[...document.querySelectorAll('[data-scale].sel')].length} 层，含跨层一致性核对</span></div>`;
+    <div class="kv"><span>校验层级</span><span>${(()=>{
+      const on=[...document.querySelectorAll('[data-scale].sel')].map(x=>x.dataset.scale);
+      return on.length+' 层'+(on.indexOf('nation')>=0?'（国家级为给定层，不参与枚举）':'');
+    })()}</span></div>`;
 }
 
 /* ================= 步骤 4 ================= */
@@ -1772,7 +1785,7 @@ function dl(txt,ext,name){
 }
 function fmtTag(){ return curModel==='gcam'?'configuration.xml':'CSV → GDX'; }
 function finalSum(){
-  const map={nation:'国家级',prov:'省级',city:'市级'};
+  const map={nation:'国家级',region:'区域级',prov:'省级',city:'市级'};
   const sc=[...document.querySelectorAll('[data-scale].sel')].map(x=>map[x.dataset.scale]);
   const st=ensStat();
   el('finalSum',
@@ -2278,7 +2291,7 @@ function nowStr(){
 }
 function reportData(){
   const ds=Object.keys(sel.desc);
-  const scaleMap={nation:'国家级',prov:'省级',city:'市级'};
+  const scaleMap={nation:'国家级',region:'区域级',prov:'省级',city:'市级'};
   const scales=[...document.querySelectorAll('[data-scale].sel')].map(x=>scaleMap[x.dataset.scale]||x.dataset.scale);
   const all=cimKeys(), done=all.filter(k=>cim[k]);
   const low=done.filter(k=>cim[k].conf==='低');
@@ -2792,8 +2805,8 @@ function exportEns(){
    但"不能反"不等于"必须相同"：差一档是允许的梯度，差两档才是方向相反。
    这是纵向一致性，与 CIB 的横向自洽是两个正交的检验，都通过才算这套假设站得住。 */
 
-const XL_ORDER=['nation','prov','city'];
-const XL_NAME={nation:'国家级',prov:'省级',city:'市级'};
+const XL_ORDER=['nation','region','prov','city'];
+const XL_NAME={nation:'国家级',region:'区域级',prov:'省级',city:'市级'};
 let xlSel={};          // 描述符名 -> { nation:idx, prov:idx, city:idx }
 
 function xlayers(){
@@ -2854,7 +2867,8 @@ function renderXl(){
   }
   xlEnsure();
   const nms=Object.keys(sel.desc), bad=xlCheck();
-  let h='<table class="xltab"><tr><th>描述符</th>'+L.map(l=>'<th>'+XL_NAME[l]+'</th>').join('')+'</tr>';
+  let h='<table class="xltab"><tr><th>描述符</th>'+L.map(l=>'<th>'+XL_NAME[l]
+    +(l==='nation'?' <span class="dim" style="font-weight:400;font-size:10px;">给定</span>':'')+'</th>').join('')+'</tr>';
   nms.forEach(nm=>{
     const sts=ST(nm), defs=defsOf(nm);
     h+='<tr><td class="xlnm">'+(DSHORT[nm]||nm)+'</td>';
@@ -2894,8 +2908,11 @@ function renderXl(){
   h+='<div class="dim" style="font-size:11.5px;line-height:1.75;margin-top:10px;">'
     +'<b>判据</b>：档位差 0＝完全一致，1＝有梯度（允许），2＝方向相反（冲突）。'
     +'只查<b>同一描述符在相邻层级之间</b>的关系，不涉及跨描述符、也不涉及 CIB 的影响平衡。<br>'
-    +'<b>数值加总暂不自动校验</b>：北京、天津、河北是三个平级单位，而市级只覆盖河北，'
-    +'层结构并不同构——"下级之和能否凑出上级"这个检查的前提不成立，需要先定清楚层级树的构成。</div>';
+    +'<b>国家级是给定层</b>：它是外部条件（国家政策目标），改它等于设定前提，不是在探索取值——'
+    +'所以它不参与组合枚举，只作为各层的约束起点。<br>'
+    +'<b>数值加总暂不自动校验</b>：京、津、冀是三个平级单位，而市级只覆盖河北——'
+    +'层级树的成员并不完整（京津下级缺位），"下级之和能否凑出上级"要先把每层成员补齐，'
+    +'目前只能查档位方向。</div>';
   el.innerHTML=h;
 }
 

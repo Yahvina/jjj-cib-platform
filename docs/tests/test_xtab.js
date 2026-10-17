@@ -14,7 +14,7 @@ function mkEl() {
     addEventListener() {}
   };
 }
-let LAYERS_ON = ['nation', 'prov', 'city'];
+let LAYERS_ON = ['nation', 'region', 'prov', 'city'];
 global.document = {
   getElementById: (id) => { if (!EL[id]) EL[id] = mkEl(); return EL[id]; },
   querySelector: () => mkEl(),
@@ -80,14 +80,14 @@ console.log('  只选一层提示:', /没有跨层关系可查/.test(EL['xlBox']
 console.log();
 
 console.log('=== 7. 渲染 ===');
-LAYERS_ON=['nation','prov','city'];
+LAYERS_ON=['nation','region','prov','city'];
 setXl('产业结构','city',2);
 renderXl();
 const h=EL['xlBox'].innerHTML;
-console.log('  表格:', /xltab/.test(h)?'✓':'✗', '| 下拉框:', (h.match(/<select/g)||[]).length, '(应 6)');
+console.log('  表格:', /xltab/.test(h)?'✓':'✗', '| 下拉框:', (h.match(/<select/g)||[]).length, '(应 8)');
 console.log('  冲突格标红:', /xlcell bad/.test(h)?'✓':'✗');
 console.log('  判据说明:', /档位差 0＝完全一致/.test(h)?'✓':'✗');
-console.log('  加总前提说明:', /层结构并不同构/.test(h)?'✓':'✗');
+console.log('  加总成员完整性说明:', /层级树的成员并不完整/.test(h)?'✓':'✗');
 console.log('  对齐按钮:', /把下级调到相邻档/.test(h)?'✓':'✗');
 console.log();
 
