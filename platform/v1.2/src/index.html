@@ -15,6 +15,7 @@
   <div class="sp"></div>
   <span class="badge hi">支持三级描述符</span>
   <span class="badge">国家—省—市三级联动</span>
+  <button class="btn" onclick="openPres()">演示模式</button>
   <button class="btn" onclick="backToCmp()">功能对比</button>
   <button class="btn" onclick="saveCfg()">保存配置</button>
   <button class="btn" onclick="loadCfg()">载入配置</button>
@@ -448,6 +449,18 @@
     <div class="mbody" id="reportBody"></div>
   </div>
 </div>
+<div class="pres" id="pres">
+  <div class="presnav" id="presNav"></div>
+  <div class="presmain">
+    <div class="presbody" id="presBody"></div>
+    <div class="presfoot">
+      <button class="pbtn" onclick="presPrev()">← 上一页</button>
+      <span id="presCnt" class="pcnt"></span>
+      <button class="pbtn" onclick="presNext()">下一页 →</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script src="src/app.js"></script>

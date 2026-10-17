@@ -611,6 +611,84 @@ table.proftab tr.pgroup td{background:var(--panel2);color:var(--tx);font-weight:
 .corrprof{margin-top:15px;padding-top:13px;border-top:1px dashed var(--line);}
 .cproflist{margin-top:8px;}
 
+/* ================= 演示模式 ================= */
+.pres{position:fixed;inset:0;z-index:60;background:var(--bg);display:none;}
+.pres.on{display:flex;}
+.presnav{width:216px;flex:none;background:var(--panel);border-right:1px solid var(--line);
+  padding:22px 12px;display:flex;flex-direction:column;gap:3px;}
+.presbrand{font-size:11px;color:var(--tx3);letter-spacing:.12em;padding:0 10px;margin-bottom:14px;}
+.pnav{display:flex;gap:9px;align-items:baseline;padding:9px 11px;border-radius:8px;
+  text-align:left;color:var(--tx2);font-size:13px;line-height:1.5;}
+.pnav:hover{background:var(--panel2);}
+.pnav.on{background:var(--pri-s);color:var(--pri);font-weight:600;}
+.pnav.dis{opacity:.32;cursor:not-allowed;}
+.pnav .pn{font-size:11px;color:var(--tx3);font-variant-numeric:tabular-nums;flex:none;}
+.pnav.on .pn{color:var(--pri);}
+.presexit{margin-top:auto;padding:8px 4px 0;}
+.pbtn{height:32px;padding:0 16px;border-radius:8px;border:1px solid var(--line);
+  background:var(--panel);color:var(--tx2);font-size:13px;font-family:inherit;cursor:pointer;}
+.pbtn:hover{border-color:var(--pri-b);color:var(--pri);}
+.pbtn.ghost{width:100%;}
+.presmain{flex:1;display:flex;flex-direction:column;min-width:0;}
+.presbody{flex:1;overflow:auto;padding:42px 54px 24px;}
+.presfoot{flex:none;border-top:1px solid var(--line);background:var(--panel);
+  height:52px;display:flex;align-items:center;gap:16px;padding:0 22px;}
+.pcnt{flex:1;text-align:center;font-size:12px;color:var(--tx3);}
+
+.pch{max-width:1060px;margin:0 auto;}
+.pch h1{font-size:29px;line-height:1.32;letter-spacing:-.2px;margin-bottom:12px;font-weight:600;}
+.peyebrow{font-size:12px;color:var(--pri);letter-spacing:.08em;margin-bottom:9px;}
+.plead{font-size:14.5px;color:var(--tx2);line-height:1.9;margin-bottom:24px;}
+.pnote{font-size:12px;color:var(--tx3);line-height:1.85;margin-top:12px;}
+.pdim{color:var(--tx2);font-size:12.5px;}
+.pstats{display:flex;gap:11px;flex-wrap:wrap;margin:16px 0 22px;}
+.pstat{background:var(--panel);border:1px solid var(--line);border-radius:10px;
+  padding:11px 17px;min-width:112px;box-shadow:var(--sh);}
+.pstat b{display:block;font-size:21px;line-height:1.35;color:var(--pri);font-weight:600;}
+.pstat span{font-size:11.5px;color:var(--tx3);}
+.pthree{display:grid;grid-template-columns:repeat(3,1fr);gap:13px;margin-top:6px;}
+.pthree>div{background:var(--panel);border:1px solid var(--line);border-radius:10px;
+  padding:14px 16px;box-shadow:var(--sh);}
+.pthree b{font-size:13px;}
+.pthree p{font-size:12.5px;color:var(--tx2);margin-top:6px;line-height:1.85;}
+
+.ptable,.ptab2,.pmat{width:100%;border-collapse:collapse;font-size:12.5px;
+  background:var(--panel);border:1px solid var(--line);}
+.ptable th,.ptab2 th,.pmat th{background:var(--panel2);color:var(--tx3);font-weight:500;
+  font-size:11.5px;text-align:left;padding:9px 11px;border-bottom:1px solid var(--line);}
+.ptable td,.ptab2 td,.pmat td{padding:9px 11px;border-bottom:1px solid var(--line2);vertical-align:top;}
+.ptab2 th,.ptab2 td{text-align:center;padding:7px 5px;font-size:11.5px;}
+.ptab2 .pcnr,.pmat .pcnr{text-align:left;min-width:96px;}
+.prng{display:inline-block;font-size:10.5px;color:var(--tx2);background:var(--panel2);
+  border:1px solid var(--line);border-radius:4px;padding:0 5px;margin-left:3px;vertical-align:1px;}
+.pconf{font-size:10px;color:var(--tx3);margin-left:4px;}
+.pwarn{background:var(--wn-s);border-left:3px solid var(--wn);color:#7A3B06;
+  padding:10px 14px;font-size:12.5px;line-height:1.8;margin:14px 0;}
+.pbad{color:var(--rd);font-size:11.5px;}
+.pok{color:var(--ok);font-size:11.5px;}
+.pbal{font-size:11.5px;color:var(--tx2);line-height:1.9;}
+.pmat td{text-align:center;font-variant-numeric:tabular-nums;font-size:12px;}
+.pmat .pself{color:var(--line);}
+.pmat .pempty{background:#FCFCFD;}
+.pmat .pz{color:var(--tx3);}
+.pmat .pv1{background:#EFFAF3;color:#047857;}
+.pmat .pv2{background:#DCF6E7;color:#036B4E;}
+.pmat .pv3{background:#C3EFD8;color:#02543D;font-weight:600;}
+.pmat .pn1{background:#FEF5F4;color:#B42318;}
+.pmat .pn2{background:#FDE9E7;color:#98211A;}
+.pmat .pn3{background:#FBD8D5;color:#7A1A14;font-weight:600;}
+.ptab2 .ps0{background:#EFF4FF;}
+.ptab2 .ps1{background:#F0FDFA;}
+.ptab2 .ps2{background:#FFFBEB;}
+.ptab2 .ps3{background:#FDF2F8;}
+.ptab2 .ps4{background:#F5F3FF;}
+@media (max-width:900px){
+  .presnav{width:150px;padding:14px 8px;}
+  .presbody{padding:22px 18px;}
+  .pthree{grid-template-columns:1fr;}
+  .pch h1{font-size:22px;}
+}
+
 </style>
 </head>
 <body>
@@ -622,6 +700,7 @@ table.proftab tr.pgroup td{background:var(--panel2);color:var(--tx);font-weight:
   <div class="sp"></div>
   <span class="badge hi">支持三级描述符</span>
   <span class="badge">国家—省—市三级联动</span>
+  <button class="btn" onclick="openPres()">演示模式</button>
   <button class="btn" onclick="backToCmp()">功能对比</button>
   <button class="btn" onclick="saveCfg()">保存配置</button>
   <button class="btn" onclick="loadCfg()">载入配置</button>
@@ -1055,6 +1134,18 @@ table.proftab tr.pgroup td{background:var(--panel2);color:var(--tx);font-weight:
     <div class="mbody" id="reportBody"></div>
   </div>
 </div>
+<div class="pres" id="pres">
+  <div class="presnav" id="presNav"></div>
+  <div class="presmain">
+    <div class="presbody" id="presBody"></div>
+    <div class="presfoot">
+      <button class="pbtn" onclick="presPrev()">← 上一页</button>
+      <span id="presCnt" class="pcnt"></span>
+      <button class="pbtn" onclick="presNext()">下一页 →</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
@@ -4174,6 +4265,273 @@ function renderCorr(){
     +'<b>φ 只说明「是否同进同出」，不说明谁导致谁</b>——因果要看交叉影响矩阵和传导链。</div>';
   host.innerHTML=h;
 }
+
+
+/* ================= 演示模式（v1.2 新增，对应德国软件的 Presenter） =================
+   定位：站着讲给人听，不是操作。全屏、只读、只用点击或方向键翻页。
+   章节顺序照 CIB 演示的常规流程排；其中「政策库与映射」「跨层一致性」两章
+   是德国软件没有的，也是我们区别于它的地方。 */
+const PRES=[
+  {k:'about',  t:'开场',        s:'这是什么工具、今天看什么'},
+  {k:'desc',   t:'描述符与状态', s:'每个变量有哪几档、依据是什么'},
+  {k:'policy', t:'政策库与映射', s:'政策语言怎么翻成模型语言'},
+  {k:'matrix', t:'交叉影响',     s:'谁影响谁、多强、依据是什么'},
+  {k:'scen',   t:'自洽情景',     s:'哪些组合站得住'},
+  {k:'one',    t:'钻进一个情景', s:'它为什么自洽'},
+  {k:'xl',     t:'跨层一致性',   s:'国家—区域—省—市对不对得上'}
+];
+let presI=0, presOpen=false, presScenIdx=0;
+
+function presAvail(k){
+  if(k==='matrix') return Object.keys(sel.desc).length>=2;
+  if(k==='scen'||k==='one') return !!(cimResult && cimResult.consistent.length);
+  return true;
+}
+function openPres(){
+  presOpen=true; presI=0; presScenIdx=0;
+  const b=document.getElementById('pres'); if(!b) return;
+  b.classList.add('on');
+  document.body.style.overflow='hidden';
+  renderPres();
+}
+function closePres(){
+  presOpen=false;
+  const b=document.getElementById('pres'); if(b) b.classList.remove('on');
+  document.body.style.overflow='';
+}
+function presGo(i){
+  if(i<0||i>=PRES.length) return;
+  if(!presAvail(PRES[i].k)) return;
+  presI=i; renderPres();
+}
+function presNext(){ for(let i=presI+1;i<PRES.length;i++){ if(presAvail(PRES[i].k)){ presGo(i); return; } } }
+function presPrev(){ for(let i=presI-1;i>=0;i--){ if(presAvail(PRES[i].k)){ presGo(i); return; } } }
+
+function renderPres(){
+  const nav=document.getElementById('presNav'), body=document.getElementById('presBody'),
+        cnt=document.getElementById('presCnt');
+  if(!nav||!body) return;
+  let h='<div class="presbrand">演示模式</div>';
+  PRES.forEach((c,i)=>{
+    const ok=presAvail(c.k);
+    h+='<button class="pnav'+(i===presI?' on':'')+(ok?'':' dis')+'"'
+      +(ok?' onclick="presGo('+i+')"':' disabled')+'>'
+      +'<span class="pn">'+String(i+1).padStart(2,'0')+'</span>'
+      +'<span class="pt">'+c.t+'</span></button>';
+  });
+  h+='<div class="presexit"><button class="pbtn ghost" onclick="closePres()">退出（Esc）</button></div>';
+  nav.innerHTML=h;
+  const ch=PRES[presI];
+  body.innerHTML=presBody(ch.k);
+  if(cnt) cnt.textContent=(presI+1)+' / '+PRES.length+'　·　'+ch.s;
+}
+
+function presStat(v,l){
+  return '<div class="pstat"><b>'+v+'</b><span>'+l+'</span></div>';
+}
+
+function presBody(k){
+  if(k==='about')  return presAbout();
+  if(k==='desc')   return presDesc();
+  if(k==='policy') return presPolicy();
+  if(k==='matrix') return presMatrix();
+  if(k==='scen')   return presScen();
+  if(k==='one')    return presOne();
+  if(k==='xl')     return presXl();
+  return '';
+}
+
+function presAbout(){
+  const S=cimResult?cimResult.consistent.length:0;
+  return '<div class="pch">'
+    +'<div class="peyebrow">清华大学 · 京津冀绿色低碳发展路径</div>'
+    +'<h1>政策情景快速评估</h1>'
+    +'<p class="plead">把政策文件里的目标，翻译成模型能用的参数；<br>再检验这些假设放在一起，是否互相打架。</p>'
+    +'<div class="pstats">'+presStat(19,'个描述符')+presStat(55,'个状态')
+      +presStat(106,'条政策路径')+presStat(S||'—','组自洽情景')+'</div>'
+    +'<div class="pthree">'
+      +'<div><b>不做预测</b><p>只说「这套假设内部站不站得住」，不说「未来会怎样」。自洽不等于会发生。</p></div>'
+      +'<div><b>跨三个尺度</b><p>国家给定目标、区域分解、省市落实；纵向也要对得上，不只是各自算一遍。</p></div>'
+      +'<div><b>每条判断可查</b><p>格子里的分数都带依据与置信度，低置信度的会被单独挑出来复核。</p></div>'
+    +'</div></div>';
+}
+
+function presDesc(){
+  const ds=Object.keys(sel.desc);
+  if(!ds.length) return '<div class="pch"><h1>还没有选择描述符</h1>'
+    +'<p class="plead">退出演示，回到第 3 步勾选几个描述符，再进来。</p></div>';
+  let h='<div class="pch"><div class="peyebrow">第二步 · 描述符与状态</div>'
+    +'<h1>情景由这些变量定义</h1>'
+    +'<p class="plead">每个描述符分几档；每一档都挂着取值区间和它的政策依据。</p>'
+    +'<table class="ptable"><thead><tr><th style="width:22%">描述符</th><th style="width:9%">类型</th>'
+    +'<th>状态（含取值区间）</th><th style="width:16%">依据</th></tr></thead><tbody>';
+  ds.slice(0,8).forEach(d=>{
+    const o=dOf(d)||{}, defs=defsOf(d);
+    const ev=(RANGE_EVID[d]||{}).k||'example';
+    h+='<tr><td><b>'+d+'</b></td><td class="pdim">'+(o.t||'—')+'</td><td>'
+      +defs.map(x=>x.n+(x.lo===null||x.hi===null?'':'<span class="prng">'+x.lo+'–'+x.hi+(x.u||'')+'</span>')).join('　')
+      +'</td><td class="pdim">'+(EVID_WORD[ev]||'')+'</td></tr>';
+  });
+  h+='</tbody></table>';
+  if(ds.length>8) h+='<p class="pnote">此处展示前 8 个，共 '+ds.length+' 个。</p>';
+  h+='</div>';
+  return h;
+}
+
+function presPolicy(){
+  const withMap=POLICY.filter(p=>p.m&&p.m.length);
+  const noMap=POLICY.length-withMap.length;
+  let h='<div class="pch"><div class="peyebrow">上游 · 政策库与映射</div>'
+    +'<h1>政策语言 → 模型语言</h1>'
+    +'<p class="plead">政策文件说的「补贴」「标准」「目标」，要落到模型里具体哪个变量上。'
+    +'这是一张查找表——德国软件从描述符开始，我们从政策开始。</p>'
+    +'<div class="pstats">'+presStat(POLICY.length,'条政策路径')+presStat(withMap.length,'条有对应变量')
+      +presStat(noMap,'条不在模型口径内')+'</div>';
+  h+='<table class="ptable"><thead><tr><th style="width:30%">政策路径</th><th style="width:12%">类别</th>'
+    +'<th>对应到</th></tr></thead><tbody>';
+  withMap.slice(0,7).forEach(p=>{
+    h+='<tr><td><b>'+p.n+'</b></td><td class="pdim">'+p.c+'</td><td>'
+      +p.m.map(x=>x[0]+'<span class="pconf">'+x[1]+'</span>').join('　')+'</td></tr>';
+  });
+  h+='</tbody></table>';
+  h+='<p class="pnote">「不在模型口径内」本身是一条有用的属性——它告诉你哪些政策工具这个模型看不见。</p></div>';
+  return h;
+}
+
+function presMatrix(){
+  const ds=Object.keys(sel.desc);
+  if(ds.length<2) return '<div class="pch"><h1>还差一步</h1><p class="plead">至少要选两个描述符才谈得上互相影响。</p></div>';
+  const show=ds.slice(0,8), n=show.length;
+  let filled=0, low=0, rev=0, total=n*(n-1);
+  let h='<div class="pch"><div class="peyebrow">第三步 · 交叉影响</div>'
+    +'<h1>谁影响谁，有多强</h1>'
+    +'<p class="plead">每一格问的是：「当 A 取某一档时，会不会把 B 推向某一档」。−3 到 +3，正向促进、负向抑制。</p>'
+    +'<table class="pmat"><thead><tr><th class="pcnr">来源 ＼ 目标</th>';
+  show.forEach(d=>{ h+='<th title="'+d+'">'+(DSHORT[d]||d)+'</th>'; });
+  h+='</tr></thead><tbody>';
+  show.forEach(s=>{
+    h+='<tr><th class="pcrh">'+(DSHORT[s]||s)+'</th>';
+    show.forEach(t=>{
+      if(s===t){ h+='<td class="pself">—</td>'; return; }
+      const r=cim[s+'>'+t];
+      if(!r){ h+='<td class="pempty"></td>'; return; }
+      filled++; if(r.conf==='低') low++; if(r.rev) rev++;
+      const cls=r.v>0?('pv'+r.v):(r.v<0?('pn'+(-r.v)):'pz');
+      h+='<td class="'+cls+'">'+(r.v>0?'+':'')+r.v+'</td>';
+    });
+    h+='</tr>';
+  });
+  h+='</tbody></table>';
+  h+='<div class="pstats">'+presStat(filled+' / '+total,'已填判断')+presStat(low,'低置信度')
+    +presStat(rev,'已人工审核')+'</div>';
+  h+='<p class="pnote">颜色越深影响越强。低置信度的格子就是需要人复核的地方——'
+    +'AI 先填一版，人只审这些。</p></div>';
+  return h;
+}
+
+function presScen(){
+  if(!cimResult||!cimResult.consistent.length) return '';
+  const L=cimResult.consistent, ds=cimResult.ds;
+  const cols=Math.min(L.length,10);
+  let h='<div class="pch"><div class="peyebrow">第四步 · 自洽情景</div>'
+    +'<h1>哪些组合站得住</h1>'
+    +'<p class="plead">不是所有搭配都可能：每个变量都取「在别人给定之后自己最占优」的那一档，才算自洽。</p>'
+    +'<div class="pstats">'+presStat(cimResult.total.toLocaleString(),'种组合')
+      +presStat(cimResult.checked.toLocaleString(),'实际检查')
+      +presStat(L.length,'组自洽')+presStat(cimResult.inconsistent.toLocaleString(),'组不自洽')+'</div>';
+  if(L.length>50) h+='<div class="pwarn">自洽情景超过 50 组。按手册的经验，一屋子人讨论 50 组以上管不过来——'
+    +'建议先在平台第 7 步用「情景筛选」收到 50 组以内再讲。</div>';
+  h+='<table class="ptab2"><thead><tr><th class="pcnr">描述符</th>';
+  for(let c=0;c<cols;c++) h+='<th>情景 '+(c+1)+'</th>';
+  h+='</tr></thead><tbody>';
+  ds.slice(0,9).forEach((d,ri)=>{
+    h+='<tr><td class="pcnr">'+(DSHORT[d]||d)+'</td>';
+    let c=0;
+    while(c<cols){
+      const v=L[c][ri];
+      let span=1;
+      while(c+span<cols && L[c+span][ri]===v) span++;
+      const nm=ST(d)[v]||'?';
+      h+='<td class="ps'+(v%5)+'" colspan="'+span+'">'+nm+(span>1?' ×'+span:'')+'</td>';
+      c+=span;
+    }
+    h+='</tr>';
+  });
+  h+='</tbody></table>';
+  if(L.length>cols) h+='<p class="pnote">此处显示前 '+cols+' 组，共 '+L.length+' 组。同一行颜色连成一片，说明这些情景在该变量上没有分歧。</p>';
+  h+='</div>';
+  return h;
+}
+
+function presOne(){
+  if(!cimResult||!cimResult.consistent.length) return '';
+  if(presScenIdx>=cimResult.consistent.length) presScenIdx=0;
+  const cb=cimResult.consistent[presScenIdx], ds=cimResult.ds;
+  let h='<div class="pch"><div class="peyebrow">第四步 · 情景 '+(presScenIdx+1)+'</div>'
+    +'<h1>这一组为什么自洽</h1>'
+    +'<p class="plead">逐个变量检查：选定这一档，在其他人已经给定的情况下，是不是它自己的最优选择。</p>'
+    +'<table class="ptable"><thead><tr><th style="width:22%">描述符</th><th style="width:26%">本情景取值</th>'
+    +'<th>各档的影响平衡（▲ 为最高）</th></tr></thead><tbody>';
+  ds.slice(0,9).forEach((d,i)=>{
+    const sts=ST(d), bal=[];
+    for(let j=0;j<sts.length;j++){
+      let s=0;
+      for(let k=0;k<ds.length;k++){ if(k!==i) s+=impactVal(ds[k],cb[k],d,j); }
+      bal.push(s);
+    }
+    const mx=Math.max.apply(null,bal);
+    h+='<tr><td><b>'+d+'</b></td><td>'+sts[cb[i]]+'</td><td class="pbal">'
+      +bal.map((v,j)=>(j===cb[i]?'<b>':'')+sts[j]+' '+(v>0?'+':'')+v.toFixed(1)
+        +(Math.abs(v-mx)<1e-6?' ▲':'')+(j===cb[i]?'</b>':'')).join('　')+'</td></tr>';
+  });
+  h+='</tbody></table>';
+  h+='<p class="pnote">每个变量都取到了自己的最高分，所以这组假设内部不打架。'
+    +'注意：这只说明「内部一致」，不说明它在现实中可行。</p></div>';
+  return h;
+}
+
+function presXl(){
+  const ds=Object.keys(sel.desc);
+  const L=xlayers();
+  if(!ds.length||!L.length) return '<div class="pch"><h1>还没设置跨层</h1>'
+    +'<p class="plead">退出演示，在第 1 步勾选多个层级、并在第 7 步的「跨层一致性」里设定各层取值。</p></div>';
+  let confl=0;
+  let h='<div class="pch"><div class="peyebrow">第五步 · 跨层一致性</div>'
+    +'<h1>同一套假设，摊到四个尺度上还成立吗</h1>'
+    +'<p class="plead">国家级是给定层（政策目标），不参与枚举；区域、省、市逐级落实。'
+    +'相邻层级档位差 2 档以上，视为方向相反。</p>'
+    +'<table class="ptable"><thead><tr><th style="width:24%">描述符</th>';
+  L.forEach(l=>{ h+='<th>'+XL_NAME[l]+(l==='nation'?'（给定）':'')+'</th>'; });
+  h+='<th style="width:16%">判定</th></tr></thead><tbody>';
+  ds.slice(0,9).forEach(d=>{
+    const sts=ST(d);
+    h+='<tr><td><b>'+d+'</b></td>';
+    L.forEach(l=>{
+      const v=(xlSel[d]||{})[l];
+      h+='<td>'+(v===undefined?'—':sts[v])+'</td>';
+    });
+    let bad=null;
+    for(let i=0;i<L.length-1;i++){
+      const a=(xlSel[d]||{})[L[i]], b=(xlSel[d]||{})[L[i+1]];
+      if(a===undefined||b===undefined) continue;
+      if(Math.abs(a-b)>=2){ bad=XL_NAME[L[i]]+'→'+XL_NAME[L[i+1]]+' 相差 '+Math.abs(a-b)+' 档'; break; }
+    }
+    if(bad){ confl++; h+='<td class="pbad">'+bad+'</td>'; }
+    else h+='<td class="pok">一致</td>';
+    h+='</tr>';
+  });
+  h+='</tbody></table>';
+  h+='<p class="pnote">'+confl+' 个描述符存在跨层冲突。'
+    +'这一页是德国软件没有的——它只有单层级，压根不存在这个问题。</p></div>';
+  return h;
+}
+
+document.addEventListener('keydown', function(e){
+  if(!presOpen) return;
+  if(e.key==='Escape'){ closePres(); return; }
+  if(e.key==='ArrowRight'||e.key==='PageDown'||e.key===' '){ e.preventDefault(); presNext(); }
+  if(e.key==='ArrowLeft'||e.key==='PageUp'){ e.preventDefault(); presPrev(); }
+});
 
 /* ================= 主渲染 ================= */
 function render(){
