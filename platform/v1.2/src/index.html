@@ -354,6 +354,15 @@
   </div>
 
   <div class="card">
+    <h3>影响路径分析 <span class="tag">v1.2 新增</span></h3>
+    <p style="font-size:12.5px;color:var(--tx2);margin-bottom:10px;">
+      两个描述符之间没有直接打分，不代表它们互不影响——影响可以通过第三个描述符<b>间接传导</b>。
+      这里把「起点 → 终点」之间所有 2～3 段的传导链找出来，并按<b>最弱环节</b>排序：
+      一条链有多强，取决于它最弱的那一段。<b>跨层传导（国家目标 → 省域结构 → 市级排放）本质就是路径问题。</b></p>
+    <div id="pathBox"></div>
+  </div>
+
+  <div class="card">
     <h3>主被动图 <span class="tag">v1.1 新增</span></h3>
     <p style="font-size:12.5px;color:var(--tx2);margin-bottom:10px;">
       给每个描述符算两个数：它<b>对外施加</b>的影响总和（主动和）和它<b>承受</b>的影响总和（被动和）。

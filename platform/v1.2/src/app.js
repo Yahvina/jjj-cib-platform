@@ -2671,13 +2671,145 @@ function renderHeat(host){
   host.innerHTML=h;
 }
 
+
+/* ================= 影响路径分析（v1.2 新增，对应德国软件的路径分析） ================= */
+let pathFrom=null, pathTo=null;
+const pathMaxSeg=3;
+
+function pv(a,b){ const r=cim[a+'>'+b]; return r?r.v:0; }
+
+/* 找出 from → to 之间所有长度 2~maxSeg 的有向传导链（不重复经过同一节点） */
+function findPaths(from,to,maxSeg){
+  const ds=Object.keys(sel.desc), out=[];
+  if(!from||!to||from===to) return out;
+  const walk=(node,path,vals,seen)=>{
+    const seg=path.length-1;              // 已走的段数
+    if(seg>maxSeg) return;
+    if(node===to && seg>=1){ out.push({nodes:path.slice(), vals:vals.slice()}); return; }
+    if(seg>=maxSeg) return;
+    for(const nx of ds){
+      if(nx===node||seen.has(nx)) continue;
+      const v=pv(node,nx);
+      if(!v) continue;
+      seen.add(nx); path.push(nx); vals.push(v);
+      walk(nx,path,vals,seen);
+      path.pop(); vals.pop(); seen.delete(nx);
+    }
+  };
+  walk(from,[from],[],new Set([from]));
+  return out;
+}
+
+/* 一条链有多强，取决于最弱的那一段；方向由负号个数的奇偶决定 */
+function pathStat(p){
+  const signs=p.vals.filter(v=>v<0).length;
+  const minAbs=p.vals.reduce((a,v)=>Math.min(a,Math.abs(v)),99);
+  const sum=p.vals.reduce((a,v)=>a+v,0);
+  return {dir:signs%2?'neg':'pos', minAbs:minAbs, sum:sum, len:p.vals.length};
+}
+
+function pathRanked(from,to){
+  return findPaths(from,to,pathMaxSeg)
+    .map(p=>Object.assign({},p,pathStat(p)))
+    .sort((a,b)=> b.minAbs-a.minAbs || a.len-b.len);
+}
+
+/* 全局：哪些配对没有直接判断、却存在间接传导（矩阵的隐性缺口） */
+function hiddenLinks(){
+  const ds=Object.keys(sel.desc), out=[];
+  for(const a of ds) for(const b of ds){
+    if(a===b) continue;
+    if(pv(a,b)!==0) continue;
+    const ps=pathRanked(a,b);
+    if(!ps.length) continue;
+    out.push({from:a, to:b, n:ps.length, best:ps[0]});
+  }
+  return out.sort((x,y)=> y.best.minAbs-x.best.minAbs || y.n-x.n);
+}
+
+function setPath(f,t){ pathFrom=f; pathTo=t; renderPath(); }
+
+function renderPath(){
+  const host=document.getElementById('pathBox'); if(!host) return;
+  const ds=Object.keys(sel.desc);
+  if(ds.length<3){
+    host.innerHTML='<div class="empty">至少勾选三个描述符才能看间接传导——路径分析要有一个中间环节</div>';
+    return;
+  }
+  if(!pathFrom||ds.indexOf(pathFrom)<0) pathFrom=ds[0];
+  if(!pathTo||ds.indexOf(pathTo)<0||pathTo===pathFrom) pathTo=ds[1];
+
+  const opt=(sel_,cur)=>ds.map(d=>'<option value="'+d+'"'+(d===cur?' selected':'')+'>'+(d)+'</option>').join('');
+  let h='<div class="pathbar"><span class="plb">起点</span>'
+    +'<select class="txt" onchange="setPath(this.value,pathTo)">'+opt(0,pathFrom)+'</select>'
+    +'<span class="parrow">→</span><span class="plb">终点</span>'
+    +'<select class="txt" onchange="setPath(pathFrom,this.value)">'+opt(0,pathTo)+'</select>'
+    +'</div>';
+
+  const direct=cim[pathFrom+'>'+pathTo];
+  const ps=pathRanked(pathFrom,pathTo);
+
+  h+='<div class="kv"><span>直接判断</span><span>'
+    +(direct? ('<b>'+VWORD[String(direct.v)]+'</b>（'+(direct.v>0?'+':'')+direct.v+'）'):'<span style="color:var(--tx3);">未填（0）</span>')
+    +'</span></div>';
+  h+='<div class="kv"><span>间接传导链</span><span>'+ps.length+' 条'
+    +(ps.length?'（最长 '+pathMaxSeg+' 段）':'')+'</span></div>';
+
+  if(direct&&direct.v===0 && ps.length){
+    h+='<div class="note" style="margin:10px 0;">直接判断填的是 <b>0</b>，但存在 '+ps.length
+      +' 条间接传导链——<b>这两个描述符其实有关系，只是绕了一层</b>。'
+      +'建议回到打分矩阵补上直接判断，或在依据里注明「经 XX 间接影响」。</div>';
+  }
+  if(!direct && ps.length){
+    h+='<div class="note" style="margin:10px 0;">这一格还没打分，但已经有 '+ps.length
+      +' 条间接传导链——可以据此判断直接关系应该是正还是负。</div>';
+  }
+
+  if(!ps.length){
+    h+='<div class="empty" style="margin-top:10px;">这两者之间没有 2～'+pathMaxSeg+' 段的有向通路，'
+      +'说明在当前打分下互不影响。</div>';
+  }else{
+    h+='<div class="pathlist">';
+    ps.slice(0,12).forEach((p,i)=>{
+      const segs=p.nodes.map((n,j)=>{
+        if(j===p.nodes.length-1) return '<b>'+n+'</b>';
+        const v=p.vals[j];
+        return '<b>'+n+'</b><span class="pv '+(v>0?'p':'n')+'">'+(v>0?'+':'')+v+'</span>';
+      }).join('<span class="parrow">→</span>');
+      h+='<div class="prow"><span class="pidx">#'+(i+1)+'</span>'
+        +'<span class="pchain">'+segs+'</span>'
+        +'<span class="pmeta"><i class="'+(p.dir==='pos'?'pdir-p':'pdir-n')+'">'
+        +(p.dir==='pos'?'净促进':'净抑制')+'</i>　强度 '+p.minAbs+'（最弱环节）</span></div>';
+    });
+    h+='</div>';
+    if(ps.length>12) h+='<div class="dim" style="font-size:12px;margin-top:7px;">共 '+ps.length+' 条，此处列出最强的 12 条。</div>';
+    h+='<div class="dim" style="font-size:11.5px;margin-top:9px;line-height:1.75;">'
+      +'读法：链的强度取<b>最弱环节</b>的绝对值——一段 +3 接一段 +1，整体只按 +1 算；'
+      +'方向看负号的个数，偶数个为净促进、奇数个为净抑制。</div>';
+  }
+
+  const hid=hiddenLinks().filter(x=>!(x.from===pathFrom&&x.to===pathTo));
+  if(hid.length){
+    h+='<div class="hidbox"><div class="hd2">矩阵里的隐性关联 · 共 '+hid.length+' 对</div>'
+      +'<div class="dim" style="font-size:11.5px;line-height:1.7;margin-bottom:7px;">'
+      +'这些配对<b>没有直接打分</b>，却存在间接传导。它们不一定都要补——但如果某一对的传导很强，说明矩阵里漏了一条关系。</div>';
+    hid.slice(0,6).forEach(x=>{
+      h+='<div class="hidrow" onclick="setPath(\''+x.from+'\',\''+x.to+'\')">'
+        +'<span>'+x.from+' <span class="parrow">→</span> '+x.to+'</span>'
+        +'<span class="dim">'+x.n+' 条链，最强 '+x.best.minAbs+'</span></div>';
+    });
+    h+='</div>';
+  }
+  host.innerHTML=h;
+}
+
 /* ================= 主渲染 ================= */
 function render(){
   renderSteps(); renderCmp(); layerTable(); renderTree(); renderStates();
   expDetail(); renderEnsBox(); scaleSum(); renderPolicy();
   renderCim(); renderEnsBar(); modelDetail(); renderAnc(); renderScopeBar(); checkResult(); renderXl(); renderLay(); renderFilt();
   renderTableau(); renderMap();
-  confList(); timeline(); renderImpact(); renderAP(); renderEnsPanel();
+  confList(); timeline(); renderImpact(); renderPath(); renderAP(); renderEnsPanel();
   el('outPreview', preview());
   el('fmtTag', fmtTag());
   el('fmtNote', curModel==='gcam'

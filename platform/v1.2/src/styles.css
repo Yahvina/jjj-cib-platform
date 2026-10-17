@@ -533,3 +533,31 @@ table.anctab .ancx{font-size:11.5px;color:var(--pri);cursor:pointer;}
 .layrow:last-child{border-bottom:none;}
 .layidx{display:inline-block;min-width:27px;color:var(--tx3);font-size:11.5px;}
 .laysep{color:var(--tx3);margin:0 7px;}
+
+/* 影响路径分析 */
+.pathbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;background:var(--panel2);
+  padding:9px 12px;border-radius:7px;margin-bottom:11px;}
+.pathbar .plb{font-size:12px;color:var(--tx2);}
+.pathbar select.txt{max-width:190px;}
+.parrow{color:var(--tx3);margin:0 5px;font-size:12px;}
+.pathlist{margin-top:10px;}
+.prow{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;padding:8px 10px;
+  border-bottom:1px dashed var(--line);font-size:12.5px;line-height:1.8;border-radius:4px;}
+.prow:hover{background:var(--panel2);}
+.prow:last-child{border-bottom:none;}
+.pidx{color:var(--tx3);font-size:11.5px;min-width:24px;flex:none;}
+.pchain{flex:1 1 300px;}
+.pchain b{color:var(--tx);}
+.pv{display:inline-block;min-width:24px;text-align:center;font-size:11px;font-weight:600;
+  border-radius:3px;padding:0 4px;margin:0 3px;}
+.pv.p{background:var(--ok-s);color:var(--ok);}
+.pv.n{background:var(--rd-s);color:var(--rd);}
+.pmeta{color:var(--tx3);font-size:11.5px;white-space:nowrap;}
+.pmeta i{font-style:normal;font-weight:600;}
+.pdir-p{color:var(--ok);}
+.pdir-n{color:var(--rd);}
+.hidbox{margin-top:14px;padding:10px 13px;background:var(--panel2);border-radius:7px;}
+.hidbox .hd2{font-size:12.5px;font-weight:600;margin-bottom:6px;}
+.hidrow{display:flex;justify-content:space-between;gap:10px;font-size:12px;padding:5px 7px;
+  border-radius:4px;cursor:pointer;line-height:1.7;}
+.hidrow:hover{background:var(--panel);}
