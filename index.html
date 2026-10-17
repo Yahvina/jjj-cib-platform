@@ -480,6 +480,22 @@ table.xltab td.xlcell.bad select{border-color:var(--rd);color:var(--rd);}
 .xlb{font-size:12px;color:var(--rd);background:var(--rd-s);border-left:3px solid var(--rd);
   padding:7px 11px;border-radius:0 5px 5px 0;line-height:1.7;}
 
+/* 数值锚定（状态区间参与检算） */
+table.anctab{width:100%;border-collapse:collapse;font-size:12.5px;}
+table.anctab th{background:var(--panel2);color:var(--tx3);font-weight:500;font-size:11.5px;
+  text-align:left;padding:7px 10px;border-bottom:1px solid var(--line);}
+table.anctab td{padding:6px 10px;border-bottom:1px solid var(--line);vertical-align:middle;}
+table.anctab tr:last-child td{border-bottom:none;}
+table.anctab input.ancin{width:100%;height:28px;padding:0 8px;font-size:12.5px;border-radius:5px;
+  border:1px solid var(--line);background:var(--panel);color:var(--tx);font-family:inherit;}
+table.anctab input.ancin.on{border-color:var(--pri);color:var(--pri);font-weight:600;background:var(--pri-s);}
+table.anctab .ancu{font-size:11.5px;color:var(--tx3);}
+table.anctab .ancb{color:var(--rd);font-weight:600;}
+table.anctab .ancx{font-size:11.5px;color:var(--pri);cursor:pointer;}
+.ancsum{margin-top:11px;font-size:12px;color:var(--tx2);line-height:1.85;
+  background:var(--panel2);padding:10px 13px;border-radius:6px;}
+.ancsum code{background:var(--panel);padding:1px 4px;border-radius:3px;font-size:11.5px;}
+
 </style>
 </head>
 <body>
@@ -747,6 +763,17 @@ table.xltab td.xlcell.bad select{border-color:var(--rd);color:var(--rd);}
 <section class="pane" id="p6">
   <h2 class="pt">检验与导出</h2>
   <p class="pd">先看一致性检验的结果，再导出目标模型可直接读取的情景配置文件。</p>
+
+  <div class="card">
+    <h3>数值锚定 <span class="tag">v1.2 新增 · 约束检算</span></h3>
+    <p style="font-size:12.5px;color:var(--tx2);margin-bottom:10px;line-height:1.85;">
+      状态区间原本只是说明性标注，这里让它<b>参与检算</b>。给某个描述符填一个已知值或现实区间
+      （比如「经济增速已知在 4.5~5.0」），检算时凡是区间与它<b>完全不相交</b>的状态都直接排除——
+      这套假设在数值上就站不住，不必再拿去比对。<br>
+      <b>与下面的「情景筛选」不是一回事</b>：锚定是<b>检算前</b>缩小搜索空间（会改变组合数与检验结果），
+      筛选是<b>检算后</b>过滤展示（不改变检验结果）。锚定管"数值上行不行"，筛选管"逻辑上剩下哪些"。</p>
+    <div id="ancBox"></div>
+  </div>
 
   <div class="card">
     <h3>检验结果 <span class="tag">点击可展开判断链</span></h3>
@@ -1514,6 +1541,79 @@ function impactVal(fd,fi,td,ti){
   }
   return expandV(r.v, ST(fd).length, fi, ST(td).length, ti);
 }
+/* ================= 数值锚定（v1.2 新增：让状态区间参与检算） ================= */
+let anchors={};                       // 描述符名 -> {lo,hi}：已知值或现实区间
+function ancOf(nm){ return anchors[nm]||null; }
+function ancTxt(nm){
+  const a=ancOf(nm); if(!a) return '';
+  return a.lo===a.hi ? String(a.lo) : a.lo+'~'+a.hi;
+}
+function parseAnc(v){
+  const t=String(v||'').replace(/\s+/g,'');
+  if(!t) return null;
+  const p=t.split(/[~～至到]/).filter(x=>x!=='');
+  const a=parseFloat(p[0]); if(isNaN(a)) return null;
+  const b=p.length>1?parseFloat(p[1]):a;
+  if(isNaN(b)) return null;
+  return {lo:Math.min(a,b), hi:Math.max(a,b)};
+}
+function setAnc(nm, v){
+  const a=parseAnc(v);
+  if(a) anchors[nm]=a; else delete anchors[nm];
+  cimResult=null;                        // 锚定变了，旧结果作废
+  render();
+}
+function clearAnc(){ anchors={}; cimResult=null; render(); toast('已清除全部数值锚定'); }
+/* 锚定后还剩哪些状态可用：区间与锚定完全不相交的排除；
+   没有区间的状态不排除（缺少数值依据时，不能凭锚定把它否掉） */
+function ancAllowed(nm){
+  const st=ST(nm), defs=defsOf(nm), a=ancOf(nm), out=[];
+  for(let j=0;j<st.length;j++){
+    if(!a){ out.push(j); continue; }
+    const d=defs[j];
+    if(!d || d.lo===null || d.hi===null || d.lo===undefined || d.hi===undefined){ out.push(j); continue; }
+    if(d.hi < a.lo || d.lo > a.hi) continue;
+    out.push(j);
+  }
+  return out;
+}
+function renderAnc(){
+  const host=document.getElementById('ancBox'); if(!host) return;
+  const ds=Object.keys(sel.desc);
+  if(!ds.length){
+    host.innerHTML='<div class="empty">先在第 3 步勾选描述符，再回到这里设定数值锚定</div>'; return;
+  }
+  let before=1, after=1, nA=0;
+  ds.forEach(nm=>{ before*=ST(nm).length; after*=ancAllowed(nm).length; if(ancOf(nm)) nA++; });
+  let h='<table class="anctab"><tr><th>描述符</th><th style="width:132px">锚定值 / 区间</th>'
+    +'<th style="width:86px">单位</th><th style="width:104px">可用状态</th><th style="width:50px"></th></tr>';
+  ds.forEach(nm=>{
+    const a=ancOf(nm), al=ancAllowed(nm), tot=ST(nm).length, defs=defsOf(nm);
+    const u=(defs.find(x=>x.u)||{}).u||'';
+    h+='<tr><td>'+nm+'</td>'
+      +'<td><input class="txt ancin'+(a?' on':'')+'" value="'+ancTxt(nm)+'" placeholder="不限" '
+      +'onchange="setAnc(\''+nm+'\',this.value)"></td>'
+      +'<td class="ancu">'+(u||'—')+'</td>'
+      +'<td'+(a&&!al.length?' class="ancb"':'')+'>'
+      +(a?(al.length?('<b>'+al.length+'</b> / '+tot):('<b>0</b> / '+tot)):('全部 '+tot))+'</td>'
+      +'<td>'+(a?'<span class="ancx" onclick="setAnc(\''+nm+'\',\'\')">清除</span>':'')+'</td></tr>';
+  });
+  h+='</table>';
+  h+='<div class="ancsum">'+(nA
+      ? '已锚定 <b>'+nA+'</b> 个描述符：组合空间由 <b>'+before.toLocaleString()+'</b> 收窄为 <b>'
+        +after.toLocaleString()+'</b> 种'+(before>after?('（排除 '+(before-after).toLocaleString()+' 种）'):'')
+        +'。<b>改变锚定后需重新运行检验。</b>'
+      : '尚未设定锚定——此时检验在全组合空间上进行，状态区间只作说明之用。')
+    +'<br>输入方式：单值 <code>4.8</code>，或区间 <code>4.5~5.0</code>（单位与右侧一致）。'
+    +'只有与锚定值<b>完全不相交</b>的状态才被排除；部分重叠的保留，因为它仍可能与已知值相容。'
+    +(nA?'　<a class="ancx" onclick="clearAnc()">全部清除</a>':'')+'</div>';
+  if(ds.some(nm=>ancOf(nm)&&!ancAllowed(nm).length)){
+    h+='<div class="note" style="margin-top:10px;">有描述符在锚定下<b>一个可用状态都不剩</b>——'
+      +'这套设定在数值上无解。要么放宽锚定，要么回第 3 步调整那些状态的取值区间。</div>';
+  }
+  host.innerHTML=h;
+}
+
 function runCIM(){
   const ds=Object.keys(sel.desc);
   if(ds.length<2){ toast('至少选两个描述符'); return; }
@@ -1521,11 +1621,18 @@ function runCIM(){
   if(!filled.length){ toast('还没有打分，先到「交叉影响打分」做判断'); return; }
   const sizes=ds.map(d=>ST(d).length);
   if(sizes.some(s=>s<1)){ toast('有描述符缺少状态定义'); return; }
-  const total=sizes.reduce((a,b)=>a*b,1);
-  const MAX=200000;
-  const sampled=total>MAX;
-  const N=Math.min(total,MAX);
   const n=ds.length;
+  /* 数值锚定在枚举之前生效：与锚定值完全不相交的状态直接排除，搜索空间随之收窄 */
+  const allowed=ds.map(d=>ancAllowed(d));
+  const dead=allowed.findIndex(a=>!a.length);
+  if(dead>=0){ toast('「'+ds[dead]+'」在锚定下没有任何可用状态，请放宽锚定或改区间'); return; }
+  const total=sizes.reduce((a,b)=>a*b,1);
+  const radix=allowed.map(a=>a.length);
+  const space=radix.reduce((a,b)=>a*b,1);
+  const MAX=200000;
+  const sampled=space>MAX;
+  const N=Math.min(space,MAX);
+  const anchored=ds.filter(d=>ancOf(d)).length;
   /* 预计算影响值，避免内层重复解析 */
   const IMP=[];
   for(let k=0;k<n;k++){
@@ -1542,11 +1649,11 @@ function runCIM(){
     }
   }
   const idxOf=new Array(n).fill(0);
-  const consistent=[];
+  const consistent=[], seen=new Set();
   let inconsistent=0;
   for(let c=0;c<N;c++){
-    let x = sampled ? Math.floor(Math.random()*total) : c;
-    for(let i=n-1;i>=0;i--){ idxOf[i]=x%sizes[i]; x=Math.floor(x/sizes[i]); }
+    let x = sampled ? Math.floor(Math.random()*space) : c;
+    for(let i=n-1;i>=0;i--){ const r=radix[i]; idxOf[i]=allowed[i][x%r]; x=Math.floor(x/r); }
     let ok=true;
     for(let i=0;i<n && ok;i++){
       let mx=-1e9, pickv=0;
@@ -1558,12 +1665,17 @@ function runCIM(){
       }
       if(pickv<mx-1e-6) ok=false;
     }
-    if(ok){ if(consistent.length<200) consistent.push(idxOf.slice()); }
+    if(ok){
+      const key=idxOf.join(',');
+      if(!seen.has(key) && consistent.length<200){ seen.add(key); consistent.push(idxOf.slice()); }
+    }
     else inconsistent++;
   }
-  cimResult={ds:ds.slice(), sizes:sizes.slice(), total:total, checked:N, sampled:sampled,
+  cimResult={ds:ds.slice(), sizes:sizes.slice(), total:total, space:space, anchored:anchored,
+    allowed:radix.slice(), checked:N, sampled:sampled,
     consistent:consistent, inconsistent:inconsistent, ts:nowStr()};
-  toast('检验完成：'+(sampled?'抽样 ':'')+N.toLocaleString()+' 个组合，自洽 '+consistent.length+' 组');
+  toast('检验完成：'+(sampled?'抽样 ':'')+N.toLocaleString()+' 个组合，自洽 '+consistent.length+' 组'
+    +(anchored?('（锚定已把空间收窄到 '+space.toLocaleString()+' 种）'):''));
   render();
 }
 function checkResult(){
@@ -1581,7 +1693,11 @@ function checkResult(){
   const r=cimResult;
   let h='<div class="kv"><span>参与检验的描述符</span><span>'+r.ds.length+' 个</span></div>'
    +'<div class="kv"><span>状态总数</span><span>'+r.sizes.reduce((a,b)=>a+b,0)+' 个</span></div>'
-   +'<div class="kv"><span>组合空间</span><span>'+r.total.toLocaleString()+' 种</span></div>'
+   +'<div class="kv"><span>组合空间</span><span>'+r.total.toLocaleString()+' 种'
+   +(r.anchored?(' <span style="color:var(--pri);">→ 锚定后 '+(r.space||r.total).toLocaleString()+' 种</span>'):'')
+   +'</span></div>'
+   +(r.anchored?('<div class="kv"><span>数值锚定排除</span><span style="color:var(--pri);">'
+     +(r.total-(r.space||r.total)).toLocaleString()+' 种组合（'+r.anchored+' 个描述符已锚定）</span></div>'):'')
    +'<div class="kv"><span>实际检查</span><span>'
    +(r.sampled?('随机抽样 '+r.checked.toLocaleString()+' 种'):(r.checked.toLocaleString()+' 种（全枚举）'))
    +'</span></div>'
@@ -1857,6 +1973,7 @@ function snapshot(){
     scales:[...document.querySelectorAll('[data-scale].sel')].map(x=>x.dataset.scale),
     applied:[...applied],
     xlSel: xlSel,
+    anchors: anchors,
     cim: (ens&&ens.active>=0 ? ens.people[ens.active].cim : cim),
     ens: ens?{people:ens.people, active:ens.active, merged:ens.merged}:null,
     ensRes: ensRes};
@@ -1878,7 +1995,7 @@ function loadCfg(){
       const c=x.querySelector('.chk'); c.classList.toggle('on',on); c.innerHTML=on?TICK:'';
     });
     // 打分矩阵与多专家状态
-    ens=d.ens||null; ensRes=d.ensRes||{}; xlSel=d.xlSel||{};
+    ens=d.ens||null; ensRes=d.ensRes||{}; xlSel=d.xlSel||{}; anchors=d.anchors||{};
     if(ens&&ens.people&&ens.people.length){
       ens.active=(typeof ens.active==='number')?ens.active:0;
       cim=(ens.active<0? ens.merged : ens.people[ens.active].cim)||{};
@@ -2317,6 +2434,7 @@ function reportData(){
         v:cim[k].v, conf:cim[k].conf, why:cim[k].why, reviewed:!!cim[k].rev,
         stN:(cim[k].st?Object.keys(cim[k].st).length:0)}))
     },
+    anchors: Object.keys(anchors).map(k=>({name:k, lo:anchors[k].lo, hi:anchors[k].hi})),
     stats: {n:n, states:ds.reduce((a,d)=>a+ST(d).length,0), cells:n*(n-1)}
   };
 }
@@ -2395,8 +2513,11 @@ function buildReportHTML(d){
 
   h+='<h2>三、情景检验结果</h2>';
   if(cimResult){
-    h+='<div class="rok">组合空间 '+cimResult.total.toLocaleString()+' 种，'
-      +(cimResult.sampled?'随机抽样检查 ':'全枚举 ')+cimResult.checked.toLocaleString()+' 种；'
+    h+='<div class="rok">组合空间 '+cimResult.total.toLocaleString()+' 种'
+      +(cimResult.anchored?('，经<b>数值锚定</b>收窄为 '+(cimResult.space||cimResult.total).toLocaleString()+' 种（'
+        +cimResult.anchored+' 个描述符已锚定，排除 '
+        +(cimResult.total-(cimResult.space||cimResult.total)).toLocaleString()+' 种）'):'')
+      +'，'+(cimResult.sampled?'随机抽样检查 ':'全枚举 ')+cimResult.checked.toLocaleString()+' 种；'
       +'其中自洽情景 <b>'+cimResult.consistent.length+'</b> 组，不自洽组合 '
       +cimResult.inconsistent.toLocaleString()+' 组。</div>';
     h+='<div class="rnote"><b>边界说明</b>：交叉影响判断的记录单位为「描述符对」。'
@@ -3140,7 +3261,7 @@ function renderHeat(host){
 function render(){
   renderSteps(); renderCmp(); layerTable(); renderTree(); renderStates();
   expDetail(); renderEnsBox(); scaleSum(); renderPolicy();
-  renderCim(); renderEnsBar(); modelDetail(); checkResult(); renderXl(); renderFilt();
+  renderCim(); renderEnsBar(); modelDetail(); renderAnc(); checkResult(); renderXl(); renderFilt();
   renderTableau(); renderMap();
   confList(); timeline(); renderImpact(); renderAP(); renderEnsPanel();
   el('outPreview', preview());

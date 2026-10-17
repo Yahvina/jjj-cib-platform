@@ -472,3 +472,19 @@ table.xltab td.xlcell.bad select{border-color:var(--rd);color:var(--rd);}
 .xlbads{margin-top:10px;display:flex;flex-direction:column;gap:6px;}
 .xlb{font-size:12px;color:var(--rd);background:var(--rd-s);border-left:3px solid var(--rd);
   padding:7px 11px;border-radius:0 5px 5px 0;line-height:1.7;}
+
+/* 数值锚定（状态区间参与检算） */
+table.anctab{width:100%;border-collapse:collapse;font-size:12.5px;}
+table.anctab th{background:var(--panel2);color:var(--tx3);font-weight:500;font-size:11.5px;
+  text-align:left;padding:7px 10px;border-bottom:1px solid var(--line);}
+table.anctab td{padding:6px 10px;border-bottom:1px solid var(--line);vertical-align:middle;}
+table.anctab tr:last-child td{border-bottom:none;}
+table.anctab input.ancin{width:100%;height:28px;padding:0 8px;font-size:12.5px;border-radius:5px;
+  border:1px solid var(--line);background:var(--panel);color:var(--tx);font-family:inherit;}
+table.anctab input.ancin.on{border-color:var(--pri);color:var(--pri);font-weight:600;background:var(--pri-s);}
+table.anctab .ancu{font-size:11.5px;color:var(--tx3);}
+table.anctab .ancb{color:var(--rd);font-weight:600;}
+table.anctab .ancx{font-size:11.5px;color:var(--pri);cursor:pointer;}
+.ancsum{margin-top:11px;font-size:12px;color:var(--tx2);line-height:1.85;
+  background:var(--panel2);padding:10px 13px;border-radius:6px;}
+.ancsum code{background:var(--panel);padding:1px 4px;border-radius:3px;font-size:11.5px;}
