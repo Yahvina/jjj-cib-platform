@@ -398,6 +398,7 @@ function tglState(nm,st){
   const i=b.states.indexOf(st);
   if(i>=0) b.states.splice(i,1); else b.states.push(st);
   cimResult=null; layeredResult=null;
+  corrResult=null;
   profResult=null;
   render();
 }
@@ -759,6 +760,7 @@ function modelDetail(){
 /* ================= 步骤 5 ================= */
 let cimResult=null;
 let profResult=null, profileSel=null;
+let corrResult=null, corrPick=null;
 let layeredResult=null;
 /* 状态级影响值：由描述符级分值按两端状态的高低位置展开 */
 // 由描述符级分值按两端状态的高低位置展开——这是"没有人工精判时"的默认假设。
@@ -799,11 +801,13 @@ function setAnc(nm, v){
   const a=parseAnc(v);
   if(a) anchors[nm]=a; else delete anchors[nm];
   cimResult=null;                        // 锚定变了，旧结果作废
+  corrResult=null;
   profResult=null;
   layeredResult=null;
   render();
 }
 function clearAnc(){ anchors={}; cimResult=null; render(); toast('已清除全部数值锚定'); }
+corrResult=null;
 profResult=null;
 layeredResult=null;
 /* 锚定后还剩哪些状态可用：区间与锚定完全不相交的排除；
@@ -858,7 +862,7 @@ function renderAnc(){
 
 /* 枚举核心：一致性检验与影响谱共用。
    force = {pos, idx} 时把第 pos 个描述符钉死在某个状态上，用于「如果我强行这样，情景集会怎么变」。 */
-function enumCore(ds, force, capN){
+function enumCore(ds, force, capN, keepAll){
   const n=ds.length;
   const sizes=ds.map(d=>ST(d).length);
   if(sizes.some(x=>x<1)) return {bad:'状态缺失'};
@@ -908,7 +912,8 @@ function enumCore(ds, force, capN){
       const key=idxOf.join(',');
       if(!seen.has(key)){
         seen.add(key); count++;
-        if(consistent.length<200) consistent.push(idxOf.slice());
+        if(keepAll){ if(consistent.length<keepAll) consistent.push(idxOf.slice()); }
+        else if(consistent.length<200) consistent.push(idxOf.slice());
         for(let i=0;i<n;i++){
           const kk=i+'|'+idxOf[i];
           presence.add(kk);
@@ -919,7 +924,8 @@ function enumCore(ds, force, capN){
   }
   return {n:n, sizes:sizes, space:space, checked:N, sampled:sampled,
     consistent:consistent, count:count, inconsistent:inconsistent,
-    presence:presence, freq:freq, dead:-1};
+    presence:presence, freq:freq, dead:-1,
+    truncated: keepAll ? (count>keepAll) : false};
 }
 
 function runCIM(){
@@ -1411,6 +1417,7 @@ function loadCfg(){
       cim=(ens.active<0? ens.merged : ens.people[ens.active].cim)||{};
     }else{ ens=null; cim=d.cim||{}; }
     cimSelKey=null; cimResult=null;
+    corrResult=null;
     profResult=null;
     layeredResult=null;
     inCmp=false; render(); toast('配置已载入'); 
@@ -1583,6 +1590,7 @@ function cimKeys(){
 // 清空矩阵内容但保留对象本身——多人模式下 cim 是「当前专家那一份」的引用，
 // 直接 cim={} 会切断引用，导致改动落到一个游离对象上。
 function clearCim(){ Object.keys(cim).forEach(k=>delete cim[k]); cimResult=null; }
+corrResult=null;
 profResult=null;
 layeredResult=null;
 function aiFill(){
@@ -1602,6 +1610,7 @@ function aiFill(){
 function resetCim(){ clearCim(); cimSelKey=null; toast('已清空打分矩阵'); render(); }
 function pickCell(s,t){ cimSelKey=s+'>'+t; if(!cim[cimSelKey]) cim[cimSelKey]={v:0,conf:'低',why:'',rev:false}; renderCim(); }
 function setV(v){ if(cimSelKey){ cim[cimSelKey].v=v; cimResult=null; renderCim(); } }
+corrResult=null;
 profResult=null;
 layeredResult=null;
 function setConf(c){ if(cimSelKey){ cim[cimSelKey].conf=c; renderCim(); } }
@@ -1730,6 +1739,7 @@ function setSt(fi,ti,v){
   if(v==='') delete r.st[k]; else r.st[k]=+v;
   if(!Object.keys(r.st).length) delete r.st;
   cimResult=null;
+  corrResult=null;
   profResult=null;
   layeredResult=null;
   renderCim();
@@ -1737,6 +1747,7 @@ function setSt(fi,ti,v){
 function clearSt(){
   const r=cim[cimSelKey]; if(!r) return;
   delete r.st; cimResult=null; renderCim();
+  corrResult=null;
   profResult=null;
   layeredResult=null;
   toast('已全部恢复为按整体倾向自动展开');
@@ -2150,6 +2161,7 @@ function setPerson(i){
   ens.active=i;
   cim=(i<0? ens.merged : ens.people[i].cim) || {};
   cimSelKey=null; cimResult=null;
+  corrResult=null;
   profResult=null;
   layeredResult=null;
   render();
@@ -2198,6 +2210,7 @@ function ensMerge(){
     }
   });
   ens.merged=out; ens.active=-1; cim=out; cimSelKey=null; cimResult=null;
+  corrResult=null;
   profResult=null;
   layeredResult=null;
   render();
@@ -2211,6 +2224,7 @@ function arbit(k, v){
     ens.merged[k]={v:v, conf:'高', why:'多专家分歧（原取值 '+rec.join(' / ')+'），经裁定取 '+v, rev:true};
   }
   cimResult=null;
+  corrResult=null;
   profResult=null;
   layeredResult=null;
   render();
@@ -2969,13 +2983,145 @@ function renderProf(){
   host.innerHTML=h;
 }
 
+
+/* ================= 相关性分析（v1.2 新增，对应德国软件的 Correlations） =================
+   用 Pearson φ 系数衡量「两个状态在自洽情景里是否总是同进同出」：
+     φ=+100% 两者要么一起出现、要么一起不出现；φ=−100% 此消彼长；0 表示无关联。
+   注意手册的提醒：情景数少时系数可能是假象，界面会直接警示。 */
+
+function computeCorr(){
+  const ds=Object.keys(sel.desc);
+  if(ds.length<2) return {err:'至少选两个描述符'};
+  if(!cimKeys().filter(k=>cim[k]).length) return {err:'还没有打分，先到「交叉影响打分」做判断'};
+  /* 相关性要基于完整情景集，不能用展示用的前 200 条 */
+  const r=enumCore(ds,null,20000,8000);
+  if(r.bad || r.dead>=0) return {err:'基准情景集为空，无法计算相关'};
+  const S=r.consistent.length;
+  if(!S) return {err:'基准情景集为空，无法计算相关'};
+
+  const states=[], key2i={};
+  ds.forEach((d,pos)=>{ ST(d).forEach((nm,i)=>{
+    key2i[pos+'|'+i]=states.length;
+    states.push({d:d, pos:pos, i:i, nm:nm});
+  });});
+  const occ=states.map(()=>new Uint8Array(S));
+  r.consistent.forEach((cb,si)=>{ cb.forEach((v,pos)=>{
+    const gi=key2i[pos+'|'+v]; if(gi!==undefined) occ[gi][si]=1;
+  });});
+  const cnt=states.map((_,gi)=>{ let c=0; for(let k=0;k<S;k++) if(occ[gi][k]) c++; return c; });
+
+  const pairs=[];
+  for(let x=0;x<states.length;x++) for(let y=x+1;y<states.length;y++){
+    const nA=cnt[x], nB=cnt[y];
+    /* 同一描述符的不同状态天然互斥（φ 恒为 −100%），不是有效信息，跳过 */
+    if(states[x].pos===states[y].pos) continue;
+    /* 从不出现或每场都出现的状态没有区分度，按手册做法留空（不算系数） */
+    if(!nA||!nB||nA===S||nB===S) continue;
+    const A=occ[x], B=occ[y];
+    let nAB=0; for(let k=0;k<S;k++) if(A[k]&&B[k]) nAB++;
+    const n10=nA-nAB, n01=nB-nAB, n00=S-nA-nB+nAB;
+    const den=Math.sqrt(nA*(S-nA)*nB*(S-nB));
+    const phi=den?(nAB*n00-n10*n01)/den:0;
+    pairs.push({a:x, b:y, phi:phi, nAB:nAB, n10:n10, n01:n01});
+  }
+  pairs.sort((p,q)=>Math.abs(q.phi)-Math.abs(p.phi));
+  corrResult={states:states, cnt:cnt, S:S, pairs:pairs, weak:S<20,
+    truncated:!!r.truncated, checked:r.checked, ts:nowStr()};
+  return corrResult;
+}
+
+function runCorr(){
+  const host=document.getElementById('corrBox');
+  if(host) host.innerHTML='<div class="empty">正在计算状态两两的相关……</div>';
+  setTimeout(()=>{
+    const r=computeCorr();
+    if(r && r.err){ corrResult=null; if(host) host.innerHTML='<div class="empty">'+r.err+'</div>'; return; }
+    renderCorr();
+    toast('相关性完成：'+r.S+' 组情景，'+r.pairs.length+' 对可计算');
+  }, 40);
+}
+
+function corrSel(v){ corrPick=(v===''?null:v); renderCorr(); }
+
+function renderCorr(){
+  const host=document.getElementById('corrBox'); if(!host) return;
+  const ds=Object.keys(sel.desc);
+  if(ds.length<2){ host.innerHTML='<div class="empty">先在第 3 步勾选描述符</div>'; return; }
+  if(!corrResult){
+    host.innerHTML='<div style="font-size:12.5px;line-height:1.9;">'
+      +'<b>哪些状态总是绑在一起出现？</b>这张表用 φ 系数回答：<b>＋100%</b> 表示两者要么同时出现、'
+      +'要么同时不出现；<b>−100%</b> 表示此消彼长；0 表示没有关联。<br>'
+      +'<span class="dim">它只描述「在当前这套判断下，这些状态怎么搭」，不说明因果。'
+      +'情景数很少时，系数可能是假象——手册原话是「may lead to artificial results」。</span>'
+      +'<div style="margin-top:12px;"><button class="btn pri" onclick="runCorr()">计算相关性</button></div></div>';
+    return;
+  }
+  const R=corrResult;
+  const strong=R.pairs.filter(p=>Math.abs(p.phi)>=0.8);
+  let h='<div class="kv"><span>情景集</span><span>'+R.S+' 组自洽情景'
+    +(R.truncated?'（超出上限，仅取前 8000 组）':'')+'</span></div>';
+  h+='<div class="kv"><span>可计算的状态对</span><span>'+R.pairs.length+' 对，其中 <b>'
+    +strong.length+'</b> 对强关联（|φ| ≥ 80%）</span></div>';
+  if(R.weak) h+='<div class="note" style="margin:10px 0;">情景只有 '+R.S
+    +' 组，<b>系数可能不稳定</b>——增加描述符或放宽锚定后再看，结论会更可靠。</div>';
+
+  if(strong.length){
+    h+='<div class="hd2" style="font-size:12.5px;font-weight:600;margin:13px 0 7px;">几乎捆绑的状态对</div><div class="corrlist">';
+    strong.slice(0,12).forEach(p=>{
+      const A=R.states[p.a], B=R.states[p.b];
+      const pct=Math.round(p.phi*100);
+      h+='<div class="corow">'
+        +'<span class="copair">'+A.d+'＝'+A.nm+'<span class="coiff">↔</span>'+B.d+'＝'+B.nm+'</span>'
+        +'<span class="cobar"><i style="width:'+Math.abs(pct)+'%;background:'+(p.phi>0?'var(--ok)':'var(--rd)')+'"></i></span>'
+        +'<span class="coval '+(p.phi>0?'p':'n')+'">'+(pct>0?'+':'')+pct+'%</span></div>';
+    });
+    h+='</div>';
+    if(strong.length>12) h+='<div class="dim" style="font-size:11.5px;margin-top:6px;">共 '+strong.length+' 对，此处列出最强的 12 对。</div>';
+  }else{
+    h+='<div class="empty" style="margin-top:12px;">没有 |φ| ≥ 80% 的强关联——各状态之间搭配比较自由。</div>';
+  }
+
+  h+='<div class="corrprof"><div class="hd2" style="font-size:12.5px;font-weight:600;margin-bottom:7px;">单个状态的关联谱</div>';
+  h+='<select class="txt" onchange="corrSel(this.value)" style="max-width:320px;">'
+    +'<option value="">选择一个状态看它的关联…</option>'
+    +R.states.map((s,i)=>'<option value="'+i+'"'+(String(corrPick)===String(i)?' selected':'')+'>'
+      +s.d+'＝'+s.nm+'</option>').join('')+'</select>';
+
+  if(corrPick!=null && R.states[corrPick]){
+    const gi=+corrPick, target=R.states[gi];
+    const rel=R.pairs.filter(p=>p.a===gi||p.b===gi)
+      .map(p=>({other:p.a===gi?p.b:p.a, phi:p.phi}))
+      .sort((x,y)=>Math.abs(y.phi)-Math.abs(x.phi));
+    h+='<div class="cproflist">';
+    if(!rel.length){
+      h+='<div class="dim" style="font-size:12px;margin-top:9px;">这个状态没有可计算的关联'
+        +'（可能它从未出现，或每组情景里都出现）。</div>';
+    }else{
+      rel.slice(0,12).forEach(x=>{
+        const O=R.states[x.other], pct=Math.round(x.phi*100);
+        h+='<div class="corow"><span class="copair">'+O.d+'＝'+O.nm+'</span>'
+          +'<span class="cobar"><i style="width:'+Math.abs(pct)+'%;background:'+(x.phi>0?'var(--ok)':'var(--rd)')+'"></i></span>'
+          +'<span class="coval '+(x.phi>0?'p':'n')+'">'+(pct>0?'+':'')+pct+'%</span></div>';
+      });
+    }
+    h+='</div>';
+  }
+  h+='</div>';
+
+  h+='<div class="dim" style="font-size:11.5px;margin-top:10px;line-height:1.8;">'
+    +'算法：Pearson φ 系数，基于全部自洽情景（未经情景筛选）。'
+    +'从不出现、或每组都出现的状态没有区分度，按手册做法不计系数。'
+    +'<b>φ 只说明「是否同进同出」，不说明谁导致谁</b>——因果要看交叉影响矩阵和传导链。</div>';
+  host.innerHTML=h;
+}
+
 /* ================= 主渲染 ================= */
 function render(){
   renderSteps(); renderCmp(); layerTable(); renderTree(); renderStates();
   expDetail(); renderEnsBox(); scaleSum(); renderPolicy();
   renderCim(); renderEnsBar(); modelDetail(); renderAnc(); renderScopeBar(); checkResult(); renderXl(); renderLay(); renderFilt();
   renderTableau(); renderMap();
-  confList(); timeline(); renderImpact(); renderPath(); renderAP(); renderProf(); renderEnsPanel();
+  confList(); timeline(); renderImpact(); renderPath(); renderAP(); renderProf(); renderCorr(); renderEnsPanel();
   el('outPreview', preview());
   el('fmtTag', fmtTag());
   el('fmtNote', curModel==='gcam'
