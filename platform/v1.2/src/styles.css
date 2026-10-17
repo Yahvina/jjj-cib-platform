@@ -458,3 +458,17 @@ table.stmat td{padding:2px;}
 table.stmat select.sts{width:100%;height:26px;border:1px solid var(--line);border-radius:5px;
   background:#fff;font-size:11px;color:var(--tx2);padding:0 2px;text-align:center;}
 table.stmat select.sts.on{border-color:var(--pri);color:var(--pri);font-weight:600;background:var(--pri-s);}
+
+/* ================= v1.2 跨层一致性 ================= */
+table.xltab{border-collapse:collapse;width:100%;font-size:12.5px;}
+table.xltab th{background:var(--panel2);font-weight:600;text-align:left;padding:7px 10px;
+  border:1px solid var(--line2);font-size:11.5px;color:var(--tx2);}
+table.xltab td{padding:6px 10px;border:1px solid var(--line2);vertical-align:top;}
+table.xltab td.xlnm{font-weight:600;white-space:nowrap;}
+table.xltab td.xlcell select{width:100%;max-width:220px;height:30px;padding:0 8px;}
+table.xltab td.xlcell i{display:block;font-style:normal;font-size:10.5px;color:var(--tx3);margin-top:3px;}
+table.xltab td.xlcell.bad{background:var(--rd-s);}
+table.xltab td.xlcell.bad select{border-color:var(--rd);color:var(--rd);}
+.xlbads{margin-top:10px;display:flex;flex-direction:column;gap:6px;}
+.xlb{font-size:12px;color:var(--rd);background:var(--rd-s);border-left:3px solid var(--rd);
+  padding:7px 11px;border-radius:0 5px 5px 0;line-height:1.7;}

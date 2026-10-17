@@ -973,6 +973,7 @@ function snapshot(){
   return {desc:sel.desc, model:curModel, exp:expertN, bayes:useBayes, pulled,
     scales:[...document.querySelectorAll('[data-scale].sel')].map(x=>x.dataset.scale),
     applied:[...applied],
+    xlSel: xlSel,
     cim: (ens&&ens.active>=0 ? ens.people[ens.active].cim : cim),
     ens: ens?{people:ens.people, active:ens.active, merged:ens.merged}:null,
     ensRes: ensRes};
@@ -994,7 +995,7 @@ function loadCfg(){
       const c=x.querySelector('.chk'); c.classList.toggle('on',on); c.innerHTML=on?TICK:'';
     });
     // 打分矩阵与多专家状态
-    ens=d.ens||null; ensRes=d.ensRes||{};
+    ens=d.ens||null; ensRes=d.ensRes||{}; xlSel=d.xlSel||{};
     if(ens&&ens.people&&ens.people.length){
       ens.active=(typeof ens.active==='number')?ens.active:0;
       cim=(ens.active<0? ens.merged : ens.people[ens.active].cim)||{};
@@ -1916,6 +1917,118 @@ function exportEns(){
   saveFile('集成工作簿_'+nowStr().replace(/[: ]/g,'-')+'.html', html, 'text/html');
 }
 
+/* ================= 跨层一致性（v1.2 新增） =================
+   同一个描述符在不同尺度上各有一个取值。上级定了调子，下级不能反着来——
+   但"不能反"不等于"必须相同"：差一档是允许的梯度，差两档才是方向相反。
+   这是纵向一致性，与 CIB 的横向自洽是两个正交的检验，都通过才算这套假设站得住。 */
+
+const XL_ORDER=['nation','prov','city'];
+const XL_NAME={nation:'国家级',prov:'省级',city:'市级'};
+let xlSel={};          // 描述符名 -> { nation:idx, prov:idx, city:idx }
+
+function xlayers(){
+  const on=[...document.querySelectorAll('[data-scale].sel')].map(x=>x.dataset.scale);
+  return XL_ORDER.filter(l=>on.indexOf(l)>=0);
+}
+function xlXY(){                       // 相邻的层级对
+  const seq=xlayers(), r=[];
+  for(let i=0;i<seq.length-1;i++) r.push([seq[i],seq[i+1]]);
+  return r;
+}
+function xlEnsure(){
+  const L=xlayers();
+  Object.keys(sel.desc).forEach(nm=>{
+    if(!xlSel[nm]) xlSel[nm]={};
+    L.forEach(l=>{
+      if(xlSel[nm][l]===undefined||xlSel[nm][l]>=ST(nm).length) xlSel[nm][l]=0;
+    });
+    Object.keys(xlSel[nm]).forEach(l=>{ if(L.indexOf(l)<0) delete xlSel[nm][l]; });
+  });
+  Object.keys(xlSel).forEach(nm=>{ if(!sel.desc[nm]) delete xlSel[nm]; });
+}
+function setXl(nm,l,v){ xlSel[nm]=xlSel[nm]||{}; xlSel[nm][l]=+v; renderXl(); }
+function xlCheck(){
+  xlEnsure();
+  const out=[];
+  xlXY().forEach(([u,d])=>{
+    Object.keys(sel.desc).forEach(nm=>{
+      const a=xlSel[nm]||{}, ui=a[u], di=a[d];
+      if(ui===undefined||di===undefined) return;
+      const diff=Math.abs(ui-di);
+      if(diff>=2) out.push({nm:nm,u:u,d:d,ui:ui,di:di,diff:diff});
+    });
+  });
+  return out;
+}
+function xlAlign(){
+  let n=0;
+  xlXY().forEach(([u,d])=>{
+    Object.keys(sel.desc).forEach(nm=>{
+      const a=xlSel[nm]; if(!a) return;
+      const ui=a[u], di=a[d];
+      if(ui===undefined||di===undefined) return;
+      if(Math.abs(ui-di)>=2){ a[d]=ui>di?ui-1:ui+1; n++; }
+    });
+  });
+  renderXl();
+  toast(n?('已把 '+n+' 处下级取值调到与上级相邻的档位'):'没有需要对齐的项');
+}
+function renderXl(){
+  const el=document.getElementById('xlBox'); if(!el) return;
+  const L=xlayers();
+  if(!nSel()){ el.innerHTML='<div class="empty">先在第 2 步勾选描述符。</div>'; return; }
+  if(L.length<2){
+    el.innerHTML='<div class="empty">当前只选了一个层级（'+(L.map(l=>XL_NAME[l]).join('')||'未选')
+      +'），没有跨层关系可查。<br>回到第 1 步多勾一个层级，这里就会出现层级之间的比对。</div>';
+    return;
+  }
+  xlEnsure();
+  const nms=Object.keys(sel.desc), bad=xlCheck();
+  let h='<table class="xltab"><tr><th>描述符</th>'+L.map(l=>'<th>'+XL_NAME[l]+'</th>').join('')+'</tr>';
+  nms.forEach(nm=>{
+    const sts=ST(nm), defs=defsOf(nm);
+    h+='<tr><td class="xlnm">'+(DSHORT[nm]||nm)+'</td>';
+    L.forEach((l,i)=>{
+      const v=xlSel[nm][l], x=defs[v]||{};
+      const rg=(x.lo===null||x.lo===undefined)?''
+        :'<i>'+(x.lo+'–'+x.hi+(x.u?' '+x.u:''))+'</i>';
+      let cl='';
+      if(i>0 && Math.abs(v-xlSel[nm][L[i-1]])>=2) cl=' bad';
+      h+='<td class="xlcell'+cl+'"><select class="txt" onchange="setXl(\''+nm+'\',\''+l+'\',this.value)">'
+        +sts.map((s,k)=>'<option value="'+k+'"'+(v===k?' selected':'')+'>'+s+'</option>').join('')
+        +'</select>'+rg+'</td>';
+    });
+    h+='</tr>';
+  });
+  h+='</table>';
+  const pairs=xlXY();
+  h+='<div class="filtbar"><span class="filtmeta">检查 <b>'+pairs.length+'</b> 组相邻层级 × <b>'
+    +nms.length+'</b> 个描述符 ＝ '+(pairs.length*nms.length)+' 项　·　'
+    +(bad.length?('冲突 <b style="color:var(--rd)">'+bad.length+'</b> 项')
+      :('<b style="color:var(--ok)">全部相容</b>'))+'</span>'
+    +'<div class="sp"></div>'
+    +(bad.length?'<button class="btn sm pri" onclick="xlAlign()">把下级调到相邻档</button>':'')
+    +'</div>';
+  if(bad.length){
+    h+='<div class="xlbads">';
+    bad.forEach(b=>{
+      h+='<div class="xlb"><b>'+(DSHORT[b.nm]||b.nm)+'</b>：'+XL_NAME[b.u]+'取「'
+        +(ST(b.nm)[b.ui]||'?')+'」，'+XL_NAME[b.d]+'却取「'+(ST(b.nm)[b.di]||'?')
+        +'」——<b>方向相反</b>（跨 '+b.diff+' 档）</div>';
+    });
+    h+='</div>';
+  }else{
+    h+='<div class="rok" style="margin-top:10px;">各描述符在相邻层级之间没有出现方向相反的情况。'
+      +'<b>梯度的存在是允许的</b>——省级比国家级保守一档，本身不算矛盾。</div>';
+  }
+  h+='<div class="dim" style="font-size:11.5px;line-height:1.75;margin-top:10px;">'
+    +'<b>判据</b>：档位差 0＝完全一致，1＝有梯度（允许），2＝方向相反（冲突）。'
+    +'只查<b>同一描述符在相邻层级之间</b>的关系，不涉及跨描述符、也不涉及 CIB 的影响平衡。<br>'
+    +'<b>数值加总暂不自动校验</b>：北京、天津、河北是三个平级单位，而市级只覆盖河北，'
+    +'层结构并不同构——"下级之和能否凑出上级"这个检查的前提不成立，需要先定清楚层级树的构成。</div>';
+  el.innerHTML=h;
+}
+
 /* ================= 情景筛选（v1.2 新增，对应德国软件的选择管理器） =================
    自洽情景常常几十上百个，看不过来。允许对任意描述符指定要求取值，
    展示层（情景表、情景地图）就只看命中的子集——这是"用假设反查未来"的入口。
@@ -2140,7 +2253,7 @@ function renderHeat(host){
 function render(){
   renderSteps(); renderCmp(); layerTable(); renderTree(); renderStates();
   expDetail(); renderEnsBox(); scaleSum(); renderPolicy();
-  renderCim(); renderEnsBar(); modelDetail(); checkResult(); renderFilt();
+  renderCim(); renderEnsBar(); modelDetail(); checkResult(); renderXl(); renderFilt();
   renderTableau(); renderMap();
   confList(); timeline(); renderImpact(); renderAP(); renderEnsPanel();
   el('outPreview', preview());
