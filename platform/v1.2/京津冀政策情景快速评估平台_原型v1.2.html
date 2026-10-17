@@ -569,6 +569,32 @@ table.anctab .ancx{font-size:11.5px;color:var(--pri);cursor:pointer;}
   border-radius:4px;cursor:pointer;line-height:1.7;}
 .hidrow:hover{background:var(--panel);}
 
+/* 影响谱 */
+.proftabwrap{overflow-x:auto;margin-top:10px;border:1px solid var(--line);border-radius:7px;}
+table.proftab{border-collapse:collapse;font-size:11.5px;width:100%;}
+table.proftab th{background:var(--panel2);color:var(--tx3);font-weight:500;font-size:10.5px;
+  padding:6px 5px;border-bottom:1px solid var(--line);text-align:center;white-space:nowrap;}
+table.proftab th.pfr{text-align:left;min-width:96px;}
+table.proftab th.pfc{min-width:44px;}
+table.proftab td{padding:4px 5px;border-bottom:1px solid var(--line);text-align:center;white-space:nowrap;}
+table.proftab td.pfr{text-align:left;color:var(--tx2);}
+table.proftab td.pfc{color:var(--tx3);font-variant-numeric:tabular-nums;}
+table.proftab td.pself{color:var(--line);}
+table.proftab tbody tr{cursor:pointer;}
+table.proftab tbody tr:hover{background:var(--panel2);}
+table.proftab tbody tr.sel{background:var(--pri-s);}
+table.proftab tr.pe td{background:#FFF7F7;}
+table.proftab tr.pgroup td{background:var(--panel2);color:var(--tx);font-weight:600;
+  font-size:11px;text-align:left;padding:5px 8px;}
+.pmark{font-style:normal;display:inline-block;min-width:20px;padding:0 3px;border-radius:3px;
+  font-size:10.5px;font-weight:600;margin:0 1px;}
+.pmark.p{background:var(--ok-s);color:var(--ok);}
+.pmark.n{background:var(--rd-s);color:var(--rd);}
+.profdet{margin-top:13px;padding:11px 13px;background:var(--panel2);border-radius:7px;}
+.profdet .hd2{font-size:12.5px;font-weight:600;margin-bottom:6px;}
+.pdrow{display:flex;gap:10px;font-size:12px;line-height:1.85;align-items:baseline;}
+.pdrow .pmark{flex:none;}
+
 </style>
 </head>
 <body>
@@ -901,6 +927,15 @@ table.anctab .ancx{font-size:11.5px;color:var(--pri);cursor:pointer;}
       <b>表看逐条明细，图看整体格局。</b></p>
     <div class="tabswitch" id="mapTabs"></div>
     <div id="mapFig"></div>
+  </div>
+
+  <div class="card">
+    <h3>影响谱 <span class="tag">v1.2 新增</span></h3>
+    <p style="font-size:12.5px;color:var(--tx2);margin-bottom:10px;">
+      问的是「<b>如果某件事被强行实现，还剩下哪些可能</b>」。平台逐个把每个状态钉死、重算自洽情景集，
+      再与基准对比：<b>哪些可能被这条冲击打开、哪些被挤掉</b>；整行为 0 的，说明这件事与当前判断不相容。
+      德国软件里这块叫 Influence profile（影响谱），这里是其中的定性版。</p>
+    <div id="profBox"></div>
   </div>
 
   <div class="card">
@@ -1398,6 +1433,7 @@ function tglState(nm,st){
   const i=b.states.indexOf(st);
   if(i>=0) b.states.splice(i,1); else b.states.push(st);
   cimResult=null; layeredResult=null;
+  profResult=null;
   render();
 }
 /* ================= 状态半定量化（v1.2 新增） =================
@@ -1757,6 +1793,7 @@ function modelDetail(){
 
 /* ================= 步骤 5 ================= */
 let cimResult=null;
+let profResult=null, profileSel=null;
 let layeredResult=null;
 /* 状态级影响值：由描述符级分值按两端状态的高低位置展开 */
 // 由描述符级分值按两端状态的高低位置展开——这是"没有人工精判时"的默认假设。
@@ -1797,10 +1834,12 @@ function setAnc(nm, v){
   const a=parseAnc(v);
   if(a) anchors[nm]=a; else delete anchors[nm];
   cimResult=null;                        // 锚定变了，旧结果作废
+  profResult=null;
   layeredResult=null;
   render();
 }
 function clearAnc(){ anchors={}; cimResult=null; render(); toast('已清除全部数值锚定'); }
+profResult=null;
 layeredResult=null;
 /* 锚定后还剩哪些状态可用：区间与锚定完全不相交的排除；
    没有区间的状态不排除（缺少数值依据时，不能凭锚定把它否掉） */
@@ -1852,25 +1891,22 @@ function renderAnc(){
   host.innerHTML=h;
 }
 
-function runCIM(){
-  const ds=Object.keys(sel.desc);
-  if(ds.length<2){ toast('至少选两个描述符'); return; }
-  const filled=cimKeys().filter(k=>cim[k]);
-  if(!filled.length){ toast('还没有打分，先到「交叉影响打分」做判断'); return; }
-  const sizes=ds.map(d=>ST(d).length);
-  if(sizes.some(s=>s<1)){ toast('有描述符缺少状态定义'); return; }
+/* 枚举核心：一致性检验与影响谱共用。
+   force = {pos, idx} 时把第 pos 个描述符钉死在某个状态上，用于「如果我强行这样，情景集会怎么变」。 */
+function enumCore(ds, force, capN){
   const n=ds.length;
-  /* 数值锚定在枚举之前生效：与锚定值完全不相交的状态直接排除，搜索空间随之收窄 */
+  const sizes=ds.map(d=>ST(d).length);
+  if(sizes.some(x=>x<1)) return {bad:'状态缺失'};
+  /* 数值锚定在枚举之前生效：与锚定值完全不相交的状态直接排除 */
   const allowed=ds.map(d=>ancAllowed(d));
+  if(force) allowed[force.pos]=[force.idx];
   const dead=allowed.findIndex(a=>!a.length);
-  if(dead>=0){ toast('「'+ds[dead]+'」在锚定下没有任何可用状态，请放宽锚定或改区间'); return; }
-  const total=sizes.reduce((a,b)=>a*b,1);
+  if(dead>=0) return {dead:dead};
   const radix=allowed.map(a=>a.length);
   const space=radix.reduce((a,b)=>a*b,1);
-  const MAX=200000;
+  const MAX=capN||200000;
   const sampled=space>MAX;
   const N=Math.min(space,MAX);
-  const anchored=ds.filter(d=>ancOf(d)).length;
   /* 预计算影响值，避免内层重复解析 */
   const IMP=[];
   for(let k=0;k<n;k++){
@@ -1887,8 +1923,8 @@ function runCIM(){
     }
   }
   const idxOf=new Array(n).fill(0);
-  const consistent=[], seen=new Set();
-  let inconsistent=0;
+  const consistent=[], seen=new Set(), presence=new Set(), freq={};
+  let inconsistent=0, count=0;
   for(let c=0;c<N;c++){
     let x = sampled ? Math.floor(Math.random()*space) : c;
     for(let i=n-1;i>=0;i--){ const r=radix[i]; idxOf[i]=allowed[i][x%r]; x=Math.floor(x/r); }
@@ -1896,24 +1932,46 @@ function runCIM(){
     for(let i=0;i<n && ok;i++){
       let mx=-1e9, pickv=0;
       for(let j=0;j<sizes[i];j++){
-        let s=0;
-        for(let k=0;k<n;k++){ if(k!==i) s+=IMP[k][i][idxOf[k]][j]; }
-        if(j===idxOf[i]) pickv=s;
-        if(s>mx) mx=s;
+        let acc=0;
+        for(let k=0;k<n;k++){ if(k!==i) acc+=IMP[k][i][idxOf[k]][j]; }
+        if(j===idxOf[i]) pickv=acc;
+        if(acc>mx) mx=acc;
       }
       if(pickv<mx-1e-6) ok=false;
     }
     if(ok){
       const key=idxOf.join(',');
-      if(!seen.has(key) && consistent.length<200){ seen.add(key); consistent.push(idxOf.slice()); }
-    }
-    else inconsistent++;
+      if(!seen.has(key)){
+        seen.add(key); count++;
+        if(consistent.length<200) consistent.push(idxOf.slice());
+        for(let i=0;i<n;i++){
+          const kk=i+'|'+idxOf[i];
+          presence.add(kk);
+          freq[kk]=(freq[kk]||0)+1;
+        }
+      }
+    } else inconsistent++;
   }
-  cimResult={ds:ds.slice(), sizes:sizes.slice(), total:total, space:space, anchored:anchored,
-    allowed:radix.slice(), checked:N, sampled:sampled,
-    consistent:consistent, inconsistent:inconsistent, ts:nowStr()};
-  toast('检验完成：'+(sampled?'抽样 ':'')+N.toLocaleString()+' 个组合，自洽 '+consistent.length+' 组'
-    +(anchored?('（锚定已把空间收窄到 '+space.toLocaleString()+' 种）'):''));
+  return {n:n, sizes:sizes, space:space, checked:N, sampled:sampled,
+    consistent:consistent, count:count, inconsistent:inconsistent,
+    presence:presence, freq:freq, dead:-1};
+}
+
+function runCIM(){
+  const ds=Object.keys(sel.desc);
+  if(ds.length<2){ toast('至少选两个描述符'); return; }
+  const filled=cimKeys().filter(k=>cim[k]);
+  if(!filled.length){ toast('还没有打分，先到「交叉影响打分」做判断'); return; }
+  const r=enumCore(ds,null);
+  if(r.bad){ toast('有描述符缺少状态定义'); return; }
+  if(r.dead>=0){ toast('「'+ds[r.dead]+'」在锚定下没有任何可用状态，请放宽锚定或改区间'); return; }
+  const total=ds.reduce((a,d)=>a*ST(d).length,1);
+  const anchored=ds.filter(d=>ancOf(d)).length;
+  cimResult={ds:ds.slice(), sizes:r.sizes.slice(), total:total, space:r.space, anchored:anchored,
+    checked:r.checked, sampled:r.sampled,
+    consistent:r.consistent, inconsistent:r.inconsistent, ts:nowStr()};
+  toast('检验完成：'+(r.sampled?'抽样 ':'')+r.checked.toLocaleString()+' 个组合，自洽 '+r.consistent.length+' 组'
+    +(anchored?('（锚定已把空间收窄到 '+r.space.toLocaleString()+' 种）'):''));
   render();
 }
 /* ================= 逐层求解（v1.2 新增：让跨层约束真正进入求解） =================
@@ -2388,6 +2446,7 @@ function loadCfg(){
       cim=(ens.active<0? ens.merged : ens.people[ens.active].cim)||{};
     }else{ ens=null; cim=d.cim||{}; }
     cimSelKey=null; cimResult=null;
+    profResult=null;
     layeredResult=null;
     inCmp=false; render(); toast('配置已载入'); 
   }catch(e){ toast('载入失败'); }
@@ -2559,6 +2618,7 @@ function cimKeys(){
 // 清空矩阵内容但保留对象本身——多人模式下 cim 是「当前专家那一份」的引用，
 // 直接 cim={} 会切断引用，导致改动落到一个游离对象上。
 function clearCim(){ Object.keys(cim).forEach(k=>delete cim[k]); cimResult=null; }
+profResult=null;
 layeredResult=null;
 function aiFill(){
   if(nSel()<2){ toast('先回到第 2 步，至少勾选两个描述符'); return; }
@@ -2577,6 +2637,7 @@ function aiFill(){
 function resetCim(){ clearCim(); cimSelKey=null; toast('已清空打分矩阵'); render(); }
 function pickCell(s,t){ cimSelKey=s+'>'+t; if(!cim[cimSelKey]) cim[cimSelKey]={v:0,conf:'低',why:'',rev:false}; renderCim(); }
 function setV(v){ if(cimSelKey){ cim[cimSelKey].v=v; cimResult=null; renderCim(); } }
+profResult=null;
 layeredResult=null;
 function setConf(c){ if(cimSelKey){ cim[cimSelKey].conf=c; renderCim(); } }
 function setWhy(w){ if(cimSelKey){ cim[cimSelKey].why=w; } }
@@ -2704,12 +2765,14 @@ function setSt(fi,ti,v){
   if(v==='') delete r.st[k]; else r.st[k]=+v;
   if(!Object.keys(r.st).length) delete r.st;
   cimResult=null;
+  profResult=null;
   layeredResult=null;
   renderCim();
 }
 function clearSt(){
   const r=cim[cimSelKey]; if(!r) return;
   delete r.st; cimResult=null; renderCim();
+  profResult=null;
   layeredResult=null;
   toast('已全部恢复为按整体倾向自动展开');
 }
@@ -3122,6 +3185,7 @@ function setPerson(i){
   ens.active=i;
   cim=(i<0? ens.merged : ens.people[i].cim) || {};
   cimSelKey=null; cimResult=null;
+  profResult=null;
   layeredResult=null;
   render();
 }
@@ -3169,6 +3233,7 @@ function ensMerge(){
     }
   });
   ens.merged=out; ens.active=-1; cim=out; cimSelKey=null; cimResult=null;
+  profResult=null;
   layeredResult=null;
   render();
   toast('已合并 '+st.n+' 份矩阵：一致 '+st.agree+' 条，分歧 '+st.diff.length+' 条');
@@ -3181,6 +3246,7 @@ function arbit(k, v){
     ens.merged[k]={v:v, conf:'高', why:'多专家分歧（原取值 '+rec.join(' / ')+'），经裁定取 '+v, rev:true};
   }
   cimResult=null;
+  profResult=null;
   layeredResult=null;
   render();
   toast('已裁定为 '+(v>0?'+':'')+v);
@@ -3803,13 +3869,148 @@ function renderPath(){
   host.innerHTML=h;
 }
 
+
+/* ================= 影响谱（v1.2 新增，对应德国软件的 Influence profile） =================
+   逐个把某个状态「钉死」（相当于外部冲击强行如此），重算情景集，与基准对比：
+     ＋ = 基准里没有、强制后出现的状态（被这条冲击打开的可能）
+     − = 基准里有、强制后消失的状态（被这条冲击挤掉的可能）
+   整行空 = 该状态下没有任何自洽情景——说明系统与这条冲击不相容。 */
+
+/* 计算与渲染分开：runProfile 只负责「先让界面刷新一下再算」，computeProfile 可被测试直接调用 */
+function computeProfile(){
+  const ds=Object.keys(sel.desc);
+  if(ds.length<2) return {err:'至少选两个描述符'};
+  if(!cimKeys().filter(k=>cim[k]).length) return {err:'还没有打分，先到「交叉影响打分」做判断'};
+  const base=enumCore(ds,null,60000);
+  if(base.bad || base.dead>=0 || !base.consistent.length){
+    profResult=null;
+    return {err:'基准情景集为空，无法做影响谱——先确认已打分、且锚定没有把搜索空间清空'};
+  }
+  const S=ds.reduce((a,d)=>a+ST(d).length,0);
+  /* 总预算：状态数越多，每次强制分到的抽样量越少，避免几十次重算卡死浏览器 */
+  const per=Math.max(1200, Math.min(200000, Math.floor(400000/Math.max(1,S))));
+  const rows=[];
+  ds.forEach((d,pos)=>{
+    ST(d).forEach((nm,j)=>{
+      const r=enumCore(ds,{pos:pos,idx:j},per);
+      const rec={d:d,pos:pos,i:j,nm:nm,n:0,empty:false,add:[],lose:[],sampled:false};
+      if(r.dead>=0 || !r.consistent.length){ rec.empty=true; rows.push(rec); return; }
+      rec.n=r.count; rec.sampled=r.sampled;
+      ds.forEach((e,ei)=>{
+        if(ei===pos) return;
+        ST(e).forEach((en,ei2)=>{
+          const key=ei+'|'+ei2;
+          const inB=base.presence.has(key), inR=r.presence.has(key);
+          if(!inB && inR) rec.add.push({e:e, nm:en});
+          else if(inB && !inR) rec.lose.push({e:e, nm:en});
+        });
+      });
+      rows.push(rec);
+    });
+  });
+  profResult={ds:ds.slice(), baseCount:base.consistent.length, basePres:base.presence.size,
+    rows:rows, per:per, sampled:rows.some(x=>x.sampled), ts:nowStr()};
+  return profResult;
+}
+
+function runProfile(){
+  const host=document.getElementById('profBox');
+  if(host) host.innerHTML='<div class="empty">正在逐个状态强制、重算情景集……</div>';
+  setTimeout(()=>{
+    const r=computeProfile();
+    if(r && r.err){ if(host) host.innerHTML='<div class="empty">'+r.err+'</div>'; return; }
+    renderProf();
+    toast('影响谱完成：'+profResult.rows.length+' 个状态，基准 '+profResult.baseCount+' 组自洽');
+  }, 40);
+}
+
+function profPick(k){ profileSel=k; renderProf(); }
+
+function renderProf(){
+  const host=document.getElementById('profBox'); if(!host) return;
+  const ds=Object.keys(sel.desc);
+  if(ds.length<2){ host.innerHTML='<div class="empty">先在第 3 步勾选描述符</div>'; return; }
+  if(!profResult){
+    host.innerHTML='<div style="font-size:12.5px;line-height:1.9;">'
+      +'<b>这张表回答「如果某件事被强行实现，剩下哪些可能」。</b><br>'
+      +'平台会把每一个状态逐个「钉死」，重算一遍自洽情景，再与不钉死时的基准对比：'
+      +'<span class="pmark n">−</span> 表示被它<b>挤掉</b>的可能，整行标空表示<b>这条冲击下没有任何自洽情景</b>。'
+      +'<br><span class="dim">注：本版把「强制」实现为硬约束，数学上强制只会缩小情景集，'
+      +'所以不会出现「新增」；德国软件里的 ＋ 标记，来自它把外部冲击当作会改写矩阵的影响来处理，'
+      +'那是另一种建模方式，本版未采用。</span>'
+      +'<div style="margin-top:12px;"><button class="btn pri" onclick="runProfile()">运行影响谱</button>'
+      +'<span class="dim" style="font-size:12px;margin-left:10px;">需先运行过一致性检验，状态数较多时会自动抽样</span></div></div>';
+    return;
+  }
+  const R=profResult;
+  const empties=R.rows.filter(x=>x.empty).length;
+  const acted=R.rows.filter(x=>!x.empty && (x.add.length||x.lose.length)).length;
+
+  let h='<div class="kv"><span>基准情景集</span><span><b>'+R.baseCount+'</b> 组自洽，覆盖 '+R.basePres+' 个状态</span></div>';
+  h+='<div class="kv"><span>强制效应</span><span>'+acted+' / '+R.rows.length+' 个状态会改变情景集'
+    +(empties?('，其中 <b style="color:var(--rd)">'+empties+'</b> 个状态下无任何自洽情景'):'')+'</span></div>';
+  if(R.sampled) h+='<div class="dim" style="font-size:11.5px;margin:6px 0;">状态较多，每次强制抽样约 '+R.per.toLocaleString()+' 个组合——方向可靠，具体条数会略有浮动。</div>';
+
+  h+='<div class="proftabwrap"><table class="proftab"><thead><tr><th class="pfr">强制为</th><th class="pfc">自洽</th>';
+  ds.forEach(d=>{ h+='<th title="'+d+'">'+(DSHORT[d]||d)+'</th>'; });
+  h+='</tr></thead><tbody>';
+  let lastD=null;
+  R.rows.forEach((row,ri)=>{
+    if(row.d!==lastD){
+      lastD=row.d;
+      h+='<tr class="pgroup"><td colspan="'+(ds.length+2)+'">'+row.d+'</td></tr>';
+    }
+    const key=ri;
+    const cls=(profileSel===key?' sel':'')+(row.empty?' pe':'');
+    h+='<tr class="'+cls+'" onclick="profPick('+key+')">'
+      +'<td class="pfr">'+row.nm+'</td>'
+      +'<td class="pfc">'+(row.empty?'<span style="color:var(--rd)">0</span>':row.n.toLocaleString())+'</td>';
+    ds.forEach((e,ei)=>{
+      if(ei===row.pos){ h+='<td class="pself">—</td>'; return; }
+      const a=row.add.filter(x=>x.e===e).length;
+      const l=row.lose.filter(x=>x.e===e).length;
+      if(!a&&!l){ h+='<td></td>'; return; }
+      h+='<td class="pc">'+(a?'<i class="pmark p">+'+a+'</i>':'')+(l?'<i class="pmark n">−'+l+'</i>':'')+'</td>';
+    });
+    h+='</tr>';
+  });
+  h+='</tbody></table></div>';
+  h+='<div class="dim" style="font-size:11.5px;margin-top:9px;line-height:1.8;">'
+    +'读法：行是「被强行实现的状态」，列是「受影响的描述符」，格子里是该描述符被打开／挤掉的状态个数。'
+    +'点任一行，下面列出具体是哪些状态。整行自洽数为 0 的，表示这条冲击与当前矩阵不相容——'
+    +'<b>这不是算错，而是一条结论</b>。</div>';
+  h+='<div class="dim" style="font-size:11px;margin-top:6px;line-height:1.75;">'
+    +'注：本版把「强制」实现为硬约束——数学上强制只会缩小情景集，所以只会挤出可能、不会新增。'
+    +'德国软件里的 ＋ 标记来自「把外部冲击当作会改写矩阵的影响」，属另一种建模，本版未采用。</div>';
+
+  if(profileSel!=null && R.rows[profileSel]){
+    const row=R.rows[profileSel];
+    h+='<div class="profdet"><div class="hd2">强制「'+row.d+'」＝「'+row.nm+'」之后</div>';
+    if(row.empty){
+      h+='<div class="note" style="margin-top:8px;">没有任何自洽情景。<b>在当前打分下，这件事无法与其他条件并存。</b>'
+        +'如果它确实必须发生，那说明矩阵里有判断需要修正。</div>';
+    }else{
+      h+='<div class="kv"><span>自洽情景数</span><span>'+row.n.toLocaleString()+' 组（基准 '+R.baseCount+' 组）</span></div>';
+      const list=(arr,cls2,label)=>{
+        if(!arr.length) return '<div class="pdrow"><span class="'+cls2+'">'+label+'</span><span class="dim">无</span></div>';
+        return '<div class="pdrow"><span class="'+cls2+'">'+label+'</span><span>'
+          +arr.map(x=>x.e+'＝'+x.nm).join('　·　')+'</span></div>';
+      };
+      h+=list(row.add,'pmark p','被打开');
+      h+=list(row.lose,'pmark n','被挤掉');
+    }
+    h+='</div>';
+  }
+  host.innerHTML=h;
+}
+
 /* ================= 主渲染 ================= */
 function render(){
   renderSteps(); renderCmp(); layerTable(); renderTree(); renderStates();
   expDetail(); renderEnsBox(); scaleSum(); renderPolicy();
   renderCim(); renderEnsBar(); modelDetail(); renderAnc(); renderScopeBar(); checkResult(); renderXl(); renderLay(); renderFilt();
   renderTableau(); renderMap();
-  confList(); timeline(); renderImpact(); renderPath(); renderAP(); renderEnsPanel();
+  confList(); timeline(); renderImpact(); renderPath(); renderAP(); renderProf(); renderEnsPanel();
   el('outPreview', preview());
   el('fmtTag', fmtTag());
   el('fmtNote', curModel==='gcam'

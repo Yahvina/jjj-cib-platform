@@ -561,3 +561,29 @@ table.anctab .ancx{font-size:11.5px;color:var(--pri);cursor:pointer;}
 .hidrow{display:flex;justify-content:space-between;gap:10px;font-size:12px;padding:5px 7px;
   border-radius:4px;cursor:pointer;line-height:1.7;}
 .hidrow:hover{background:var(--panel);}
+
+/* 影响谱 */
+.proftabwrap{overflow-x:auto;margin-top:10px;border:1px solid var(--line);border-radius:7px;}
+table.proftab{border-collapse:collapse;font-size:11.5px;width:100%;}
+table.proftab th{background:var(--panel2);color:var(--tx3);font-weight:500;font-size:10.5px;
+  padding:6px 5px;border-bottom:1px solid var(--line);text-align:center;white-space:nowrap;}
+table.proftab th.pfr{text-align:left;min-width:96px;}
+table.proftab th.pfc{min-width:44px;}
+table.proftab td{padding:4px 5px;border-bottom:1px solid var(--line);text-align:center;white-space:nowrap;}
+table.proftab td.pfr{text-align:left;color:var(--tx2);}
+table.proftab td.pfc{color:var(--tx3);font-variant-numeric:tabular-nums;}
+table.proftab td.pself{color:var(--line);}
+table.proftab tbody tr{cursor:pointer;}
+table.proftab tbody tr:hover{background:var(--panel2);}
+table.proftab tbody tr.sel{background:var(--pri-s);}
+table.proftab tr.pe td{background:#FFF7F7;}
+table.proftab tr.pgroup td{background:var(--panel2);color:var(--tx);font-weight:600;
+  font-size:11px;text-align:left;padding:5px 8px;}
+.pmark{font-style:normal;display:inline-block;min-width:20px;padding:0 3px;border-radius:3px;
+  font-size:10.5px;font-weight:600;margin:0 1px;}
+.pmark.p{background:var(--ok-s);color:var(--ok);}
+.pmark.n{background:var(--rd-s);color:var(--rd);}
+.profdet{margin-top:13px;padding:11px 13px;background:var(--panel2);border-radius:7px;}
+.profdet .hd2{font-size:12.5px;font-weight:600;margin-bottom:6px;}
+.pdrow{display:flex;gap:10px;font-size:12px;line-height:1.85;align-items:baseline;}
+.pdrow .pmark{flex:none;}
