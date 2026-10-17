@@ -496,6 +496,18 @@ table.anctab .ancx{font-size:11.5px;color:var(--pri);cursor:pointer;}
   background:var(--panel2);padding:10px 13px;border-radius:6px;}
 .ancsum code{background:var(--panel);padding:1px 4px;border-radius:3px;font-size:11.5px;}
 
+/* 区间证据标记 */
+.hd .evi{font-size:10px;font-weight:400;font-style:normal;padding:1px 6px;border-radius:9px;
+  margin-left:6px;vertical-align:middle;cursor:help;}
+.evi.direct{background:#ECFDF5;color:#059669;border:1px solid #A7F3D0;}
+.evi.conv{background:#FFFBEB;color:#B45309;border:1px solid #FDE68A;}
+.evi.example{background:#F3F4F6;color:#6B7280;border:1px solid #E5E7EB;}
+.evi.exo{background:#EFF4FF;color:#2563EB;border:1px solid #BFD3FF;}
+.cus.evu{background:#FDF2F8;color:#9D174D;}
+.rngedit .re-ev{font-size:11.5px;color:var(--tx2);line-height:1.7;background:var(--panel2);
+  padding:7px 10px;border-radius:5px;margin:8px 0;}
+.rngedit .re-ev b{color:var(--pri);font-weight:500;}
+
 </style>
 </head>
 <body>
@@ -1327,16 +1339,41 @@ const RANGE_PRESET={
   '研发与示范投入强度':{'大幅加码':[3.6,4.5,'% of GDP'],'稳定增长':[2.9,3.6,'% of GDP'],'投入收敛':[2.0,2.9,'% of GDP']},
   '碳价水平与碳市场覆盖':{'高位并扩围':[200,400,'元/吨'],'温和上行':[100,200,'元/吨'],'低位维持':[30,100,'元/吨']}
 };
-const stateDefs={};          // 描述符名 -> [{n,lo,hi,u,custom}]
+// 区间证据：每个描述符的取值区间是否有政策文件支撑
+// direct＝政策目标可直接对齐；conv＝有目标但口径不同需换算；example＝暂无依据（示例值）；exo＝外生输入
+const RANGE_EVID={
+  '一次能源结构':{k:'direct',t:'北京可再生能源消费比重 2025 ≥14.4%、2030 25% 左右（碳达峰方案"二、主要目标"）；天津 2030 非化石力争 16%。「目标节奏」20–30% 的中点即 25%'},
+  '钢铁工艺路线':{k:'direct',t:'河北电炉炼钢占比 2030 ≥15%、短流程炼钢产量占比 2025 ≥5%（河北省工业领域碳达峰实施方案）'},
+  '单位产品能耗限额强度':{k:'direct',t:'2025 单位 GDP 能耗较 2020 下降 14%；河北工业增加值能耗降幅 ≥16.5%；高炉标杆工序能耗 361 kgce/t、标杆以上产能 >30%'},
+  '区域电力互济强度':{k:'conv',t:'北京外调绿电 2030 力争 650 亿 kWh、2025 300 亿 kWh（十五五规划第十五篇第三章）；换算为占比需当年全社会用电量'},
+  '本地可再生能源开发规模':{k:'conv',t:'北京 2026—2030 新增风光 2 GW；天津 2025 可再生装机 8 GW；河北绿电直连自用 ≥35%。三地口径与单位不一，需按辖区分别换算'},
+  '碳移除规模':{k:'conv',t:'北京森林覆盖率 2030/2035 ≥45%、天津 2025 13.6% 且蓄积量 ≥550 万 m³；覆盖率≠碳汇量，需换算'},
+  '建筑能效标准强度':{k:'conv',t:'数据中心 PUE ≤1.15（其他档 1.20/1.25/1.30）、2030 可再生利用 100%；公共机构单位面积能耗下降 5%。节能建筑占比无直接目标，需换算'},
+  '产业结构':{k:'conv',t:'河北新建炼化成品油占原油加工量 ≤40%（2025）；三产占比无直接目标，需换算'},
+  '京津冀协同机制强度':{k:'example',t:'政策原文仅给定性要求（"2030 协同能力显著提升"），明确未给数值；当前区间为自定义量表'},
+  '碳捕集利用与封存部署规模':{k:'example',t:'现行数据集无 CCUS 规模目标，仅"支持产业培育"类表述'},
+  '用水总量与结构':{k:'example',t:'现行数据集无用水总量目标'},
+  '工业节能改造强度':{k:'example',t:'仅有技改补贴比例，无改造强度目标'},
+  '清洁取暖替代强度':{k:'example',t:'仅有补贴比例，无清洁取暖率目标'},
+  '新能源汽车渗透强度':{k:'example',t:'仅有购置补贴比例，无渗透率目标'},
+  '研发与示范投入强度':{k:'example',t:'仅有单项资助额度，无研发强度目标'},
+  '碳价水平与碳市场覆盖':{k:'example',t:'仅有配额管理制度描述，无价格目标'},
+  '终端电气化率':{k:'example',t:'仅有家电补贴比例，无电气化率目标'},
+  '经济增长速度':{k:'exo',t:'外生输入，由 SSP 情景给定，不由政策工具驱动'},
+  '人口空间分布与收缩态势':{k:'exo',t:'外生输入，由 SSP 情景给定，不由政策工具驱动'}
+};
+const EVID_WORD={direct:'政策目标',conv:'需换算',example:'示例值',exo:'外生输入',user:'已改'};
+
+const stateDefs={};          // 描述符名 -> [{n,lo,hi,u,custom,ev}]
 let rngEdit=null, rngAdd=null;
 
 function defsOf(nm){
   const d=dOf(nm); if(!d) return [];
   if(!stateDefs[nm]){
-    const p=RANGE_PRESET[nm]||{};
+    const p=RANGE_PRESET[nm]||{}, ek=(RANGE_EVID[nm]||{}).k||'example';
     stateDefs[nm]=d.s.map(s=>{
       const q=p[s];
-      return {n:s, lo:q?q[0]:null, hi:q?q[1]:null, u:q?q[2]:''};
+      return {n:s, lo:q?q[0]:null, hi:q?q[1]:null, u:q?q[2]:'', ev:ek};
     });
   }
   return stateDefs[nm];
@@ -1368,8 +1405,12 @@ function numOf(id){ const v=parseFloat((document.getElementById(id)||{}).value);
 function txtOf(id){ return ((document.getElementById(id)||{}).value||'').trim(); }
 function saveRange(nm,s){
   const x=defsOf(nm).find(y=>y.n===s); if(!x) return;
-  x.lo=numOf('rlo'); x.hi=numOf('rhi'); x.u=txtOf('ru');
-  rngEdit=null; render(); toast('已更新「'+s+'」的取值区间');
+  const nlo=numOf('rlo'), nhi=numOf('rhi'), nu=txtOf('ru');
+  const changed=(nlo!==x.lo)||(nhi!==x.hi)||((nu||'')!==(x.u||''));
+  x.lo=nlo; x.hi=nhi; x.u=nu;
+  if(changed) x.ev='user';          // 改过区间，原政策依据不再适用，标记为已改
+  rngEdit=null; render();
+  toast(changed?('已更新「'+s+'」的区间，原依据标记为已改'):('已保存「'+s+'」'));
 }
 function renState(nm,old){
   const v=txtOf('rst'); if(!v||v===old){ rngEdit=null; renderStates(); return; }
@@ -1397,12 +1438,13 @@ function renderStates(){
     el.innerHTML=names.map(nm=>{
       const c=sel.desc[nm], defs=defsOf(nm);
       const bad=rngIssues(nm);
+      const ev=RANGE_EVID[nm]||{k:'example',t:''};
       const rows=defs.map(s=>{
         const on=c.states.indexOf(s.n)>=0, k=nm+'|'+s.n;
         const ed=(rngEdit===k);
         return `<div class="strow">
             <span class="chk ${on?'on':''}" onclick="tglState('${nm}','${s.n}')">${on?TICK:''}</span>
-            <span class="stnm" onclick="tglState('${nm}','${s.n}')">${s.n}${s.custom?'<i class="cus">自定义</i>':''}</span>
+            <span class="stnm" onclick="tglState('${nm}','${s.n}')">${s.n}${s.custom?'<i class="cus">自定义</i>':''}${s.ev==='user'?'<i class="cus evu">已改</i>':''}</span>
             <span class="rngwrap" onclick="editRange('${nm}','${s.n}')" title="点此修改取值区间">${rngTxt(s)}</span>
           </div>`+
           (ed?`<div class="rngedit">
@@ -1413,6 +1455,7 @@ function renderStates(){
               <span class="re-dash">–</span>
               <input class="txt" id="rhi" type="number" step="any" value="${s.hi===null?'':s.hi}" placeholder="上限" style="width:92px;">
               <input class="txt" id="ru" value="${s.u||''}" placeholder="单位，如 %" style="width:104px;"></div>
+            ${ev.k!=='example'&&ev.k!=='exo'?`<div class="re-ev"><b>依据</b>　${ev.t}</div>`:''}
             <div class="re-row">
               <button class="btn sm pri" onclick="saveRange('${nm}','${s.n}')">保存</button>
               <button class="btn sm" onclick="renState('${nm}','${s.n}')">仅改状态名</button>
@@ -1432,10 +1475,13 @@ function renderStates(){
               <button class="btn sm pri" onclick="doAddState('${nm}')">添加</button>
               <button class="btn sm" onclick="addState('${nm}')">取消</button></div>
           </div>`:'';
+      const hint={direct:'区间已对齐政策目标',conv:'区间需换算后使用',example:'区间为示例值，待补政策依据',
+        exo:'外生输入，不由政策工具驱动'}[ev.k]||'';
       return `<div class="stbox"><div class="hd">${nm}
-        ${c.src?`<span class="src">来源：${c.src}</span>`:''}</div>`+rows+addBox+
+        ${c.src?`<span class="src">来源：${c.src}</span>`:''}
+        <i class="evi ${ev.k}" title="${ev.t}">${EVID_WORD[ev.k]||''}</i></div>`+rows+addBox+
         `<div class="stfoot"><button class="btn sm" onclick="addState('${nm}')">＋ 自定义状态</button>
-          <span class="sthint">区间为示例锚点，可按自己的口径改</span></div>`+
+          <span class="sthint">${hint}</span></div>`+
         (bad.length?`<div class="stbad">区间衔接提示：${bad.join('；')}</div>`:'')+
         `</div>`;
     }).join('');
@@ -2424,7 +2470,8 @@ function reportData(){
     bayes: useBayes,
     descriptors: ds.map(d=>{
       const o=dOf(d)||{};
-      return {name:d, type:o.t||'', states:defsOf(d).map(x=>({n:x.n,lo:x.lo,hi:x.hi,u:x.u})), src:(sel.desc[d]||{}).src||''};
+      return {name:d, type:o.t||'', states:defsOf(d).map(x=>({n:x.n,lo:x.lo,hi:x.hi,u:x.u,ev:x.ev||'example'})),
+        ev:(RANGE_EVID[d]||{}).k||'example', evt:(RANGE_EVID[d]||{}).t||'', src:(sel.desc[d]||{}).src||''};
     }),
     cim: {
       total: all.length, filled: done.length, low: low.length, unreviewed: unreviewed.length,
@@ -2455,20 +2502,34 @@ function buildReportHTML(d){
   if(!d.descriptors.length){ h+='<div class="rnote">尚未选择描述符。</div>'; }
   else{
     h+='<table><tr><th style="width:150px">描述符</th><th style="width:60px">类型</th>'
-      +'<th style="width:300px">状态（含取值区间）</th><th>来源说明</th></tr>';
+      +'<th style="width:280px">状态（含取值区间）</th><th style="width:96px">区间依据</th><th>来源说明</th></tr>';
+    const EVC={direct:'#059669',conv:'#B45309',example:'#6B7280',exo:'#2563EB',user:'#9D174D'};
     d.descriptors.forEach(x=>{
       const st=x.states.map(s=>{
         const rg=(s.lo===null||s.hi===null)?'<span class="rrng none">区间未设</span>'
           :'<span class="rrng">'+s.lo+' – '+s.hi+(s.u?' '+s.u:'')+'</span>';
         return s.n+'　'+rg;
       }).join('<br>');
+      const ek=x.ev||'example';
+      const evt='<span style="color:'+(EVC[ek]||'#6B7280')+';font-size:12px;">'+(EVID_WORD[ek]||'')+'</span>';
       h+='<tr><td><b>'+x.name+'</b></td><td>'+x.type+'</td><td>'+st
-        +'</td><td>'+(x.src||'—')+'</td></tr>';
+        +'</td><td>'+evt+'</td><td>'+(x.src||'—')+'</td></tr>';
     });
     h+='</table>';
-    h+='<div class="rnote">上表每个状态后的区间是该档位的取值锚点——把「高速 / 中速」这类定性标签'
-      +'落到具体数值范围上，即为半定量。区间可由使用者按自己的研究口径调整，'
-      +'不同研究可以采用不同标准，不必锁死在平台预置的那一套。</div>';
+    const cnt={direct:0,conv:0,example:0,exo:0};
+    d.descriptors.forEach(x=>{ cnt[x.ev||'example']=(cnt[x.ev||'example']||0)+1; });
+    h+='<div class="rnote"><b>区间依据分四类</b>：<b>政策目标</b>＝可直接对齐政策文件中的定量目标（'
+      +cnt.direct+' 个）；<b>需换算</b>＝有目标但口径不同（如森林覆盖率对碳汇量、装机容量对占比），'
+      +'需换算后使用（'+cnt.conv+' 个）；<b>示例值</b>＝现行政策文件中未找到对应目标，暂用示例区间（'
+      +cnt.example+' 个）；<b>外生输入</b>＝由 SSP 情景给定，不由政策工具驱动（'+cnt.exo+' 个）。</div>';
+    const hasEvi=d.descriptors.filter(x=>x.evt&&x.ev!=='example'&&x.ev!=='exo');
+    if(hasEvi.length){
+      h+='<div class="rnote"><b>依据出处</b><br>'
+        +hasEvi.map(x=>'· <b>'+x.name+'</b>：'+x.evt).join('<br>')+'</div>';
+    }
+    h+='<div class="rnote">区间是状态的定义，不是预测值——把「高速 / 中速」这类定性标签落到具体数值范围上，'
+      +'即为半定量。区间可由使用者按自己的研究口径调整：不同研究可以采用不同标准，不必锁死在平台预置的那一套；'
+      +'一旦人工改过，该状态的依据标记会变为「已改」，原政策依据不再自动适用。</div>';
   }
 
   h+='<h2>二、交叉影响判断</h2>';
