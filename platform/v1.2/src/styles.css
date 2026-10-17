@@ -404,3 +404,32 @@ table.enstab td.env i{display:block;font-style:normal;font-weight:400;font-size:
 table.enstab td.enmiss{color:var(--tx3);text-align:center;}
 table.enstab td.ensp{text-align:center;font-weight:600;color:var(--rd);}
 table.enstab td.enact .btn{margin:2px 3px 2px 0;height:24px;padding:0 8px;}
+
+/* ================= v1.2 情景地图 ================= */
+.tabswitch{display:flex;gap:8px;margin-bottom:14px;}
+.mtab{height:30px;padding:0 14px;border-radius:99px;border:1px solid var(--line);
+  background:#fff;font-size:12.5px;color:var(--tx2);}
+.mtab:hover{border-color:var(--pri-b);}
+.mtab.on{background:var(--pri);border-color:var(--pri);color:#fff;font-weight:600;}
+
+.mapfams{display:grid;grid-template-columns:repeat(auto-fill,minmax(268px,1fr));gap:9px;margin-top:12px;}
+.mapfams .fam{border:1px solid var(--line);border-radius:8px;padding:9px 11px;background:#fff;}
+.famhd{display:flex;align-items:center;gap:6px;font-size:12.5px;}
+.fdot{width:9px;height:9px;border-radius:99px;flex:none;}
+.fct{font-size:11px;color:var(--tx3);}
+.fdef{font-size:11.5px;color:var(--tx2);margin-top:5px;line-height:1.75;}
+
+.heat{border:1px solid var(--line);border-radius:var(--r);overflow:hidden;}
+.heat .hrow{display:flex;align-items:stretch;border-bottom:1px solid var(--line2);}
+.heat .hrow:last-child{border-bottom:none;}
+.heat .hrow.hhead{background:var(--panel2);}
+.heat .hlb{width:132px;flex:none;padding:6px 10px;font-size:12px;font-weight:600;
+  color:var(--tx2);display:flex;align-items:center;}
+.heat .hhead .hlb{font-size:11px;font-weight:400;color:var(--tx3);}
+.heat .hcell{flex:1;min-width:0;padding:8px 4px;text-align:center;font-size:12px;
+  font-weight:600;border-right:1px solid var(--line2);display:flex;
+  align-items:center;justify-content:center;font-variant-numeric:tabular-nums;}
+.heat .hrow.hhead .hcell{font-weight:400;color:var(--tx3);padding:6px 4px;font-size:11px;}
+.heat .hcell.hollow{background:repeating-linear-gradient(45deg,#fff,#fff 4px,#FAFBFC 4px,#FAFBFC 8px);}
+.heat .hnote{width:66px;flex:none;padding:6px 10px;font-size:11px;color:var(--tx3);
+  display:flex;align-items:center;justify-content:flex-end;}

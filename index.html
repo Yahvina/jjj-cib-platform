@@ -412,6 +412,35 @@ table.enstab td.enmiss{color:var(--tx3);text-align:center;}
 table.enstab td.ensp{text-align:center;font-weight:600;color:var(--rd);}
 table.enstab td.enact .btn{margin:2px 3px 2px 0;height:24px;padding:0 8px;}
 
+/* ================= v1.2 情景地图 ================= */
+.tabswitch{display:flex;gap:8px;margin-bottom:14px;}
+.mtab{height:30px;padding:0 14px;border-radius:99px;border:1px solid var(--line);
+  background:#fff;font-size:12.5px;color:var(--tx2);}
+.mtab:hover{border-color:var(--pri-b);}
+.mtab.on{background:var(--pri);border-color:var(--pri);color:#fff;font-weight:600;}
+
+.mapfams{display:grid;grid-template-columns:repeat(auto-fill,minmax(268px,1fr));gap:9px;margin-top:12px;}
+.mapfams .fam{border:1px solid var(--line);border-radius:8px;padding:9px 11px;background:#fff;}
+.famhd{display:flex;align-items:center;gap:6px;font-size:12.5px;}
+.fdot{width:9px;height:9px;border-radius:99px;flex:none;}
+.fct{font-size:11px;color:var(--tx3);}
+.fdef{font-size:11.5px;color:var(--tx2);margin-top:5px;line-height:1.75;}
+
+.heat{border:1px solid var(--line);border-radius:var(--r);overflow:hidden;}
+.heat .hrow{display:flex;align-items:stretch;border-bottom:1px solid var(--line2);}
+.heat .hrow:last-child{border-bottom:none;}
+.heat .hrow.hhead{background:var(--panel2);}
+.heat .hlb{width:132px;flex:none;padding:6px 10px;font-size:12px;font-weight:600;
+  color:var(--tx2);display:flex;align-items:center;}
+.heat .hhead .hlb{font-size:11px;font-weight:400;color:var(--tx3);}
+.heat .hcell{flex:1;min-width:0;padding:8px 4px;text-align:center;font-size:12px;
+  font-weight:600;border-right:1px solid var(--line2);display:flex;
+  align-items:center;justify-content:center;font-variant-numeric:tabular-nums;}
+.heat .hrow.hhead .hcell{font-weight:400;color:var(--tx3);padding:6px 4px;font-size:11px;}
+.heat .hcell.hollow{background:repeating-linear-gradient(45deg,#fff,#fff 4px,#FAFBFC 4px,#FAFBFC 8px);}
+.heat .hnote{width:66px;flex:none;padding:6px 10px;font-size:11px;color:var(--tx3);
+  display:flex;align-items:center;justify-content:flex-end;}
+
 </style>
 </head>
 <body>
@@ -686,6 +715,15 @@ table.enstab td.enact .btn{margin:2px 3px 2px 0;height:24px;padding:0 8px;}
       列是自洽情景，行是描述符。相邻情景里取同一个状态的格子会自动合并，并用颜色区分——
       几十个情景的异同一眼扫出来。</p>
     <div class="tabwrap" id="tabFig"></div>
+  </div>
+
+  <div class="card">
+    <h3>情景地图 <span class="tag">v1.2 新增</span></h3>
+    <p style="font-size:12.5px;color:var(--tx2);margin-bottom:10px;">
+      每个自洽情景画成一个点，取值相近的会聚在一起形成「<b>情景族</b>」；换一张图，则看每个描述符在各情景中取哪一档的分布。
+      <b>表看逐条明细，图看整体格局。</b></p>
+    <div class="tabswitch" id="mapTabs"></div>
+    <div id="mapFig"></div>
   </div>
 
   <div class="card">
@@ -2622,12 +2660,173 @@ function exportEns(){
   saveFile('集成工作簿_'+nowStr().replace(/[: ]/g,'-')+'.html', html, 'text/html');
 }
 
+/* ================= 情景地图（v1.2 新增，对应德国软件的 Scenario maps） =================
+   两张图各管一件事：聚类图看「自洽情景分成几个族、族与族差在哪」，
+   热力图看「每个描述符在所有自洽情景里倾向取哪一档」。前者看格局，后者看分布。 */
+
+let mapMode='cluster';
+const FAMC=['#2563EB','#059669','#B54708','#7C3AED','#0891B2','#DB2777','#65A30D','#DC2626'];
+
+function setMapMode(m){ mapMode=m; renderMap(); }
+function scenSim(a,b){ let s=0; for(let i=0;i<a.length;i++) if(a[i]===b[i]) s++; return s/a.length; }
+
+// 相似度矩阵 + 层次聚类（平均连接）；族内允许的差异随描述符数自适应
+function scenClusters(){
+  const L=cimResult.consistent, ds=cimResult.ds;
+  const m=ds.length;
+  // 允许不同的描述符个数：19 个描述符时约 6 个，描述符少时至少留 1 个余量，
+  // 否则描述符一少，阈值就退化成「必须完全相同」。
+  const allow=Math.max(1, Math.round(m*0.3));
+  const N=Math.min(L.length, 60);          // 只对前 60 个做布局，组合数很大时不至于卡住
+  const S=[];
+  for(let i=0;i<N;i++) S.push(new Array(N).fill(1));
+  for(let i=0;i<N;i++) for(let j=i+1;j<N;j++){ S[i][j]=S[j][i]=scenSim(L[i],L[j]); }
+  const same=(A,B)=>{ let s=0; A.forEach(i=>B.forEach(j=>{ s+=S[i][j]; })); return s/(A.length*B.length); };
+  let gs=[]; for(let i=0;i<N;i++) gs.push([i]);
+  while(gs.length>1){
+    let bi=0,bj=1,best=-1;
+    for(let i=0;i<gs.length;i++) for(let j=i+1;j<gs.length;j++){
+      const v=same(gs[i],gs[j]);
+      if(v>best){ best=v; bi=i; bj=j; }
+    }
+    if(m-best*m>allow) break;              // 平均相同数不足，不再合并
+    const A=gs[bi], B=gs[bj];
+    gs=gs.filter((_,k)=>k!==bi&&k!==bj);
+    gs.push(A.concat(B));
+  }
+  return {groups:gs, N:N, total:L.length, allow:allow};
+}
+// 一个族的「定义」：族内所有情景取值都一致的描述符——这就是这一族的特征
+function familyDesc(g){
+  const L=cimResult.consistent, ds=cimResult.ds, out=[];
+  ds.forEach((d,i)=>{
+    const vals=[...new Set(g.map(k=>L[k][i]))];
+    if(vals.length===1) out.push((DSHORT[d]||d)+'＝'+((ST(d)[vals[0]])||'?'));
+  });
+  return out;
+}
+function renderMap(){
+  const host=document.getElementById('mapFig'); if(!host) return;
+  const tabs=document.getElementById('mapTabs');
+  if(tabs){
+    tabs.innerHTML=[['cluster','情景族聚类图'],['heat','状态分布热力图']].map(([k,t])=>
+      '<button class="mtab'+(mapMode===k?' on':'')+'" onclick="setMapMode(\''+k+'\')">'+t+'</button>').join('');
+  }
+  if(!cimResult||!cimResult.consistent.length){
+    host.innerHTML='<div style="padding:32px;text-align:center;color:var(--tx3);font-size:12.5px;line-height:1.9;">'
+      +'运行一致性检验后，这里会把自洽情景画成图——<br>'
+      +'一张看它们分成几个「情景族」，一张看每个描述符在各情景中取哪一档。</div>';
+    return;
+  }
+  if(mapMode==='heat') renderHeat(host); else renderCluster(host);
+}
+function renderCluster(host){
+  const cl=scenClusters(), L=cimResult.consistent, ds=cimResult.ds;
+  const N=cl.N, G=cl.groups;
+  const BX=100, BY=10, SZ=480;          // 图区是 480×480 的正方形，居中放在 680 宽的画布上
+  const ang=i=>-Math.PI/2+2*Math.PI*i/G.length;
+  const R=G.length>1?0.33:0;
+  const pos=[];
+  G.forEach((g,gi)=>{
+    const a=ang(gi);
+    const cx=0.5+R*Math.cos(a), cy=0.5+R*Math.sin(a);
+    const rr=g.length>1?Math.min(0.125, 0.018+0.015*Math.sqrt(g.length)):0;
+    g.forEach((idx,k)=>{
+      const a2=2*Math.PI*k/g.length+gi*0.7;
+      pos[idx]={x:cx+(g.length>1?rr*Math.cos(a2):0), y:cy+(g.length>1?rr*Math.sin(a2):0)};
+    });
+  });
+  const px=x=>BX+x*SZ, py=y=>BY+y*SZ;
+  let svg='';
+  G.forEach((g,gi)=>{
+    if(g.length<2) return;
+    const xs=g.map(k=>px(pos[k].x)), ys=g.map(k=>py(pos[k].y));
+    const cx=xs.reduce((a,b)=>a+b,0)/g.length, cy=ys.reduce((a,b)=>a+b,0)/g.length;
+    let r=0; g.forEach(k=>{ r=Math.max(r, Math.hypot(px(pos[k].x)-cx, py(pos[k].y)-cy)); });
+    svg+='<circle cx="'+cx.toFixed(1)+'" cy="'+cy.toFixed(1)+'" r="'+(r+18).toFixed(1)
+      +'" fill="'+FAMC[gi%FAMC.length]+'" opacity="0.07"/>';
+  });
+  G.forEach((g,gi)=>{
+    g.forEach(idx=>{
+      const cb=L[idx];
+      const tip=ds.map((d,i)=>(DSHORT[d]||d)+'＝'+((ST(d)[cb[i]])||'?')).join('；');
+      svg+='<circle cx="'+px(pos[idx].x).toFixed(1)+'" cy="'+py(pos[idx].y).toFixed(1)
+        +'" r="'+(N>30?3.4:4.6)+'" fill="'+FAMC[gi%FAMC.length]+'" opacity="0.88">'
+        +'<title>情景 '+(idx+1)+'：'+tip+'</title></circle>';
+    });
+  });
+  G.forEach((g,gi)=>{
+    const a=ang(gi);
+    const lx=0.5+(R+0.062)*Math.cos(a), ly=0.5+(R+0.062)*Math.sin(a);
+    svg+='<text x="'+px(lx).toFixed(1)+'" y="'+py(ly).toFixed(1)
+      +'" text-anchor="middle" dominant-baseline="central" font-size="11.5" font-weight="600" fill="'
+      +FAMC[gi%FAMC.length]+'">族 '+(gi+1)+'（'+g.length+'）</text>';
+  });
+  let h='<svg viewBox="0 0 680 520" style="width:100%;height:auto;display:block;">'+svg+'</svg>';
+  h+='<div style="font-size:12px;color:var(--tx3);margin-top:4px;line-height:1.8;">共 '
+    +cl.total+' 个自洽情景'+(cl.total>N?('，图中显示前 '+N+' 个'):'')
+    +'，按取值相似度聚成 <b>'+G.length+'</b> 个情景族（族内平均差异不超过 '
+    +cl.allow+' 个描述符）。点靠得越近表示两个情景越像；鼠标悬停任一点可看它的完整取值。</div>';
+  h+='<div class="mapfams">';
+  G.forEach((g,gi)=>{
+    const def=familyDesc(g);
+    h+='<div class="fam"><div class="famhd"><span class="fdot" style="background:'
+      +FAMC[gi%FAMC.length]+'"></span><b>族 '+(gi+1)+'</b>　<span class="fct">'+g.length+' 个情景</span></div>'
+      +'<div class="fdef">'+(def.length?def.join('　·　'):'族内各描述符取值不一（仅相似度接近）')+'</div></div>';
+  });
+  h+='</div>';
+  h+='<div style="font-size:12.5px;color:var(--tx2);margin-top:12px;line-height:1.85;">'
+    +'每个族的定义，就是族内<b>所有情景取值都相同</b>的那些描述符。'
+    +'<b>族与族的差别，才是这套假设体系下真正分歧的地方</b>——'
+    +'剩下的描述符无论怎么取值都自洽，说明它们不是这套情景的关键变量。</div>';
+  host.innerHTML=h;
+}
+function heatColor(p){
+  const a=Math.max(0,Math.min(1,p));
+  const r=Math.round(239+(37-239)*a), g=Math.round(244+(99-244)*a), b=Math.round(255+(235-255)*a);
+  return {bg:'rgb('+r+','+g+','+b+')', fg:(a>0.55?'#fff':'#101828')};
+}
+function renderHeat(host){
+  const L=cimResult.consistent, ds=cimResult.ds, n=L.length;
+  const cnt=ds.map((d,i)=>{
+    const arr=new Array(ST(d).length).fill(0);
+    L.forEach(cb=>{ arr[cb[i]]++; });
+    return arr;
+  });
+  let h='<div class="heat">';
+  h+='<div class="hrow hhead"><span class="hlb"></span>'
+    +'<span class="hcell">第 1 档</span><span class="hcell">第 2 档</span><span class="hcell">第 3 档</span>'
+    +'<span class="hnote">占比</span></div>';
+  ds.forEach((d,i)=>{
+    const sts=ST(d), arr=cnt[i];
+    h+='<div class="hrow"><span class="hlb" title="'+d+'">'+(DSHORT[d]||d)+'</span>';
+    for(let k=0;k<3;k++){
+      if(k>=sts.length){ h+='<span class="hcell hollow"></span>'; continue; }
+      const p=arr[k]/n, c=heatColor(p);
+      h+='<span class="hcell" style="background:'+c.bg+';color:'+c.fg+'" title="'+d+'：'+sts[k]
+        +'　'+arr[k]+' / '+n+' 个情景（'+Math.round(p*100)+'%）">'
+        +(p>=0.12?Math.round(p*100)+'%':'')+'</span>';
+    }
+    h+='<span class="hnote">'+sts.length+' 档</span></div>';
+  });
+  h+='</div>';
+  const locked=ds.filter((d,i)=>Math.max(...cnt[i])/n>=0.9);
+  h+='<div style="font-size:12px;color:var(--tx3);margin-top:12px;line-height:1.8;">'
+    +'每行是一个描述符、每格是它的某一档；<b>颜色越深，说明在所有自洽情景里取这一档的比例越高</b>。</div>';
+  if(locked.length){
+    h+='<div class="rok" style="margin-top:10px;">以下描述符在自洽情景里几乎只有一个取值，'
+      +'说明它们<b>被其他条件锁死</b>，不是可自由选择的项：<b>'
+      +locked.map(d=>DSHORT[d]||d).join('、')+'</b>。</div>';
+  }
+  host.innerHTML=h;
+}
+
 /* ================= 主渲染 ================= */
 function render(){
   renderSteps(); renderCmp(); layerTable(); renderTree(); renderStates();
   expDetail(); renderEnsBox(); scaleSum(); renderPolicy();
   renderCim(); renderEnsBar(); modelDetail(); checkResult(); renderTableau();
-  confList(); timeline(); renderImpact(); renderAP(); renderEnsPanel();
+  confList(); timeline(); renderImpact(); renderAP(); renderEnsPanel(); renderMap();
   el('outPreview', preview());
   el('fmtTag', fmtTag());
   el('fmtNote', curModel==='gcam'
