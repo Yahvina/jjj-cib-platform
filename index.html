@@ -441,6 +441,19 @@ table.enstab td.enact .btn{margin:2px 3px 2px 0;height:24px;padding:0 8px;}
 .heat .hnote{width:66px;flex:none;padding:6px 10px;font-size:11px;color:var(--tx3);
   display:flex;align-items:center;justify-content:flex-end;}
 
+/* ================= v1.2 情景筛选 ================= */
+table.filttab{border-collapse:collapse;width:100%;font-size:12.5px;}
+table.filttab th{background:var(--panel2);font-weight:600;text-align:left;padding:7px 10px;
+  border:1px solid var(--line2);font-size:11.5px;color:var(--tx2);}
+table.filttab td{padding:6px 10px;border:1px solid var(--line2);vertical-align:middle;}
+table.filttab select{height:30px;width:100%;max-width:260px;padding:0 8px;}
+table.filttab td.num{text-align:right;font-variant-numeric:tabular-nums;color:var(--tx2);}
+table.filttab td.num.on{color:var(--pri);font-weight:600;}
+.filtbar{display:flex;align-items:center;gap:10px;margin-top:12px;flex-wrap:wrap;}
+.filtbar .sp{flex:1;}
+.filtmeta{font-size:12.5px;color:var(--tx2);}
+.filtmeta b{color:var(--pri);}
+
 </style>
 </head>
 <body>
@@ -707,6 +720,14 @@ table.enstab td.enact .btn{margin:2px 3px 2px 0;height:24px;padding:0 8px;}
   <div class="card">
     <h3>检验结果 <span class="tag">点击可展开判断链</span></h3>
     <div id="checkResult"></div>
+  </div>
+
+  <div class="card">
+    <h3>情景筛选 <span class="tag">v1.2 新增</span></h3>
+    <p style="font-size:12.5px;color:var(--tx2);margin-bottom:10px;">
+      自洽情景往往几十上百个，看不过来。<b>给描述符指定要求取值</b>，下面的情景表与情景地图就只看命中的那一部分——
+      这是用假设去反查「哪种未来更可能」的入口。<b>筛选只影响展示，不改变检验结果本身。</b></p>
+    <div id="filtBox"></div>
   </div>
 
   <div class="card">
@@ -2395,7 +2416,12 @@ function renderTableau(){
       +'相邻情景里取同一状态的格子会自动合并。</div>';
     return;
   }
-  const ds=cimResult.ds, list=cimResult.consistent;
+  if(filtN()&&!filtList().length){
+    el.innerHTML='<div style="padding:32px;text-align:center;color:var(--tx3);font-size:12.5px;line-height:1.9;">'
+      +'当前筛选条件下没有命中的自洽情景。</div>';
+    return;
+  }
+  const ds=cimResult.ds, list=filtList();
   const cols=Math.min(list.length, 30);
   let h='<table class="tab"><thead><tr><th class="tabh">描述符</th>';
   for(let c=0;c<cols;c++) h+='<th>情景 '+(c+1)+'</th>';
@@ -2420,9 +2446,11 @@ function renderTableau(){
     h+='</tr>';
   });
   el.innerHTML=h+'</tbody></table>'
-    +'<div style="font-size:12px;color:var(--tx3);margin-top:10px;line-height:1.8;">共 '
-    +cimResult.consistent.length+' 个自洽情景'
-    +(cimResult.consistent.length>cols?('，此处显示前 '+cols+' 个'):'')
+    +'<div style="font-size:12px;color:var(--tx3);margin-top:10px;line-height:1.8;">'
+    +(filtN()
+      ?('<b>已按筛选条件</b>：命中 '+list.length+' 个（自洽情景共 '+cimResult.consistent.length+' 个）')
+      :('共 '+list.length+' 个自洽情景'))
+    +(list.length>cols?('，此处显示前 '+cols+' 个'):'')
     +'。同一行里颜色相同的整块，表示这些情景在该描述符上取了同一个状态——'
     +'整块越大，说明这条判断在这些情景里越没有争议。'
     +'每格下方小字是该状态的取值区间，情景之间的差异因此不只在标签上，也落在数值范围上。</div>';
@@ -2660,6 +2688,57 @@ function exportEns(){
   saveFile('集成工作簿_'+nowStr().replace(/[: ]/g,'-')+'.html', html, 'text/html');
 }
 
+/* ================= 情景筛选（v1.2 新增，对应德国软件的选择管理器） =================
+   自洽情景常常几十上百个，看不过来。允许对任意描述符指定要求取值，
+   展示层（情景表、情景地图）就只看命中的子集——这是"用假设反查未来"的入口。
+   筛选只影响展示，不改变检验结果本身。 */
+
+let filt={};   // 描述符名 -> 状态索引
+
+const filtN=()=>Object.keys(filt).length;
+function filtList(){
+  if(!cimResult) return [];
+  if(!filtN()) return cimResult.consistent;
+  const ds=cimResult.ds;
+  return cimResult.consistent.filter(cb=>ds.every((d,i)=>filt[d]===undefined||cb[i]===filt[d]));
+}
+function setFilt(d,v){ if(v==='') delete filt[d]; else filt[d]=+v; renderFilt(); }
+function clearFilt(){ filt={}; render(); toast('已清除全部筛选条件'); }
+function renderFilt(){
+  const el=document.getElementById('filtBox'); if(!el) return;
+  if(!cimResult||!cimResult.consistent.length){
+    el.innerHTML='<div class="empty">运行一致性检验后，这里可以按条件筛出自洽情景的子集。</div>';
+    return;
+  }
+  const ds=cimResult.ds, all=cimResult.consistent;
+  if(!ds.length){ el.innerHTML='<div class="empty">尚未选择描述符。</div>'; return; }
+  let h='<table class="filttab"><tr><th style="width:42%">描述符</th><th>要求取值</th>'
+    +'<th style="width:74px">命中</th><th style="width:70px">占比</th></tr>';
+  ds.forEach((d,i)=>{
+    const sts=ST(d), v=filt[d];
+    const hit=(v===undefined)?all.length:all.filter(cb=>cb[i]===v).length;
+    const pct=all.length?Math.round(hit/all.length*100):0;
+    h+='<tr><td>'+(DSHORT[d]||d)+'</td><td><select class="txt" onchange="setFilt(\''+d+'\',this.value)">'
+      +'<option value="">不限</option>'
+      +sts.map((s,k)=>'<option value="'+k+'"'+(v===k?' selected':'')+'>'+s+'</option>').join('')
+      +'</select></td><td class="num'+(v!==undefined?' on':'')+'">'+hit+'</td>'
+      +'<td class="num">'+pct+'%</td></tr>';
+  });
+  h+='</table>';
+  const sub=filtList(), n=filtN();
+  h+='<div class="filtbar"><span class="filtmeta">'
+    +'已设 <b>'+n+'</b> 个条件　·　命中 <b>'+sub.length+'</b> / '+all.length+' 个自洽情景'
+    +(all.length?('（'+Math.round(sub.length/all.length*100)+'%）'):'')+'</span>'
+    +'<div class="sp"></div>'
+    +(n?'<button class="btn sm" onclick="clearFilt()">清除全部条件</button>':'')
+    +'</div>';
+  if(n&&!sub.length){
+    h+='<div class="stbad" style="margin:10px 0 0;">这组要求在自洽情景里<b>不存在</b>——'
+      +'也就是说，这些状态不可能同时成立。<b>这本身就是一条结论</b>，可以据此判断某个设想是否站得住。</div>';
+  }
+  el.innerHTML=h;
+}
+
 /* ================= 情景地图（v1.2 新增，对应德国软件的 Scenario maps） =================
    两张图各管一件事：聚类图看「自洽情景分成几个族、族与族差在哪」，
    热力图看「每个描述符在所有自洽情景里倾向取哪一档」。前者看格局，后者看分布。 */
@@ -2672,7 +2751,7 @@ function scenSim(a,b){ let s=0; for(let i=0;i<a.length;i++) if(a[i]===b[i]) s++;
 
 // 相似度矩阵 + 层次聚类（平均连接）；族内允许的差异随描述符数自适应
 function scenClusters(){
-  const L=cimResult.consistent, ds=cimResult.ds;
+  const L=filtList(), ds=cimResult.ds;
   const m=ds.length;
   // 允许不同的描述符个数：19 个描述符时约 6 个，描述符少时至少留 1 个余量，
   // 否则描述符一少，阈值就退化成「必须完全相同」。
@@ -2718,10 +2797,15 @@ function renderMap(){
       +'一张看它们分成几个「情景族」，一张看每个描述符在各情景中取哪一档。</div>';
     return;
   }
+  if(filtN()&&!filtList().length){
+    host.innerHTML='<div style="padding:32px;text-align:center;color:var(--tx3);font-size:12.5px;line-height:1.9;">'
+      +'当前筛选条件下<b>没有命中的自洽情景</b>，图无从画起。<br>把条件放宽，或点上方的「清除全部条件」。</div>';
+    return;
+  }
   if(mapMode==='heat') renderHeat(host); else renderCluster(host);
 }
 function renderCluster(host){
-  const cl=scenClusters(), L=cimResult.consistent, ds=cimResult.ds;
+  const cl=scenClusters(), L=filtList(), ds=cimResult.ds;
   const N=cl.N, G=cl.groups;
   const BX=100, BY=10, SZ=480;          // 图区是 480×480 的正方形，居中放在 680 宽的画布上
   const ang=i=>-Math.PI/2+2*Math.PI*i/G.length;
@@ -2763,7 +2847,8 @@ function renderCluster(host){
       +FAMC[gi%FAMC.length]+'">族 '+(gi+1)+'（'+g.length+'）</text>';
   });
   let h='<svg viewBox="0 0 680 520" style="width:100%;height:auto;display:block;">'+svg+'</svg>';
-  h+='<div style="font-size:12px;color:var(--tx3);margin-top:4px;line-height:1.8;">共 '
+  h+='<div style="font-size:12px;color:var(--tx3);margin-top:4px;line-height:1.8;">'
+    +(filtN()?'<b>已按筛选条件</b>：':'共 ')
     +cl.total+' 个自洽情景'+(cl.total>N?('，图中显示前 '+N+' 个'):'')
     +'，按取值相似度聚成 <b>'+G.length+'</b> 个情景族（族内平均差异不超过 '
     +cl.allow+' 个描述符）。点靠得越近表示两个情景越像；鼠标悬停任一点可看它的完整取值。</div>';
@@ -2787,7 +2872,7 @@ function heatColor(p){
   return {bg:'rgb('+r+','+g+','+b+')', fg:(a>0.55?'#fff':'#101828')};
 }
 function renderHeat(host){
-  const L=cimResult.consistent, ds=cimResult.ds, n=L.length;
+  const L=filtList(), ds=cimResult.ds, n=L.length;
   const cnt=ds.map((d,i)=>{
     const arr=new Array(ST(d).length).fill(0);
     L.forEach(cb=>{ arr[cb[i]]++; });
@@ -2812,7 +2897,9 @@ function renderHeat(host){
   h+='</div>';
   const locked=ds.filter((d,i)=>Math.max(...cnt[i])/n>=0.9);
   h+='<div style="font-size:12px;color:var(--tx3);margin-top:12px;line-height:1.8;">'
-    +'每行是一个描述符、每格是它的某一档；<b>颜色越深，说明在所有自洽情景里取这一档的比例越高</b>。</div>';
+    +'每行是一个描述符、每格是它的某一档；<b>颜色越深，说明'
+    +(filtN()?('在筛选命中的 '+n+' 个情景里'):'在所有自洽情景里')
+    +'取这一档的比例越高</b>。</div>';
   if(locked.length){
     h+='<div class="rok" style="margin-top:10px;">以下描述符在自洽情景里几乎只有一个取值，'
       +'说明它们<b>被其他条件锁死</b>，不是可自由选择的项：<b>'
@@ -2825,8 +2912,9 @@ function renderHeat(host){
 function render(){
   renderSteps(); renderCmp(); layerTable(); renderTree(); renderStates();
   expDetail(); renderEnsBox(); scaleSum(); renderPolicy();
-  renderCim(); renderEnsBar(); modelDetail(); checkResult(); renderTableau();
-  confList(); timeline(); renderImpact(); renderAP(); renderEnsPanel(); renderMap();
+  renderCim(); renderEnsBar(); modelDetail(); checkResult(); renderFilt();
+  renderTableau(); renderMap();
+  confList(); timeline(); renderImpact(); renderAP(); renderEnsPanel();
   el('outPreview', preview());
   el('fmtTag', fmtTag());
   el('fmtNote', curModel==='gcam'
