@@ -101,31 +101,64 @@ p.pd{color:var(--tx2);font-size:13.5px;line-height:1.75;margin-bottom:20px;max-w
 .note.info{background:var(--pri-s);border-color:var(--pri-b);color:var(--pri);}
 .note.rd{background:var(--rd-s);border-color:var(--rd-b);color:var(--rd);}
 
-.scen{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;}
-.scen .s{padding:8px 15px;border:1px solid var(--line);border-radius:99px;
-  font-size:13px;background:var(--panel);cursor:pointer;transition:.15s;}
-.scen .s:hover{border-color:var(--tx3);}
-.scen .s.on{background:var(--pri);border-color:var(--pri);color:#fff;font-weight:500;}
-.cmp{border:1px solid var(--line);border-radius:var(--r2);overflow:hidden;
-  background:var(--panel);box-shadow:var(--sh);}
-.crow{display:grid;grid-template-columns:118px 1fr 1fr;border-bottom:1px solid var(--line2);}
+/* ================= 首页（概览入口） ================= */
+.hero{padding:8px 0 0;}
+.hero-k{font-size:11.5px;letter-spacing:1.4px;color:var(--pri);margin-bottom:12px;}
+.hero-t{font-size:30px;line-height:1.38;font-weight:700;letter-spacing:.4px;
+  margin:0 0 14px;max-width:23ch;}
+.hero-d{font-size:13.5px;line-height:1.95;color:var(--tx2);max-width:76ch;margin:0;}
+.hero-d b{color:var(--tx);font-weight:600;}
+
+.statline{display:grid;grid-template-columns:repeat(4,1fr);
+  border-top:1px solid var(--line);border-bottom:1px solid var(--line);
+  margin:28px 0 30px;}
+.statline .st{padding:16px 18px 15px;border-right:1px solid var(--line2);}
+.statline .st:last-child{border-right:none;}
+.statline .sk{display:block;font-size:11.5px;color:var(--tx3);margin-bottom:7px;letter-spacing:.3px;}
+.statline .sv{display:block;font-size:23px;font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:.4px;}
+.statline .sd{display:block;font-size:11.5px;color:var(--tx2);margin-top:6px;}
+
+.flow{display:flex;align-items:stretch;gap:8px;margin-bottom:32px;flex-wrap:wrap;}
+.flow .fl{flex:1;min-width:200px;border:1px solid var(--line);border-radius:10px;
+  padding:15px 17px;background:var(--panel);}
+.flow .fn{display:inline-flex;width:20px;height:20px;border-radius:50%;
+  border:1px solid var(--pri-b);color:var(--pri);font-size:11px;
+  align-items:center;justify-content:center;margin-bottom:9px;}
+.flow .fl b{display:block;font-size:13.5px;margin-bottom:6px;}
+.flow .fl p{font-size:12px;color:var(--tx2);line-height:1.8;margin:0;}
+.flow .fa{display:flex;align-items:center;color:var(--tx3);font-size:13px;}
+
+.cmphead{display:flex;align-items:baseline;gap:12px;margin-bottom:11px;flex-wrap:wrap;}
+.cmphead h3{font-size:15px;font-weight:600;margin:0;}
+.cmphead span{font-size:11.5px;color:var(--tx3);}
+
+.cmp{border:1px solid var(--line);border-radius:10px;overflow:hidden;background:var(--panel);}
+.crow{display:grid;grid-template-columns:104px 1fr 1fr;border-bottom:1px solid var(--line2);}
 .crow:last-child{border-bottom:none;}
 .crow.hd{background:var(--panel2);}
-.clbl{padding:13px 14px;font-size:12.5px;font-weight:600;color:var(--tx2);
+.clbl{padding:12px 14px;font-size:12px;font-weight:600;color:var(--tx2);
   border-right:1px solid var(--line2);}
-.cell{padding:13px 15px;font-size:13px;line-height:1.65;border-right:1px solid var(--line2);}
+.cell{padding:12px 16px;font-size:12.5px;line-height:1.75;color:var(--tx2);
+  border-right:1px solid var(--line2);}
 .cell:last-child{border-right:none;}
-.crow.hd .cell{font-size:13px;font-weight:600;}
-.badc{background:#FFFCFA;} .goodc{background:#FBFDFF;}
-.crow.hd .badc{color:var(--wn);background:var(--wn-s);}
-.crow.hd .goodc{color:var(--pri);background:var(--pri-s);}
-.cell .mk{color:var(--rd);font-weight:600;} .cell .ok{color:var(--ok);font-weight:600;}
+.cell.pk{color:var(--tx);}
+.crow.hd .cell{font-size:12px;font-weight:600;color:var(--tx2);}
+.crow.hd .cell:last-child{color:var(--pri);}
 .dim{color:var(--tx3);font-size:12px;}
-.verdict{margin-top:16px;display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}
-.vc{border:1px solid var(--line);border-radius:var(--r);padding:13px 15px;background:var(--panel);}
-.vc .n{font-size:26px;font-weight:700;line-height:1.15;font-variant-numeric:tabular-nums;}
-.vc .l{font-size:12px;color:var(--tx2);margin-top:3px;}
-.vc.a .n{color:var(--rd);} .vc.b .n{color:var(--ok);}
+
+.cta{display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-top:26px;}
+.cta .btn{height:40px;padding:0 22px;font-size:13.5px;}
+.cta span{font-size:12.5px;color:var(--tx2);line-height:1.75;max-width:54ch;}
+
+@media (max-width:900px){
+  .hero-t{font-size:24px;}
+  .statline{grid-template-columns:1fr 1fr;}
+  .statline .st:nth-child(2){border-right:none;}
+  .statline .st:nth-child(1),.statline .st:nth-child(2){border-bottom:1px solid var(--line2);}
+  .flow .fa{display:none;}
+  .crow{grid-template-columns:80px 1fr 1fr;}
+  .clbl,.cell{padding:10px 11px;font-size:11.5px;}
+}
 
 .tools{display:flex;gap:10px;align-items:center;margin-bottom:10px;}
 .tree{max-height:660px;overflow:auto;border:1px solid var(--line);border-radius:var(--r);}
@@ -889,15 +922,36 @@ pre.out::-webkit-scrollbar-thumb{background:#334155;border:2px solid transparent
 
 <!-- ============ 对比屏 ============ -->
 <section class="pane on" id="pcmp">
-  <h2 class="pt">同一个情景，两种做法</h2>
-  <p class="pd">选一个情景，看它在现有流程与本平台里分别怎么走完。下方数字随情景切换而变化。</p>
-  <div class="scen" id="scen"></div>
+  <div class="hero">
+    <div class="hero-k">CIB 交叉影响平衡 · 政策情景一致性检验</div>
+    <h2 class="hero-t">先把政策组合筛干净，再交给下游模型</h2>
+    <p class="hero-d">把政策路径翻译成描述符的取值，用两两判断检验哪一组情景彼此不打架，
+      再把站得住的那几组翻译成 GCAM-China / CHEER-CGE 能挂载的参数。<b>平台不算减排量</b>——那是模型的活；
+      平台保证送进模型的那套政策包，自己立得住。</p>
+  </div>
+
+  <div class="statline" id="homeStats"></div>
+
+  <div class="flow">
+    <div class="fl"><span class="fn">1</span><b>政策 → 描述符</b>
+      <p>每条路径挂到模型的变量上，带置信度与政策原文，能追到文号</p></div>
+    <div class="fa">→</div>
+    <div class="fl"><span class="fn">2</span><b>打分 → 筛自洽</b>
+      <p>两两判断 −3…+3，枚举组合，只留下没有互相打架的情景</p></div>
+    <div class="fa">→</div>
+    <div class="fl"><span class="fn">3</span><b>自洽 → 参数</b>
+      <p>按状态区间取档，生成装配清单与参数表，交给下游模型</p></div>
+  </div>
+
+  <div class="cmphead">
+    <h3>和「直接给模型填数」比，多做了什么</h3>
+    <span>只讲做法差异，不涉及任何量化结果</span>
+  </div>
   <div class="cmp" id="cmpBox"></div>
-  <div class="verdict" id="verdict"></div>
-  <div style="margin-top:12px;font-size:12px;color:var(--tx3);" id="verdictNote"></div>
-  <div style="margin-top:22px;display:flex;gap:12px;align-items:center;">
-    <button class="btn pri" style="height:40px;padding:0 22px;font-size:14px;" onclick="enterWizard()">开始配置情景 →</button>
-    <span style="font-size:12.5px;color:var(--tx2);">进入五步配置流程，每一步都可实际操作</span>
+
+  <div class="cta">
+    <button class="btn pri" onclick="enterWizard()">开始配置情景 →</button>
+    <span>七步流程，每一步都能实际操作：选尺度、映射政策、定状态、打分、检验、导出。</span>
   </div>
 </section>
 
@@ -1638,17 +1692,11 @@ const LAYERS=[
   {k:'city',   n:'市级',   g:0, pop:'河北 11 个地级市（合计 7354 万）', eco:'按各市公布值', fmt:'分市口径'}
 ];
 
-const SCEN=[
-  {n:'2030 年非化石能源目标', d:12, lv:3, c:12, k:6},
-  {n:'三地协同减排路径',     d:9,  lv:3, c:9,  k:4},
-  {n:'河北钢铁工艺转型',     d:7,  lv:2, c:7,  k:3}
-];
-
 /* ================= 状态 ================= */
 const sel={desc:{}};
 const collapsed=new Set();
 const expanded=new Set();
-let inCmp=true, scenIdx=0, cur=0, curModel='gcam', expertN=1, useBayes=false, pulled=false;
+let inCmp=true, cur=0, curModel='gcam', expertN=1, useBayes=false, pulled=false;
 let searchQ='', openScen=null, openConf=null, applied=new Set();
 
 const TICK='<span class="tick"></span>';
@@ -1656,52 +1704,63 @@ const allDescs=()=>{const a=[];TREE.forEach(l=>l.c.forEach(m=>m.d.forEach(d=>a.p
 const dOf=nm=>allDescs().find(x=>x.n===nm);
 const nSel=()=>Object.keys(sel.desc).length;
 
-/* ================= 对比屏 ================= */
+/* ================= 首页（概览入口） =================
+   旧版这块是演示道具：三条写死的情景、人工核对项用「描述符×层数×3−8」估出来、
+   自洽情景与矛盾数也是编的。现在改成从真实数据算的统计 + 定性对比，不再出现任何估算数字。 */
+function fmtNum(n){
+  if(n>=1e8) return (n/1e8).toFixed(1)+' 亿';
+  if(n>=1e4) return (n/1e4).toFixed(1)+' 万';
+  return String(n);
+}
+function homeStatData(){
+  const all=PALLC();
+  let maps=0, mid=0, low=0;
+  const cov=new Set();
+  all.forEach(p=>(p.m||[]).forEach(x=>{
+    maps++; cov.add(x[0]);
+    if(x[1]==='中') mid++; else if(x[1]==='低') low++;
+  }));
+  let descs=0, states=0, combos=1;
+  TREE.forEach(g=>g.c.forEach(c=>c.d.forEach(d=>{
+    descs++; states+=d.s.length; combos*=d.s.length;
+  })));
+  const vk=Object.keys(POLICY_VERIF);
+  const up=vk.filter(k=>POLICY_VERIF[k]&&POLICY_VERIF[k].st==='升高').length;
+  return {paths:all.length, maps:maps, mid:mid, low:low,
+          descs:descs, states:states, combos:combos, covered:cov.size,
+          verif:vk.length, up:up};
+}
 function renderCmp(){
-  const s=SCEN[scenIdx];
-  const manual=s.d*s.lv*3-8;                 // 需人工核对项：描述符 × 层级 × 系数
-  const auto=0;                              // 本平台靠联动约束自动核对
-  const rest=Math.max(2,s.k-s.applied());
-  document.getElementById('scen').innerHTML=SCEN.map((x,i)=>
-    `<div class="s ${i===scenIdx?'on':''}" onclick="pickScen(${i})">${x.n}</div>`).join('');
+  const d=homeStatData();
+  const box=document.getElementById('homeStats');
+  if(box) box.innerHTML=[
+    ['描述符 / 状态', d.descs+' / '+d.states,
+      '组合空间 '+fmtNum(d.combos)+'种'],
+    ['政策路径 / 映射', d.paths+' / '+d.maps,
+      '覆盖 '+d.covered+' 个描述符'],
+    ['中 / 低置信度映射', (d.mid+d.low)+' 条',
+      '待补政策原文'],
+    ['已核原文补证', d.verif+' 条',
+      '其中 '+d.up+' 条升为高置信']
+  ].map(x=>'<div class="st"><span class="sk">'+x[0]+'</span><b class="sv">'+x[1]+'</b>'
+      +'<span class="sd">'+x[2]+'</span></div>').join('');
 
   const rows=[
-    ['参数设定',
-     `各层级分别设，变量名与单位不统一<br><span class="dim">${s.d} 个描述符要分别落到两套模型文件</span>`,
-     `三级共用同一套描述符，格式统一<br><span class="dim">一次配置，三层同时生效</span>`],
-    ['语义翻译',
-     `没有这一环，直接给系数值<br><span class="dim">说不清系数是怎么来的</span>`,
-     `每个描述符都带翻译依据<br><span class="dim">可展开、可复算、可追溯</span>`],
-    ['跨层对齐',
-     `手工核对，下级加总是否等于上级靠人查<br><span class="dim">本次需人工核对 <span class="mk">${manual}</span> 项</span>`,
-     `上下联动约束自动检验<br><span class="dim">不一致项自动标出，<span class="ok">${auto}</span> 项靠人查</span>`],
-    ['矛盾检查',
-     `没有机制检查假设之间是否打架<br><span class="dim">矛盾要到跑完模型才发现</span>`,
-     `交叉影响矩阵逐对检验<br><span class="dim">事前发现 <span class="mk">${s.c}</span> 组矛盾并给处理建议</span>`],
-    ['参数来源',
-     `参数由专家主观给定，说不清依据<br><span class="dim">别人无法复算，也无法追溯</span>`,
-     `状态定义从政策数据库取预设<br><span class="dim">标注来源路径，可复算、可追溯</span>`],
-    ['输出',
-     `手动改配置文件，容易出错<br><span class="dim">换模型要重配一遍</span>`,
-     `一键生成，自动适配目标模型格式<br><span class="dim">GCAM 出 XML，CHEER 出 CSV</span>`],
-    ['自洽情景',
-     `<span class="mk">无法给出</span>：不检查一致性，组合是否自洽无从判断`,
-     `<span class="ok">${rest} 组</span>逻辑自洽的情景，可直接进下游模型`]
+    ['参数设定','各层级分别设定，变量名与单位不统一','三层共用同一套描述符，一次配置三处同源'],
+    ['语义翻译','没有这一层，直接给系数值','每条判断带依据与置信度，映射可追到政策文号'],
+    ['跨层对齐','下级加总是否等于上级，靠人查','档位差与区间是否相交，由平台逐层比对'],
+    ['矛盾检查','没有机制检查假设之间是否打架','交叉影响矩阵逐组检验，事前筛掉自相矛盾'],
+    ['参数来源','专家主观给定，说不清依据','状态区间带来源与依据，可按下界／中点／上界取档'],
+    ['输出','手动改配置文件，换模型要重配一遍','一键生成装配清单与参数表，GCAM 出 XML、CHEER 出 CSV'],
+    ['自洽情景','无法给出：不检查一致性','直接给出成组的自洽情景，可进下游模型']
   ];
-  document.getElementById('cmpBox').innerHTML=
-    `<div class="crow hd"><div class="clbl" style="font-weight:400;color:var(--tx3);">环节</div>
-      <div class="cell badc">现有做法</div><div class="cell goodc">本平台</div></div>`+
-    rows.map(r=>`<div class="crow"><div class="clbl">${r[0]}</div>
-      <div class="cell badc">${r[1]}</div><div class="cell goodc">${r[2]}</div></div>`).join('');
-
-  document.getElementById('verdict').innerHTML=
-    `<div class="vc a"><div class="n">${manual}</div><div class="l">现有做法需人工核对的项数</div></div>
-     <div class="vc b"><div class="n">${s.c}</div><div class="l">事前发现的矛盾组合（现有做法为 0）</div></div>
-     <div class="vc b"><div class="n">${rest}</div><div class="l">可直接进模型的自洽情景</div></div>`;
-  document.getElementById('verdictNote').textContent=
-    '口径说明：人工核对项＝描述符数 × 联动层数 × 3 − 8，为估算量；矛盾组合与自洽情景由平台的一致性检验实际算出（见第 7 步「运行一致性检验」）。';
+  const cb=document.getElementById('cmpBox');
+  if(cb) cb.innerHTML=
+    '<div class="crow hd"><div class="clbl">环节</div>'
+    +'<div class="cell">直接给模型填数</div><div class="cell">本平台</div></div>'
+    +rows.map(r=>'<div class="crow"><div class="clbl">'+r[0]+'</div>'
+      +'<div class="cell">'+r[1]+'</div><div class="cell pk">'+r[2]+'</div></div>').join('');
 }
-SCEN.forEach(x=>x.applied=()=>Math.min(2,x.c>=12?2:(x.c>=9?1:0)));
 
 /* ================= 步骤 1 ================= */
 function layerTable(){
@@ -3021,7 +3080,6 @@ function renderSteps(){
 function goto(i){ cur=Math.max(0,Math.min(6,i)); render(); window.scrollTo({top:0,behavior:'smooth'}); }
 function go(d){ goto(cur+d); }
 function nextStep(){ if(cur===6){ inCmp=true; render(); window.scrollTo({top:0,behavior:'smooth'}); } else goto(cur+1); }
-function pickScen(i){ scenIdx=i; renderCmp(); }
 function enterWizard(){ inCmp=false; cur=0; render(); window.scrollTo({top:0,behavior:'smooth'}); }
 function backToCmp(){ inCmp=true; render(); window.scrollTo({top:0,behavior:'smooth'}); }
 let tt;
