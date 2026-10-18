@@ -1113,7 +1113,7 @@ pre.out::-webkit-scrollbar-thumb{background:#334155;border:2px solid transparent
   </div>
 
   <div class="card">
-    <h3>描述符框架 <span class="tag">v1.3 新增 · 算法通用、底料本地</span></h3>
+    <h3>描述符框架 <span class="tag">算法通用、底料本地</span></h3>
     <p style="font-size:12.5px;color:var(--tx2);margin-bottom:10px;">
       这套算法不认「京津冀」——它只认一组描述符、每档区间、两两判断。所以描述符集可以整体导出/导入：
       换一套行业或区域，同一套流程照跑。落地靠本地数据，通用性就靠这一层。</p>
@@ -1265,7 +1265,7 @@ pre.out::-webkit-scrollbar-thumb{background:#334155;border:2px solid transparent
   </div>
 
   <div class="card" data-grp="concl">
-    <h3>情景筛选 <span class="tag">v1.2 新增</span></h3>
+    <h3>情景筛选</h3>
     <p style="font-size:12.5px;color:var(--tx2);margin-bottom:10px;">
       自洽情景往往几十上百个，看不过来。<b>给描述符指定要求取值</b>，切到「结构」组里的情景表与情景地图，就只看命中的那一部分——
       这是用假设去反查「哪种未来更可能」的入口。<b>筛选只影响展示，不改变检验结果本身。</b></p>
@@ -1273,7 +1273,7 @@ pre.out::-webkit-scrollbar-thumb{background:#334155;border:2px solid transparent
   </div>
 
   <div class="card" data-grp="rel">
-    <h3>逐层求解 <span class="tag">v1.2 新增 · 跨层约束进入求解</span></h3>
+    <h3>逐层求解 <span class="tag">跨层约束进入求解</span></h3>
     <p style="font-size:12.5px;color:var(--tx2);margin-bottom:10px;line-height:1.85;">
       上面那张是<b>算完再查</b>：先各自求解，再比对档位差。这里是<b>算的时候就带着上级的条件</b>——
       区域级解出的每个情景，其取值转成下级的约束，下级与它<b>区间不相交</b>的状态直接不进枚举。
@@ -1284,7 +1284,7 @@ pre.out::-webkit-scrollbar-thumb{background:#334155;border:2px solid transparent
   </div>
 
   <div class="card" data-grp="rel">
-    <h3>稳健性检验 <span class="tag">v1.3 新增 · 判断改了结论还站得住吗</span></h3>
+    <h3>稳健性检验 <span class="tag">判断改了结论还站得住吗</span></h3>
     <p style="font-size:12.5px;color:var(--tx2);margin-bottom:10px;">
       一致性检验的输入是人给的 −3 到 +3。这一块把每条判断按置信度随机改动一档，重算几十轮：
       <b>出现率一直高的状态</b>可以当成结论的骨架；<b>单独改一档就让大批结论失效的那条判断</b>，
@@ -1301,7 +1301,7 @@ pre.out::-webkit-scrollbar-thumb{background:#334155;border:2px solid transparent
   </div>
 
   <div class="card" data-grp="struct">
-    <h3>影响谱 <span class="tag">v1.2 新增</span></h3>
+    <h3>影响谱</h3>
     <p style="font-size:12.5px;color:var(--tx2);margin-bottom:10px;">
       问的是「<b>如果某件事被强行实现，还剩下哪些可能</b>」。平台逐个把每个状态钉死、重算自洽情景集，
       再与基准对比：<b>哪些可能被这条冲击打开、哪些被挤掉</b>；整行为 0 的，说明这件事与当前判断不相容。
@@ -1310,7 +1310,7 @@ pre.out::-webkit-scrollbar-thumb{background:#334155;border:2px solid transparent
   </div>
 
   <div class="card" data-grp="struct">
-    <h3>影响关系图 <span class="tag">v1.1 新增</span></h3>
+    <h3>影响关系图</h3>
     <p style="font-size:12.5px;color:var(--tx2);margin-bottom:10px;">
       把当前打分画成一张关系图：每个描述符是一个节点，连线代表影响。<b>绿线是促进、红线是抑制</b>，
       线越粗表示影响越强。鼠标悬停任一连线，可以看到这条判断的依据。</p>
@@ -1318,7 +1318,7 @@ pre.out::-webkit-scrollbar-thumb{background:#334155;border:2px solid transparent
   </div>
 
   <div class="card" data-grp="struct">
-    <h3>影响路径分析 <span class="tag">v1.2 新增</span></h3>
+    <h3>影响路径分析</h3>
     <p style="font-size:12.5px;color:var(--tx2);margin-bottom:10px;">
       两个描述符之间没有直接打分，不代表它们互不影响——影响可以通过第三个描述符<b>间接传导</b>。
       这里把「起点 → 终点」之间所有 2～3 段的传导链找出来，并按<b>最弱环节</b>排序：
@@ -1327,7 +1327,7 @@ pre.out::-webkit-scrollbar-thumb{background:#334155;border:2px solid transparent
   </div>
 
   <div class="card" data-grp="struct">
-    <h3>主被动图 <span class="tag">v1.1 新增</span></h3>
+    <h3>主被动图</h3>
     <p style="font-size:12.5px;color:var(--tx2);margin-bottom:10px;">
       给每个描述符算两个数：它<b>对外施加</b>的影响总和（主动和）和它<b>承受</b>的影响总和（被动和）。
       横轴是被动和、纵轴是主动和，四个象限对应四种角色——这张图回答的是「<b>我该动哪个描述符</b>」。</p>
@@ -1335,7 +1335,7 @@ pre.out::-webkit-scrollbar-thumb{background:#334155;border:2px solid transparent
   </div>
 
   <div class="card" data-grp="struct">
-    <h3>相关性分析 <span class="tag">v1.2 新增</span></h3>
+    <h3>相关性分析</h3>
     <p style="font-size:12.5px;color:var(--tx2);margin-bottom:10px;">
       回答「<b>哪些状态总是绑在一起出现</b>」。用 φ 系数衡量：<b>＋100%</b> 表示两者要么同时出现、
       要么同时不出现；<b>−100%</b> 表示此消彼长。它只说明搭配关系，不说明因果——
@@ -1344,7 +1344,7 @@ pre.out::-webkit-scrollbar-thumb{background:#334155;border:2px solid transparent
   </div>
 
   <div class="card" data-grp="struct">
-    <h3>情景表 <span class="tag">v1.1 新增</span></h3>
+    <h3>情景表</h3>
     <p style="font-size:12.5px;color:var(--tx2);margin-bottom:10px;">
       列是自洽情景，行是描述符。相邻情景里取同一个状态的格子会自动合并，并用颜色区分——
       几十个情景的异同一眼扫出来。</p>
@@ -1352,7 +1352,7 @@ pre.out::-webkit-scrollbar-thumb{background:#334155;border:2px solid transparent
   </div>
 
   <div class="card" data-grp="struct">
-    <h3>情景地图 <span class="tag">v1.2 新增</span></h3>
+    <h3>情景地图</h3>
     <p style="font-size:12.5px;color:var(--tx2);margin-bottom:10px;">
       每个自洽情景画成一个点，取值相近的会聚在一起形成「<b>情景族</b>」；换一张图，则看每个描述符在各情景中取哪一档的分布。
       <b>表看逐条明细，图看整体格局。</b></p>
@@ -1385,7 +1385,7 @@ pre.out::-webkit-scrollbar-thumb{background:#334155;border:2px solid transparent
   </div>
 
   <div class="card" data-grp="out">
-    <h3>情景报告 <span class="tag">v1.1 新增</span></h3>
+    <h3>情景报告</h3>
     <p style="font-size:12.5px;color:var(--tx2);margin-bottom:12px;">
       把这次配置整体写成一份可以拿给别人看的报告：选了哪些描述符、每个分数是怎么判的、哪些情景自洽、
       矛盾在哪、参数的双锚点依据是什么。<b>既能给人看，也能导出成 JSON 交给别的系统。</b></p>
