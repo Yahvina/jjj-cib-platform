@@ -2690,41 +2690,79 @@ function scenDetail(r,cb){
   return h;
 }
 function toggleScen(i){ openScen=openScen===i?null:i; render(); }
-const CONFS=[
-  {id:'c1', a:'经济增长速度', as:'高速', b:'人口空间分布与收缩态势', bs:'加速收缩',
-   why:'经济高速增长通常伴随人口净流入，与「加速收缩」难以并存。',
-   sug:'把经济增长速度调为「中速」，或把人口改为「平稳收缩」。'},
-  {id:'c2', a:'本地可再生能源开发规模', as:'高开发', b:'区域电力互济强度', bs:'弱互济',
-   why:'本地高开发通常意味着对外来电依赖下降，与「弱互济」的路径方向不一致。',
-   sug:'把区域电力互济改为「规划节奏」。'},
-  {id:'c4', a:'单位产品能耗限额强度', as:'严格限额', b:'工业节能改造强度', bs:'推进缓慢',
-   why:'限额收紧与改造迟缓作用于同一批工业企业的能耗，一紧一松，逻辑上不一致。',
-   sug:'把工业节能改造强度调为「按计划推进」或「深入推进」。'},
-  {id:'c3', a:'钢铁工艺路线', as:'长流程为主', b:'碳移除规模', bs:'仅生态碳汇',
-   why:'长流程为主将推高工业排放，单靠生态碳汇难以抵消，净零路径走不通。',
-   sug:'改为「短流程与氢冶金为主」，或把碳移除改为「含工程化移除」。'}
-];
+/* ================= 矛盾组合与处理建议（v1.3：改为真算，不再用写死的表） =================
+   判据：在本次检验的自洽情景集里，你所选情景中的某两个状态从未同时出现过，
+   就说明这两个要求在现有判断体系下不能并存。
+   建议也是算出来的：从自洽集里找与其中一边共存过的另一档，点一下会真的改状态并重跑。 */
+function confPairs(){
+  if(!cimResult) return {need:'check'};
+  const ds=cimResult.ds, cons=cimResult.consistent;
+  if(!cons.length) return {need:'empty'};
+  const cb=selectedCombo(ds);
+  if(cb.some(x=>x<0)) return {need:'missing'};
+  const out=[];
+  for(let i=0;i<ds.length;i++) for(let j=i+1;j<ds.length;j++){
+    const ai=cb[i], bj=cb[j];
+    if(cons.some(c=>c[i]===ai&&c[j]===bj)) continue;
+    const altA=[], altB=[];
+    for(let k=0;k<ST(ds[i]).length;k++){
+      if(k!==ai && cons.some(c=>c[i]===k&&c[j]===bj)) altA.push(k);
+    }
+    for(let k=0;k<ST(ds[j]).length;k++){
+      if(k!==bj && cons.some(c=>c[i]===ai&&c[j]===k)) altB.push(k);
+    }
+    out.push({i:i,j:j,ai:ai,bj:bj,altA:altA,altB:altB});
+  }
+  return {pairs:out, ds:ds, sampled:cimResult.sampled, n:cons.length};
+}
 function confList(){
-  el('confList', CONFS.map((c,i)=>{
-    const done=applied.has(c.id), open=openConf===i;
-    return `<div class="conf ${done?'done':''}">
-      <div class="h">${done?'✓ 已采纳建议':'矛盾 '+(i+1)+'：'+c.a+'（'+c.as+'）与 '+c.b+'（'+c.bs+'）'}</div>
-      <div>${c.why}</div>
-      ${open?`<div class="sug"><b>建议：</b>${c.sug}</div>
-        <div style="margin-top:9px;display:flex;gap:8px;">
-          <button class="btn sm" onclick="applyFix('${c.id}')">${done?'撤销':'采纳建议并重新检验'}</button>
-        </div>`:''}
-      <div style="margin-top:8px;font-size:12px;">
-        <span style="color:${done?'var(--ok)':'var(--pri)'};cursor:pointer;" onclick="toggleConf(${i})">
-          ${open?'收起':'查看建议 ▼'}</span></div>
-    </div>`;
-  }).join('') || '<div class="dim">暂无矛盾项</div>');
+  const r=confPairs();
+  if(r.need==='check'){
+    el('confList','<div class="dim" style="line-height:1.9;">矛盾是从<b>检验结果</b>里算出来的，先运行一致性检验。'
+      +'<div style="margin-top:10px;"><button class="btn sm pri" onclick="runCIM()">运行一致性检验</button></div></div>');
+    return;
+  }
+  if(r.need==='empty'){
+    el('confList','<div class="dim">当前没有任何自洽情景，无法判断“哪两个状态不能并存”。先复核打分矩阵，或放宽锚定后重跑检验。</div>');
+    return;
+  }
+  if(r.need==='missing'){
+    el('confList','<div class="dim">还有描述符没选状态，先在第 3 步补齐。</div>');
+    return;
+  }
+  if(!r.pairs.length){
+    el('confList','<div class="dim" style="line-height:1.9;">按当前检验结果，你所选情景里<b>没有</b>“从未同时出现”的状态对——'
+      +'这套假设在结果集里是站得住的。</div>');
+    return;
+  }
+  el('confList', r.pairs.map((p,idx)=>{
+    const dA=r.ds[p.i], dB=r.ds[p.j];
+    const sA=ST(dA)[p.ai], sB=ST(dB)[p.bj];
+    const open=openConf===idx;
+    const altA=p.altA.map(k=>'<button class="btn sm" onclick="applyConfFix(\''+dA+'\','+k+')">'+ST(dA)[k]+'</button>').join(' ');
+    const altB=p.altB.map(k=>'<button class="btn sm" onclick="applyConfFix(\''+dB+'\','+k+')">'+ST(dB)[k]+'</button>').join(' ');
+    return '<div class="conf">'
+      +'<div class="h">矛盾 '+(idx+1)+'：'+dA+'（'+sA+'）与 '+dB+'（'+sB+'）</div>'
+      +'<div>在本次检出的 '+r.n+' 组自洽情景里，这两个状态<b>从未同时出现</b>。'
+      +(r.sampled?'（结果来自抽样，条数为下限，方向可信。）':'')+'</div>'
+      +(open?('<div class="sug"><b>可以这样改（点了会真的改状态并重算）：</b><br>'
+        +(altA?('把「'+dA+'」改成：'+altA):('「'+dA+'」没有任何一档能与「'+sB+'」共存，需改另一边或复核打分'))
+        +'<br>'
+        +(altB?('把「'+dB+'」改成：'+altB):('「'+dB+'」没有任何一档能与「'+sA+'」共存，需改另一边或复核打分'))
+        +'</div>'):'')
+      +'<div style="margin-top:8px;font-size:12px;">'
+      +'<span style="color:var(--pri);cursor:pointer;" onclick="toggleConf('+idx+')">'
+      +(open?'收起':'查看可替换的档位 ▼')+'</span></div></div>';
+  }).join(''));
 }
 function toggleConf(i){ openConf=openConf===i?null:i; render(); }
-function applyFix(id){
-  if(applied.has(id)) applied.delete(id); else applied.add(id);
-  render();
-  toast(applied.has(id)?'已采纳建议，重新检验完成':'已撤销，重新检验完成');
+function applyConfFix(nm, idx){
+  if(!sel.desc[nm]||idx===undefined||idx===null||idx<0) return;
+  sel.desc[nm].states=[ST(nm)[idx]];
+  cimResult=null; BAYES=null; layeredResult=null; corrResult=null; profResult=null;
+  openConf=null;
+  runCIM();
+  toast('已把「'+nm+'」改为「'+ST(nm)[idx]+'」并重新检验');
 }
 function timeline(){
   const names=Object.keys(sel.desc);
