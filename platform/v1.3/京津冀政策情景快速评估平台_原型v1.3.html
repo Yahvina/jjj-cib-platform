@@ -2550,6 +2550,34 @@ function renderLay(){
   host.innerHTML=h;
 }
 
+/* 「我选的那套情景」到底成不成立——这是状态选择的用处。
+   枚举不预设取值，但用户确实需要知道自己的主张站不站得住：
+   若不自洽，指出哪几个描述符的选定状态不是自己的最高分，并给出应改成哪一档。 */
+function selectedCombo(ds){
+  return ds.map(d=>{
+    const sn=((sel.desc[d]||{}).states||[])[0];
+    return sn?ST(d).indexOf(sn):-1;
+  });
+}
+function checkSelected(ds){
+  const cb=selectedCombo(ds);
+  const missing=cb.filter(x=>x<0).length;
+  if(missing) return {missing:missing};
+  const IMP=buildIMP(ds,cim), sizes=ds.map(d=>ST(d).length), rows=[];
+  let ok=true;
+  ds.forEach((d,i)=>{
+    let pick=0, mx=-1e9, mi=0;
+    for(let j=0;j<sizes[i];j++){
+      let acc=0;
+      for(let k=0;k<ds.length;k++){ if(k!==i) acc+=IMP[k][i][cb[k]][j]; }
+      if(j===cb[i]) pick=acc;
+      if(acc>mx){ mx=acc; mi=j; }
+    }
+    if(pick<mx-1e-6) ok=false;
+    rows.push({d:d, at:cb[i], pick:pick, max:mx, best:mi, gap:mx-pick});
+  });
+  return {ok:ok, rows:rows, cb:cb};
+}
 function checkResult(){
   const ds=Object.keys(sel.desc);
   if(ds.length<2){ el('checkResult','<div class="empty">先在第 3 步勾选至少两个描述符</div>'); return; }
@@ -2580,6 +2608,24 @@ function checkResult(){
    +'<div style="margin-top:12px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;">'
    +'<button class="btn sm" onclick="runCIM()">重新检验</button>'
    +'<span class="dim" style="font-size:12px;">计算时间 '+r.ts+'</span></div>';
+
+  const sc=checkSelected(r.ds);
+  if(sc.missing){
+    h+='<div class="note" style="margin-top:12px;">还有 <b>'+sc.missing+'</b> 个描述符没选状态，'
+      +'无法判断“你选的情景”是否自洽。到第 3 步给它们各选一档即可。</div>';
+  }else if(sc.ok){
+    const idx=r.consistent.findIndex(cb=>cb.join(',')===sc.cb.join(','));
+    h+='<div class="rok" style="margin-top:12px;"><b>你选的情景：自洽。</b>'
+      +(idx>=0?('就是下面第 '+(idx+1)+' 个自洽情景；导出目标模型时用的就是这一组。')
+        :'在本次抽样中未直接出现，但按当前打分它满足一致性判据。')+'</div>';
+  }else{
+    const bad=sc.rows.filter(x=>x.gap>1e-6).sort((a,b)=>b.gap-a.gap);
+    h+='<div class="rnote" style="margin-top:12px;"><b>你选的情景：不自洽。</b>'
+      +'有 '+bad.length+' 个描述符的选定状态不是自身的最高分：<br>'
+      +bad.map(x=>'· '+x.d+'：取「'+ST(x.d)[x.at]+'」平衡 '+x.pick.toFixed(1)
+        +'，而「'+ST(x.d)[x.best]+'」为 '+x.max.toFixed(1)+'（差 '+x.gap.toFixed(1)+'）').join('<br>')
+      +'<br>要让它成立，至少把这些描述符改成括号里的高分档；或者回打分页复核相关判断。</div>';
+  }
   if(!r.consistent.length){
     h+='<div class="note" style="margin-top:12px;">没有找到自洽情景。这通常说明打分矩阵内部冲突较多，'
       +'或者描述符选得太多。可以回「交叉影响打分」复核那些低置信度的判断，再跑一次。</div>';
