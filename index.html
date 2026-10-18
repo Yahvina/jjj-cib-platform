@@ -1040,13 +1040,21 @@ pre.out::-webkit-scrollbar-thumb{background:#334155;border:2px solid transparent
       </div>
       <div class="opt" onclick="pick(this,'bayes')">
         <div class="t">叠加贝叶斯方法 <span class="chk"></span></div>
-        <div class="d">先验取自既有研究与历史分布，结合专家判断给出参数区间，并标注置信程度</div>
+        <div class="d">弱信息先验 + 专家打分更新，给出每条判断的后验均值与 90% 区间</div>
       </div>
     </div>
     <div class="note">
       <b>贝叶斯这一步的作用</b><br>
-      不是凭空造一个值，而是从既有研究的分布出发、用专家判断去调整。留下的主观性至少是看得见、可复算的。
+      不是凭空造一个值：先给一个弱信息先验（±3 量表上的正态分布），再用专家打分去更新。区间宽窄直接反映专家分歧与置信度，主观性看得见、可复算。
     </div>
+  </div>
+
+  <div class="card">
+    <h3>贝叶斯后验 <span class="tag">可复算</span></h3>
+    <p style="font-size:12.5px;color:var(--tx2);margin-bottom:12px;">
+      把每位专家的打分当作对同一条判断的观测：先给潜在影响值一个先验，用观测去更新，
+      得到后验均值与 90% 区间。开启后，后验均值矩阵会替换原打分参与一致性检验。</p>
+    <div id="bayesBox"></div>
   </div>
 
   <div class="card">
@@ -1255,7 +1263,16 @@ pre.out::-webkit-scrollbar-thumb{background:#334155;border:2px solid transparent
     <p style="font-size:12.5px;color:var(--tx2);margin-bottom:10px;" id="fmtNote"></p>
     <pre class="out" id="outPreview"></pre>
     <div style="margin-top:14px;display:flex;gap:10px;flex-wrap:wrap;">
+      <span style="display:inline-flex;align-items:center;gap:6px;font-size:12.5px;color:var(--tx2);">
+        取档方式
+        <select class="txt" style="width:auto;height:32px;" onchange="setExpMode(this.value)">
+          <option value="low">区间下界（保守）</option>
+          <option value="mid" selected>区间中点</option>
+          <option value="high">区间上界（加码）</option>
+        </select>
+      </span>
       <button class="btn pri" onclick="download()">导出情景配置文件</button>
+      <button class="btn" onclick="downloadParamsBtn()">导出参数表 CSV</button>
       <button class="btn" onclick="downloadAll()">导出全部自洽情景</button>
     </div>
   </div>
@@ -1738,7 +1755,7 @@ function tglState(nm,st){
   const b=sel.desc[nm]; if(!b) return;
   const i=b.states.indexOf(st);
   if(i>=0) b.states.splice(i,1); else b.states.push(st);
-  cimResult=null; layeredResult=null;
+  cimResult=null; BAYES=null; layeredResult=null;
   corrResult=null;
   profResult=null;
   render();
@@ -2071,7 +2088,7 @@ function scaleSum(){
     <div class="kv"><span>交叉影响矩阵规模</span><span>${n} × ${n} = ${n*n} 格</span></div>
     <div class="kv"><span>待打分项（双向分别判断）</span><span>${items} 项</span></div>
     <div class="kv"><span>专家人数</span><span>${expertN} 人${ens?'（已建立 '+ens.people.length+' 份独立矩阵）':''}</span></div>
-    <div class="kv"><span>参数生成方式</span><span>${useBayes?'贝叶斯（给区间）':'仅定性叙事'}</span></div>
+    <div class="kv"><span>参数生成方式</span><span>${useBayes?('贝叶斯后验'+(BAYES?('·'+BAYES.n+' 条判断'):'')) :'仅定性叙事'}</span></div>
     <div class="kv"><span>校验层级</span><span>${(()=>{
       const on=[...document.querySelectorAll('[data-scale].sel')].map(x=>x.dataset.scale);
       return on.length+' 层'+(on.indexOf('nation')>=0?'（国家级为给定层，不参与枚举）':'');
@@ -2099,7 +2116,7 @@ function modelDetail(){
 }
 
 /* ================= 步骤 5 ================= */
-let cimResult=null;
+let cimResult=null, BAYES=null;   // BAYES: 贝叶斯后验（矩阵+区间），与 cimResult 同生命周期
 let profResult=null, profileSel=null;
 let corrResult=null, corrPick=null;
 let layeredResult=null;
@@ -2120,6 +2137,8 @@ function impactVal(fd,fi,td,ti){
     const ov=r.st[fi+'_'+ti];
     if(typeof ov==='number') return ov;
   }
+  if(useBayes && BAYES && typeof BAYES.matrix[fd+'>'+td]==='number')
+    return BAYES.matrix[fd+'>'+td];
   return expandV(r.v, ST(fd).length, fi, ST(td).length, ti);
 }
 /* ================= 数值锚定（v1.2 新增：让状态区间参与检算） ================= */
@@ -2141,13 +2160,13 @@ function parseAnc(v){
 function setAnc(nm, v){
   const a=parseAnc(v);
   if(a) anchors[nm]=a; else delete anchors[nm];
-  cimResult=null;                        // 锚定变了，旧结果作废
+  cimResult=null; BAYES=null;                        // 锚定变了，旧结果作废
   corrResult=null;
   profResult=null;
   layeredResult=null;
   render();
 }
-function clearAnc(){ anchors={}; cimResult=null; render(); toast('已清除全部数值锚定'); }
+function clearAnc(){ anchors={}; cimResult=null; BAYES=null; render(); toast('已清除全部数值锚定'); }
 corrResult=null;
 profResult=null;
 layeredResult=null;
@@ -2270,6 +2289,7 @@ function enumCore(ds, force, capN, keepAll){
 }
 
 function runCIM(){
+  if(useBayes && !BAYES) computeBayes();
   const ds=Object.keys(sel.desc);
   if(ds.length<2){ toast('至少选两个描述符'); return; }
   const filled=cimKeys().filter(k=>cim[k]);
@@ -2628,30 +2648,85 @@ function timeline(){
 function el(id,h){ document.getElementById(id).innerHTML=h; }
 
 /* ================= 导出 ================= */
-function preview(){
+/* v1.3：参数值不再写「待定」。从状态定义（含省口径）取区间，按取档方式给点值；
+   没有区间的状态明确标注"需人工给值"，不假装有数。 */
+let expMode='mid';   // low=区间下界（保守） / mid=中点 / high=上界（加码）
+function paramOf(d){
+  const v=String((d&&d.v)||'').split(/[；;]/)[0].trim();
+  return v||'（该描述符未注明模型变量）';
+}
+function expRows(){
   const names=Object.keys(sel.desc);
+  return names.map(nm=>{
+    const d=dOf(nm); if(!d) return null;
+    const st=(sel.desc[nm].states||[])[0]||'';
+    const defs=defsOf(nm), def=defs.filter(x=>x.n===st)[0]||null;
+    const lo=(def&&def.lo!=null)?def.lo:null;
+    const hi=(def&&def.hi!=null)?def.hi:null;
+    const u=(def&&def.u)||'';
+    let val=null;
+    if(lo!=null||hi!=null){
+      const L=(lo!=null?lo:hi), H=(hi!=null?hi:lo);
+      val = expMode==='low'?L:(expMode==='high'?H:(L+H)/2);
+      val=Math.round(val*1000)/1000;
+    }
+    return {desc:nm, param:paramOf(d), scope:rngScope||'region', year:2035, state:st,
+      value:val, lo:lo, hi:hi, unit:u, ev:(def&&def.ev)||'',
+      note: val==null?'该状态未定义数值区间，需人工给值':''};
+  }).filter(Boolean);
+}
+function expLabel(){ return expMode==='low'?'区间下界（保守）':(expMode==='high'?'区间上界（加码）':'区间中点'); }
+function csvCell(v){
+  const t=(v==null?'':String(v));
+  return /[",\n]/.test(t)?('"'+t.replace(/"/g,'""')+'"'):t;
+}
+function preview(){
+  const rows=expRows();
   if(curModel==='gcam'){
     let s='<span class="c">&lt;!-- 平台自动生成 · 写入 configuration.xml 的 ScenarioComponents --&gt;</span>\n';
-    s+='<span class="c">&lt;!-- 产出自洽情景：'+(names.length?names.length*0.6|0:0)+' 组，本文件为第 1 组 --&gt;</span>\n';
-    s+='&lt;<span class="k">ScenarioComponents</span>&gt;\n';
-    names.slice(0,6).forEach(nm=>{
-      const d=dOf(nm);
-      s+=`  &lt;<span class="k">Value</span> <span class="at">name</span>=<span class="s">"${xmlTag(d)}"</span>&gt;`
-        +`${xmlFile(d,names.indexOf(nm))}&lt;/<span class="k">Value</span>&gt;\n`;
+    s+='<span class="c">&lt;!-- 取档方式：'+expLabel()+'；年份锚点 2035；参数值见同目录的参数表 CSV --&gt;</span>\n';
+    s+='<span class="c">&lt;!-- '+rows.map(r=>r.desc+' → '+r.param+' = '+(r.value==null?'待人工给值':(r.value+' '+(r.unit||'')))).join('；')+' --&gt;</span>\n';
+    const known=[], unknown=[];
+    rows.forEach((r,ri)=>{
+      const d=dOf(r.desc), f=xmlFile(d,ri);
+      (f?known:unknown).push({r:r,d:d,f:f});
     });
-    if(names.length>6) s+=`  <span class="c">&lt;!-- 另有 ${names.length-6} 项 --&gt;</span>\n`;
+    s+='&lt;<span class="k">ScenarioComponents</span>&gt;\n';
+    known.slice(0,8).forEach(x=>{
+      s+='  &lt;<span class="k">Value</span> <span class="at">name</span>=<span class="s">"'+xmlTag(x.d)+'"</span>&gt;'
+        +x.f+'&lt;/<span class="k">Value</span>&gt;\n';
+    });
+    if(known.length>8) s+='  <span class="c">&lt;!-- 另有 '+(known.length-8)+' 项已确认 --&gt;</span>\n';
     s+='&lt;/<span class="k">ScenarioComponents</span>&gt;';
+    if(unknown.length){
+      s+='\n<span class="c">&lt;!-- 以下 '+unknown.length+' 个描述符平台无法确定装配文件，需人工补齐：'
+        +unknown.map(x=>x.r.desc+'（'+x.r.param+'）').join('；')+' --&gt;</span>';
+    }
     return s;
   }
   let s='<span class="c"># 平台自动生成 · CSV，之后由 GDXXRW.EXE 转为 GDX</span>\n';
-  s+='<span class="c"># 对应 run.gms 开头的路径变量与情景开关</span>\n';
-  s+='param,scenario,value,unit\n';
-  names.slice(0,6).forEach(nm=>{
-    const d=dOf(nm), st=(sel.desc[nm].states[0]||'待定');
-    s+=`${csvParam(d)},${st},待定,\n`;
+  s+='<span class="c"># 取档方式：'+expLabel()+'；年份锚点 2035</span>\n';
+  s+='param,scenario,value,unit,low,high,state,scope,year,note\n';
+  rows.forEach(r=>{
+    s+=[csvCell(r.param),csvCell(r.state),r.value==null?'':r.value,csvCell(r.unit),
+        r.lo==null?'':r.lo,r.hi==null?'':r.hi,csvCell(r.state),r.scope,r.year,csvCell(r.note)].join(',')+'\n';
   });
   return s;
 }
+function paramsCSV(){
+  const rows=expRows();
+  let s='# 参数表 · 平台自动生成\n';
+  s+='# 取档方式：'+expLabel()+'；值只覆盖 2035 锚点，2025/2030 需按政策里程碑插值\n';
+  s+='descriptor,param,scope,year,value,low,high,unit,state,evidence,note\n';
+  rows.forEach(r=>{
+    s+=[csvCell(r.desc),csvCell(r.param),csvCell(r.scope),r.year,
+        r.value==null?'':r.value,r.lo==null?'':r.lo,r.hi==null?'':r.hi,csvCell(r.unit),
+        csvCell(r.state),csvCell(r.ev),csvCell(r.note)].join(',')+'\n';
+  });
+  return s;
+}
+function downloadParams(){ dl(paramsCSV(),'csv','JJJ-CIB-参数表'); }
+function setExpMode(v){ expMode=v; render(); }
 function xmlTag(d){
   const n=d.n;
   if(n.indexOf('人口')>=0||n.indexOf('经济增长')>=0) return 'socioeconomics';
@@ -2667,7 +2742,7 @@ function xmlTag(d){
   if(n.indexOf('电力互济')>=0) return 'electricity_trade';
   if(n.indexOf('可再生')>=0) return 'electricity';
   if(n.indexOf('水')>=0) return 'water_demand';
-  return 'policy-target-file';
+  return '（需人工确认装配文件）';   // 不静默兜底成碳价文件——宁可标出来
 }
 function xmlFile(d,i){
   const n=d.n;
@@ -2683,10 +2758,11 @@ function xmlFile(d,i){
   if(n.indexOf('协同')>=0) return '../input/policy/forcing_target_4p5.xml';
   if(n.indexOf('电力互济')>=0||n.indexOf('可再生')>=0) return '../input/gcamdata/xml/electricity_CHINA.xml';
   if(n.indexOf('水')>=0) return '../input/gcamdata/xml/water_demand_industry.xml';
-  return '../input/policy/carbon_tax_'+((i%3)+1)+'.xml';
+  return '';                          // 空字符串=平台不知道该挂哪个文件，导出时单独标出
 }
 function csvParam(d){ return d.v.split(/[；;]/)[0].trim().slice(0,32).replace(/\s/g,'_'); }
 function download(){ dl(preview().replace(/<[^>]+>/g,''), curModel==='gcam'?'xml':'csv','JJJ-CIB-情景1'); }
+function downloadParamsBtn(){ downloadParams(); }
 function downloadAll(){
   if(!cimResult){ toast('先在第 7 步运行一致性检验'); return; }
   const kds=cimResult.ds;
@@ -2716,7 +2792,7 @@ function finalSum(){
   el('finalSum',
    `<div class="kv"><span>层级</span><span>${sc.join(' · ')||'—'}</span></div>
     <div class="kv"><span>描述符</span><span>${nSel()} 个（三级结构）</span></div>
-    <div class="kv"><span>校验方式</span><span>${expertN} 位专家${useBayes?' · 叠加贝叶斯':''}</span></div>
+    <div class="kv"><span>校验方式</span><span>${expertN} 位专家${useBayes?' · 贝叶斯后验':''}</span></div>
     ${st?'<div class="kv"><span>多专家集成</span><span>'+st.n+' 份矩阵 · 一致 '+st.agree+' / 分歧 '+st.diff.length
       +'（一致率 '+st.rate+'%）</span></div>':''}
     <div class="kv"><span>目标模型</span><span>${curModel==='gcam'?'GCAM-China':'CHEER-CGE'}</span></div>
@@ -2735,7 +2811,7 @@ function pick(node,g){
   node.classList.add('sel');
   const c=node.querySelector('.chk');
   if(c){ c.classList.add('on'); c.innerHTML=TICK; }
-  if(g==='bayes') useBayes=node.textContent.indexOf('贝叶斯')>=0;
+  if(g==='bayes'){ useBayes=node.textContent.indexOf('贝叶斯')>=0; if(useBayes) computeBayes(); }
   if(g==='exp') expertN=node.textContent.indexOf('单人')>=0?1:(node.textContent.indexOf('双人')>=0?2:3);
   render();
 }
@@ -2813,7 +2889,7 @@ function loadCfg(){
       ens.active=(typeof ens.active==='number')?ens.active:0;
       cim=(ens.active<0? ens.merged : ens.people[ens.active].cim)||{};
     }else{ ens=null; cim=d.cim||{}; }
-    cimSelKey=null; cimResult=null;
+    cimSelKey=null; cimResult=null; BAYES=null;
     corrResult=null;
     profResult=null;
     layeredResult=null;
@@ -3047,7 +3123,7 @@ function cimKeys(){
 }
 // 清空矩阵内容但保留对象本身——多人模式下 cim 是「当前专家那一份」的引用，
 // 直接 cim={} 会切断引用，导致改动落到一个游离对象上。
-function clearCim(){ Object.keys(cim).forEach(k=>delete cim[k]); cimResult=null; }
+function clearCim(){ Object.keys(cim).forEach(k=>delete cim[k]); cimResult=null; BAYES=null; }
 corrResult=null;
 profResult=null;
 layeredResult=null;
@@ -3067,7 +3143,7 @@ function aiFill(){
 }
 function resetCim(){ clearCim(); cimSelKey=null; toast('已清空打分矩阵'); render(); }
 function pickCell(s,t){ cimSelKey=s+'>'+t; if(!cim[cimSelKey]) cim[cimSelKey]={v:0,conf:'低',why:'',rev:false}; renderCim(); }
-function setV(v){ if(cimSelKey){ cim[cimSelKey].v=v; cimResult=null; renderCim(); } }
+function setV(v){ if(cimSelKey){ cim[cimSelKey].v=v; cimResult=null; BAYES=null; renderCim(); } }
 corrResult=null;
 profResult=null;
 layeredResult=null;
@@ -3196,7 +3272,7 @@ function setSt(fi,ti,v){
   const k=fi+'_'+ti;
   if(v==='') delete r.st[k]; else r.st[k]=+v;
   if(!Object.keys(r.st).length) delete r.st;
-  cimResult=null;
+  cimResult=null; BAYES=null;
   corrResult=null;
   profResult=null;
   layeredResult=null;
@@ -3204,7 +3280,7 @@ function setSt(fi,ti,v){
 }
 function clearSt(){
   const r=cim[cimSelKey]; if(!r) return;
-  delete r.st; cimResult=null; renderCim();
+  delete r.st; cimResult=null; BAYES=null; renderCim();
   corrResult=null;
   profResult=null;
   layeredResult=null;
@@ -3643,7 +3719,7 @@ function setPerson(i){
   if(!ens) return;
   ens.active=i;
   cim=(i<0? ens.merged : ens.people[i].cim) || {};
-  cimSelKey=null; cimResult=null;
+  cimSelKey=null; cimResult=null; BAYES=null;
   corrResult=null;
   profResult=null;
   layeredResult=null;
@@ -3692,7 +3768,7 @@ function ensMerge(){
       out[k]={v:avg, conf:conf, why:'多专家一致（'+[...new Set(vs)].join(' / ')+'）', rev:rec.every(r=>r.rev)};
     }
   });
-  ens.merged=out; ens.active=-1; cim=out; cimSelKey=null; cimResult=null;
+  ens.merged=out; ens.active=-1; cim=out; cimSelKey=null; cimResult=null; BAYES=null;
   corrResult=null;
   profResult=null;
   layeredResult=null;
@@ -3706,7 +3782,7 @@ function arbit(k, v){
   if(ens.active<0 && ens.merged){
     ens.merged[k]={v:v, conf:'高', why:'多专家分歧（原取值 '+rec.join(' / ')+'），经裁定取 '+v, rev:true};
   }
-  cimResult=null;
+  cimResult=null; BAYES=null;
   corrResult=null;
   profResult=null;
   layeredResult=null;
@@ -5203,7 +5279,7 @@ function applyFramework(txt){
   Object.keys(cim).forEach(k=>delete cim[k]);
   cimSelKey=null;
   anchors={};
-  cimResult=null; profResult=null; corrResult=null; layeredResult=null; robResult=null;
+  cimResult=null; BAYES=null; profResult=null; corrResult=null; layeredResult=null; robResult=null;
   Object.keys(stateDefs).forEach(k=>delete stateDefs[k]);
   Object.keys(scopedDefs).forEach(k=>delete scopedDefs[k]);
   return {ok:true, n:list.length, name:o.name||'导入的框架'};
@@ -5253,7 +5329,7 @@ function resetFramework(){
   sel.desc={};
   Object.keys(cim).forEach(k=>delete cim[k]);
   cimSelKey=null; anchors={};
-  cimResult=null; profResult=null; corrResult=null; layeredResult=null; robResult=null;
+  cimResult=null; BAYES=null; profResult=null; corrResult=null; layeredResult=null; robResult=null;
   Object.keys(stateDefs).forEach(k=>delete stateDefs[k]);
   Object.keys(scopedDefs).forEach(k=>delete scopedDefs[k]);
   render();
@@ -5286,6 +5362,116 @@ function renderFW(){
     +'<b>平台本身可以换一套变量跑，但每个地方的数据和专家判断必须由本地给。</b></div>';
 }
 
+
+/* ================= 贝叶斯后验（v1.3：真正参与计算，不再是标签） =================
+   模型：每条判断背后有一个潜在影响值 μ；专家在 7 档量表上打分，等于把 μ 切档读数。
+   先验 μ ~ N(0, 2.2²)；每位专家的读数按置信度给定噪声 s（高 .55 / 中 .85 / 低 1.25），
+   似然为正态分布落在该档区间的概率。网格积分得后验均值与 90% 区间。
+   后验均值矩阵替换原打分参与 CIB 计算；区间宽度用于标出"最该人审"的条目。 */
+const BAYES_SD={高:.55,'中':.85,低:1.25};
+const BAYES_CUT=[-6,-2.5,-1.5,-.5,.5,1.5,2.5,6];
+
+function normCdf(z){
+  const t=1/(1+.2316419*Math.abs(z));
+  const d=.3989422804*Math.exp(-z*z/2);
+  const p=d*t*(.3193815+t*(-.3565638+t*(1.781478+t*(-1.821256+t*1.330274))));
+  return z>=0?1-p:p;
+}
+function bayesObs(k){
+  const out=[];
+  if(ens&&ens.people&&ens.people.length){
+    ens.people.forEach(pp=>{ const r=pp.cim&&pp.cim[k]; if(r) out.push({v:r.v,conf:r.conf||'中',who:pp.name}); });
+  }
+  if(!out.length&&cim[k]) out.push({v:cim[k].v,conf:cim[k].conf||'中',who:'当前矩阵'});
+  if(!out.length&&ens&&ens.merged&&ens.merged[k]) out.push({v:ens.merged[k].v,conf:ens.merged[k].conf||'中',who:'合并结果'});
+  return out;
+}
+function posteriorOf(obs){
+  const N=131, g=[];
+  for(let i=0;i<N;i++) g.push(-3.25+i*0.05);
+  const sig0=2.2;
+  const w=g.map(m=>{
+    let p=Math.exp(-m*m/(2*sig0*sig0));
+    obs.forEach(o=>{
+      const sd=BAYES_SD[o.conf]||.85;
+      const lo=BAYES_CUT[o.v+3], hi=BAYES_CUT[o.v+4];
+      p*=Math.max(1e-12, normCdf((hi-m)/sd)-normCdf((lo-m)/sd));
+    });
+    return p;
+  });
+  const Z=w.reduce((a,b)=>a+b,0)||1;
+  let mean=0; for(let i=0;i<N;i++) mean+=g[i]*w[i]/Z;
+  let va=0;   for(let i=0;i<N;i++) va+=w[i]/Z*Math.pow(g[i]-mean,2);
+  let cum=0,lo=null,hi=null;
+  for(let i=0;i<N;i++){ cum+=w[i]/Z; if(lo===null&&cum>=.05) lo=g[i]; if(hi===null&&cum>=.95) hi=g[i]; }
+  let pPos=0,pNeg=0,pFlat=0;
+  for(let i=0;i<N;i++){ const q=w[i]/Z; if(g[i]>.5)pPos+=q; else if(g[i]<-.5)pNeg+=q; else pFlat+=q; }
+  return {n:obs.length, mean:mean, sd:Math.sqrt(va),
+    lo:(lo===null?g[0]:lo), hi:(hi===null?g[N-1]:hi),
+    pPos:pPos, pNeg:pNeg, pFlat:pFlat};
+}
+function computeBayes(){
+  const keys=cimKeys().filter(k=>bayesObs(k).length);
+  if(!keys.length){ BAYES=null; return null; }
+  const cells={}, matrix={};
+  keys.forEach(k=>{ const r=posteriorOf(bayesObs(k)); cells[k]=r; matrix[k]=r.mean; });
+  BAYES={matrix:matrix, cells:cells, n:keys.length, ts:nowStr()};
+  return BAYES;
+}
+function bayesWidest(n){
+  if(!BAYES) return [];
+  return Object.keys(BAYES.cells)
+    .map(k=>({k:k, c:BAYES.cells[k]}))
+    .sort((a,b)=>(b.c.hi-b.c.lo)-(a.c.hi-a.c.lo))
+    .slice(0,n||6);
+}
+function bayesFlipN(th){
+  if(!BAYES) return 0;
+  const t=th||.2;
+  // 判不准 = 没有任何一个方向占到 (1-t) 以上。既能抓"平"（都堆在 0 附近），
+  // 也能抓"双峰"（两位专家 +3 / −3，两边各 13%、中间 74%）——后者用两侧概率门槛会漏掉。
+  return Object.keys(BAYES.cells).filter(k=>{
+    const c=BAYES.cells[k];
+    return Math.max(c.pPos,c.pNeg)<=(1-t);
+  }).length;
+}
+function renderBayes(){
+  const box=document.getElementById('bayesBox'); if(!box) return;
+  if(!useBayes){
+    box.innerHTML='<div class="robintro">当前为<b>仅定性叙事</b>，不生成数值区间。'
+      +'切到「叠加贝叶斯」后，这里会显示每条判断的后验均值与 90% 区间。</div>';
+    return;
+  }
+  const keys=cimKeys().filter(k=>cim[k]);
+  if(!keys.length){
+    box.innerHTML='<div class="robintro">还没有打分。先在第 5 步完成交叉影响判断，再来算后验。</div>';
+    return;
+  }
+  if(!BAYES) computeBayes();
+  if(!BAYES){ box.innerHTML='<div class="robintro">没有可用于更新的观测。</div>'; return; }
+  const wid=bayesWidest(6), flip=bayesFlipN(.2);
+  const avgWd=Object.keys(BAYES.cells).reduce((a,k)=>a+(BAYES.cells[k].hi-BAYES.cells[k].lo),0)/BAYES.n;
+  let h='<div class="robkpi">'
+    +'<div class="rk"><span>参与更新的判断</span><b>'+BAYES.n+' 条</b></div>'
+    +'<div class="rk"><span>平均 90% 区间宽</span><b>'+avgWd.toFixed(2)+'</b></div>'
+    +'<div class="rk"><span>方向判不准（≥20%）</span><b>'+flip+' 条</b></div>'
+    +'</div>';
+  h+='<div class="robsec">区间最宽的判断（先审这几条）</div>';
+  h+='<div class="robtbl">'+wid.map(x=>{
+      const c=x.c, p=(x.k||'').split('>');
+      return '<div class="robrow" style="grid-template-columns:150px 1fr 74px 96px;">'
+        +'<div class="rdn">'+(p[0]||'')+' → '+(p[1]||'')+'</div>'
+        +'<div class="rst">后验 '+c.mean.toFixed(2)+'　区间 '+c.lo.toFixed(2)+' ~ '+c.hi.toFixed(2)+'</div>'
+        +'<div class="rv">观测 '+c.n+' 条</div>'
+        +'<div class="rj '+((c.pPos>=.8||c.pNeg>=.8)?'ok':(c.pPos>=.6||c.pNeg>=.6?'wn':'rd'))+'">'
+        +'P(+) '+Math.round(c.pPos*100)+'%</div></div>';
+    }).join('')+'</div>';
+  h+='<div class="robnote">后验均值矩阵会替换原打分参与一致性检验——所以开关一开，结果会变。'
+    +'区间来自专家分歧与置信度，不是概率预测；分数越一致、置信度越高，区间越窄。</div>';
+  h+='<div style="margin-top:9px;"><button class="btn sm" onclick="computeBayes();render()">重算后验</button></div>';
+  box.innerHTML=h;
+}
+
 /* ================= 主渲染 ================= */
 function render(){
   renderSteps(); renderCmp(); layerTable(); renderTree(); renderStates();
@@ -5293,7 +5479,7 @@ function render(){
   renderCim(); renderEnsBar(); modelDetail(); renderAnc(); renderScopeBar(); checkResult(); renderXl(); renderLay(); renderFilt();
   renderTableau(); renderMap();
   confList(); timeline(); renderImpact(); renderPath(); renderAP(); renderProf(); renderCorr(); renderEnsPanel();
-  renderRobust(); renderFW();
+  renderRobust(); renderFW(); renderBayes();
   el('outPreview', preview());
   el('fmtTag', fmtTag());
   el('fmtNote', curModel==='gcam'
