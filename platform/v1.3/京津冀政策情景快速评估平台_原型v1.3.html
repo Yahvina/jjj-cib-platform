@@ -973,7 +973,7 @@ pre.out::-webkit-scrollbar-thumb{background:#334155;border:2px solid transparent
   <p class="pd">描述符按三级组织。勾选后点名称展开，可以看到它的<b>翻译依据</b>与<b>时间锚点</b>——这一步是整个流程的核心。
     每个状态右侧的数值区间是该档位的<b>取值锚点</b>：把「高速 / 中速」这类定性标签落到具体范围上，定性标签就变成了半定量档位。
     点区间即可修改数值、重命名或增删状态——<b>标准不必只有一套</b>，可以换成自己的口径。
-    每个描述符<b>只取一个状态</b>（单选）：不同状态属于不同情景；要排除不可行的档位，请在「数值锚定」里做，那里有区间依据可追溯。</p>
+    每个描述符<b>只取一个状态</b>（单选）：不同状态属于不同情景；要排除不可行的档位，请用<b>下方的「数值锚定」</b>，那里有区间依据可追溯。</p>
 
   <div class="card" style="display:flex;align-items:center;gap:12px;padding:13px 16px;">
     <div style="flex:1;">
@@ -1006,6 +1006,17 @@ pre.out::-webkit-scrollbar-thumb{background:#334155;border:2px solid transparent
       <div id="statePanel"><div class="empty">左侧勾选描述符后，这里显示它的状态选项</div></div>
       <div id="outPanel"></div>
     </div>
+  </div>
+
+  <div class="card">
+    <h3>数值锚定 <span class="tag">输入条件 · 先定已知值</span></h3>
+    <p style="font-size:12.5px;color:var(--tx2);margin-bottom:10px;line-height:1.85;">
+      状态区间原本只是说明性标注，这里让它<b>参与检算</b>。给某个描述符填一个已知值或现实区间
+      （比如「经济增速已知在 4.5~5.0」）。它和状态选择是同一层的输入，所以放在这一页，选完状态就能顺手定。，检算时凡是区间与它<b>完全不相交</b>的状态都直接排除——
+      这套假设在数值上就站不住，不必再拿去比对。<br>
+      <b>与下面的「情景筛选」不是一回事</b>：锚定是<b>检算前</b>缩小搜索空间（会改变组合数与检验结果），
+      筛选是<b>检算后</b>过滤展示（不改变检验结果）。锚定管"数值上行不行"，筛选管"逻辑上剩下哪些"。</p>
+    <div id="ancBox"></div>
   </div>
 
   <div class="card">
@@ -1134,18 +1145,7 @@ pre.out::-webkit-scrollbar-thumb{background:#334155;border:2px solid transparent
 <!-- ============ 步骤 7 ============ -->
 <section class="pane" id="p6">
   <h2 class="pt">检验与导出</h2>
-  <p class="pd">先看一致性检验的结果，再导出目标模型可直接读取的情景配置文件。</p>
-
-  <div class="card">
-    <h3>数值锚定 <span class="tag">v1.2 新增 · 约束检算</span></h3>
-    <p style="font-size:12.5px;color:var(--tx2);margin-bottom:10px;line-height:1.85;">
-      状态区间原本只是说明性标注，这里让它<b>参与检算</b>。给某个描述符填一个已知值或现实区间
-      （比如「经济增速已知在 4.5~5.0」），检算时凡是区间与它<b>完全不相交</b>的状态都直接排除——
-      这套假设在数值上就站不住，不必再拿去比对。<br>
-      <b>与下面的「情景筛选」不是一回事</b>：锚定是<b>检算前</b>缩小搜索空间（会改变组合数与检验结果），
-      筛选是<b>检算后</b>过滤展示（不改变检验结果）。锚定管"数值上行不行"，筛选管"逻辑上剩下哪些"。</p>
-    <div id="ancBox"></div>
-  </div>
+  <p class="pd">先看一致性检验的结果，再导出目标模型可直接读取的情景配置文件。数值锚定与状态选择已在前面的「描述符与状态」页完成，本页只做检验与导出。</p>
 
   <div class="card">
     <h3>检验结果 <span class="tag">点击可展开判断链</span></h3>
