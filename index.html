@@ -2578,6 +2578,8 @@ function checkSelected(ds){
   });
   return {ok:ok, rows:rows, cb:cb};
 }
+let allScen=false;   // 是否展开全部自洽情景（默认只列前 6 个，避免几百组把页面拖慢）
+function toggleAllScen(){ allScen=!allScen; render(); }
 function checkResult(){
   const ds=Object.keys(sel.desc);
   if(ds.length<2){ el('checkResult','<div class="empty">先在第 3 步勾选至少两个描述符</div>'); return; }
@@ -2630,12 +2632,23 @@ function checkResult(){
     h+='<div class="note" style="margin-top:12px;">没有找到自洽情景。这通常说明打分矩阵内部冲突较多，'
       +'或者描述符选得太多。可以回「交叉影响打分」复核那些低置信度的判断，再跑一次。</div>';
   }else{
+    const showN=allScen?r.consistent.length:Math.min(6,r.consistent.length);
     h+='<div style="margin-top:14px;font-size:12px;color:var(--tx3);">'
-      +'以下为自洽情景，点击展开看它为什么自洽</div><div style="margin-top:10px;">';
-    r.consistent.slice(0,6).forEach((cb,i)=>{ h+=scenCard(r,i,cb); });
+      +'以下是 CIB 筛出的<b>全部自洽情景</b>（共 '+r.consistent.length+' 组'
+      +(r.sampled?'，抽样结果，实际可能更多':'')+'），点击任一组可展开看它为什么自洽。'
+      +(allScen?'':'当前显示前 '+showN+' 组。')+'</div><div style="margin-top:10px;">';
+    r.consistent.slice(0,showN).forEach((cb,i)=>{ h+=scenCard(r,i,cb); });
     h+='</div>';
     if(r.consistent.length>6){
-      h+='<div class="dim" style="font-size:12px;margin-top:8px;">此处仅显示前 6 个，共 '+r.consistent.length+' 个。</div>';
+      h+='<div style="margin-top:9px;display:flex;gap:10px;flex-wrap:wrap;align-items:center;">'
+        +'<button class="btn sm" onclick="toggleAllScen()">'
+        +(allScen?('收起，只显示前 6 组'):('展开全部 '+r.consistent.length+' 组'))
+        +'</button>'
+        +'<button class="btn sm" onclick="downloadAll()">下载完整清单（csv）</button>'
+        +'<span class="dim" style="font-size:11.5px;">组数多时展开会略慢，可先下载清单再挑。</span></div>';
+    }else{
+      h+='<div class="dim" style="font-size:11.5px;margin-top:8px;">'
+        +'<button class="btn sm" onclick="downloadAll()">下载完整清单（csv）</button></div>';
     }
   }
   el('checkResult',h);
