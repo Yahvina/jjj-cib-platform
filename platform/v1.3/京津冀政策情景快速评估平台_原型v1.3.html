@@ -1020,6 +1020,15 @@ pre.out::-webkit-scrollbar-thumb{background:#334155;border:2px solid transparent
   </div>
 
   <div class="card">
+    <h3>跨层一致性 <span class="tag">输入条件 · 跨层口径</span></h3>
+    <p style="font-size:12.5px;color:var(--tx2);margin-bottom:10px;">
+      同一套假设摊到国家、省、市三个尺度上，<b>上级定的调子，下级不能反着来</b>。
+      每层默认<b>跟随你在上面选的状态</b>，可单独改；平台只比较相邻两层——<b>档位差 ≥2 判为方向相反</b>。改一格立刻重算冲突，点「把下级调到相邻档」可一键修正。
+      这是「纵向一致性」，与上面的 CIB「横向自洽」是两回事：横向管这套假设内部打不打架，纵向管它上下说不说得通。</p>
+    <div id="xlBox"></div>
+  </div>
+
+  <div class="card">
     <h3>描述符框架 <span class="tag">v1.3 新增 · 算法通用、底料本地</span></h3>
     <p style="font-size:12.5px;color:var(--tx2);margin-bottom:10px;">
       这套算法不认「京津冀」——它只认一组描述符、每档区间、两两判断。所以描述符集可以整体导出/导入：
@@ -1150,15 +1159,6 @@ pre.out::-webkit-scrollbar-thumb{background:#334155;border:2px solid transparent
   <div class="card">
     <h3>检验结果 <span class="tag">点击可展开判断链</span></h3>
     <div id="checkResult"></div>
-  </div>
-
-  <div class="card">
-    <h3>跨层一致性 <span class="tag">v1.2 新增</span></h3>
-    <p style="font-size:12.5px;color:var(--tx2);margin-bottom:10px;">
-      同一套假设摊到国家、省、市三个尺度上，<b>上级定的调子，下级不能反着来</b>。
-      这里给每个描述符在每一层各选一个状态，平台逐层比对——<b>档位跨两档即判为方向相反</b>。
-      这是「纵向一致性」，与上面的 CIB「横向自洽」是两回事：横向管这套假设内部打不打架，纵向管它上下说不说得通。</p>
-    <div id="xlBox"></div>
   </div>
 
   <div class="card">
@@ -1769,6 +1769,7 @@ function tglState(nm,st){
   const b=sel.desc[nm]; if(!b) return;
   const cur=(b.states||[])[0];
   b.states = (cur===st) ? [] : [st];
+  if(typeof xlSel==='object'&&xlSel) delete xlSel[nm];   // 跨层默认值跟着新选择重算
   cimResult=null; BAYES=null; layeredResult=null;
   corrResult=null;
   profResult=null;
@@ -4004,12 +4005,19 @@ function xlXY(){                       // 相邻的层级对
   for(let i=0;i<seq.length-1;i++) r.push([seq[i],seq[i+1]]);
   return r;
 }
+function xlDefault(nm){
+  // 默认值跟随「描述符与状态」里选的档位，而不是一律从第 1 档开始——
+  // 否则跨层表看起来和上面的选择毫无关系，用户会以为它只是摆设。
+  const sn=((sel.desc[nm]||{}).states||[])[0];
+  const i=sn?ST(nm).indexOf(sn):-1;
+  return i>=0?i:0;
+}
 function xlEnsure(){
   const L=xlayers();
   Object.keys(sel.desc).forEach(nm=>{
     if(!xlSel[nm]) xlSel[nm]={};
     L.forEach(l=>{
-      if(xlSel[nm][l]===undefined||xlSel[nm][l]>=ST(nm).length) xlSel[nm][l]=0;
+      if(xlSel[nm][l]===undefined||xlSel[nm][l]>=ST(nm).length) xlSel[nm][l]=xlDefault(nm);
     });
     Object.keys(xlSel[nm]).forEach(l=>{ if(L.indexOf(l)<0) delete xlSel[nm][l]; });
   });
