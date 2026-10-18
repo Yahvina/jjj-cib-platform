@@ -841,6 +841,30 @@ pre.out::-webkit-scrollbar-thumb{background:#334155;border:2px solid transparent
 /* 状态选择是单选：用圆形勾选标记，和可多选的复选框区分开 */
 .chk.rad{border-radius:50%;}
 
+/* ================= 第 7 步分组菜单（17 块分四组，默认只看结论） ================= */
+.p6nav{position:sticky;top:118px;z-index:12;display:flex;align-items:center;
+  gap:10px;flex-wrap:wrap;background:var(--panel);border:1px solid var(--line);
+  border-radius:10px;padding:8px 10px;margin:0 0 16px;box-shadow:var(--sh);}
+.p6tabs{display:flex;gap:4px;flex-wrap:wrap;}
+.p6tab{border:1px solid transparent;background:transparent;border-radius:7px;
+  padding:5px 11px;font-size:12.5px;color:var(--tx2);cursor:pointer;
+  display:inline-flex;align-items:center;gap:6px;transition:all .15s var(--ease);}
+.p6tab span{font-size:10.5px;color:var(--tx3);background:var(--panel2);
+  border-radius:99px;padding:0 5px;line-height:15px;}
+.p6tab:hover{background:var(--panel2);color:var(--tx);}
+.p6tab.sel{background:var(--pri-s);border-color:var(--pri-b);color:var(--pri);font-weight:600;}
+.p6tab.sel span{background:#fff;color:var(--pri);}
+.p6nav .sp{flex:1;}
+.p6stat{font-size:11.5px;color:var(--tx3);white-space:nowrap;}
+.p6stat b{color:var(--tx);font-variant-numeric:tabular-nums;}
+#p6 .card[data-grp]{display:none;}
+#p6[data-g="concl"] .card[data-grp="concl"],
+#p6[data-g="rel"] .card[data-grp="rel"],
+#p6[data-g="struct"] .card[data-grp="struct"],
+#p6[data-g="out"] .card[data-grp="out"]{display:block;}
+#p6.p6-all .card[data-grp]{display:block;}
+@media (max-width:820px){.p6nav{position:static;}}
+
 </style>
 </head>
 <body>
@@ -1156,12 +1180,39 @@ pre.out::-webkit-scrollbar-thumb{background:#334155;border:2px solid transparent
   <h2 class="pt">检验与导出</h2>
   <p class="pd">先看一致性检验的结果，再导出目标模型可直接读取的情景配置文件。数值锚定与状态选择已在前面的「描述符与状态」页完成，本页只做检验与导出。</p>
 
-  <div class="card">
+  <div class="p6nav">
+    <div class="p6tabs">
+      <button class="p6tab sel" data-g="concl" onclick="p6Group('concl')">结论<span>3</span></button>
+      <button class="p6tab" data-g="rel" onclick="p6Group('rel')">可靠性<span>3</span></button>
+      <button class="p6tab" data-g="struct" onclick="p6Group('struct')">结构<span>7</span></button>
+      <button class="p6tab" data-g="out" onclick="p6Group('out')">交付<span>4</span></button>
+    </div>
+    <div class="sp"></div>
+    <span class="p6stat" id="p6stat"></span>
+    <button class="btn sm" id="p6allBtn" onclick="p6All()">全部展开</button>
+  </div>
+
+  <div class="card" data-grp="concl">
     <h3>检验结果 <span class="tag">点击可展开判断链</span></h3>
     <div id="checkResult"></div>
   </div>
 
-  <div class="card">
+  <div class="card" data-grp="concl">
+    <h3>矛盾组合与处理建议 <span class="tag">闭环</span></h3>
+    <p style="font-size:12.5px;color:var(--tx2);margin-bottom:12px;">
+      发现矛盾只是第一步。这里给出调整建议，采纳后会自动重新检验。</p>
+    <div id="confList"></div>
+  </div>
+
+  <div class="card" data-grp="concl">
+    <h3>情景筛选 <span class="tag">v1.2 新增</span></h3>
+    <p style="font-size:12.5px;color:var(--tx2);margin-bottom:10px;">
+      自洽情景往往几十上百个，看不过来。<b>给描述符指定要求取值</b>，切到「结构」组里的情景表与情景地图，就只看命中的那一部分——
+      这是用假设去反查「哪种未来更可能」的入口。<b>筛选只影响展示，不改变检验结果本身。</b></p>
+    <div id="filtBox"></div>
+  </div>
+
+  <div class="card" data-grp="rel">
     <h3>逐层求解 <span class="tag">v1.2 新增 · 跨层约束进入求解</span></h3>
     <p style="font-size:12.5px;color:var(--tx2);margin-bottom:10px;line-height:1.85;">
       上面那张是<b>算完再查</b>：先各自求解，再比对档位差。这里是<b>算的时候就带着上级的条件</b>——
@@ -1172,50 +1223,7 @@ pre.out::-webkit-scrollbar-thumb{background:#334155;border:2px solid transparent
     <div id="layBox"></div>
   </div>
 
-  <div class="card">
-    <h3>情景筛选 <span class="tag">v1.2 新增</span></h3>
-    <p style="font-size:12.5px;color:var(--tx2);margin-bottom:10px;">
-      自洽情景往往几十上百个，看不过来。<b>给描述符指定要求取值</b>，下面的情景表与情景地图就只看命中的那一部分——
-      这是用假设去反查「哪种未来更可能」的入口。<b>筛选只影响展示，不改变检验结果本身。</b></p>
-    <div id="filtBox"></div>
-  </div>
-
-  <div class="card">
-    <h3>情景表 <span class="tag">v1.1 新增</span></h3>
-    <p style="font-size:12.5px;color:var(--tx2);margin-bottom:10px;">
-      列是自洽情景，行是描述符。相邻情景里取同一个状态的格子会自动合并，并用颜色区分——
-      几十个情景的异同一眼扫出来。</p>
-    <div class="tabwrap" id="tabFig"></div>
-  </div>
-
-  <div class="card">
-    <h3>情景地图 <span class="tag">v1.2 新增</span></h3>
-    <p style="font-size:12.5px;color:var(--tx2);margin-bottom:10px;">
-      每个自洽情景画成一个点，取值相近的会聚在一起形成「<b>情景族</b>」；换一张图，则看每个描述符在各情景中取哪一档的分布。
-      <b>表看逐条明细，图看整体格局。</b></p>
-    <div class="tabswitch" id="mapTabs"></div>
-    <div id="mapFig"></div>
-  </div>
-
-  <div class="card">
-    <h3>影响谱 <span class="tag">v1.2 新增</span></h3>
-    <p style="font-size:12.5px;color:var(--tx2);margin-bottom:10px;">
-      问的是「<b>如果某件事被强行实现，还剩下哪些可能</b>」。平台逐个把每个状态钉死、重算自洽情景集，
-      再与基准对比：<b>哪些可能被这条冲击打开、哪些被挤掉</b>；整行为 0 的，说明这件事与当前判断不相容。
-      德国软件里这块叫 Influence profile（影响谱），这里是其中的定性版。</p>
-    <div id="profBox"></div>
-  </div>
-
-  <div class="card">
-    <h3>相关性分析 <span class="tag">v1.2 新增</span></h3>
-    <p style="font-size:12.5px;color:var(--tx2);margin-bottom:10px;">
-      回答「<b>哪些状态总是绑在一起出现</b>」。用 φ 系数衡量：<b>＋100%</b> 表示两者要么同时出现、
-      要么同时不出现；<b>−100%</b> 表示此消彼长。它只说明搭配关系，不说明因果——
-      因果仍要看交叉影响矩阵和传导链。</p>
-    <div id="corrBox"></div>
-  </div>
-
-  <div class="card">
+  <div class="card" data-grp="rel">
     <h3>稳健性检验 <span class="tag">v1.3 新增 · 判断改了结论还站得住吗</span></h3>
     <p style="font-size:12.5px;color:var(--tx2);margin-bottom:10px;">
       一致性检验的输入是人给的 −3 到 +3。这一块把每条判断按置信度随机改动一档，重算几十轮：
@@ -1224,14 +1232,24 @@ pre.out::-webkit-scrollbar-thumb{background:#334155;border:2px solid transparent
     <div id="robBox"></div>
   </div>
 
-  <div class="card">
-    <h3>矛盾组合与处理建议 <span class="tag">闭环</span></h3>
-    <p style="font-size:12.5px;color:var(--tx2);margin-bottom:12px;">
-      发现矛盾只是第一步。这里给出调整建议，采纳后会自动重新检验。</p>
-    <div id="confList"></div>
+  <div class="card" data-grp="rel">
+    <h3>集成与分歧 <span class="tag">多专家</span></h3>
+    <p style="font-size:12.5px;color:var(--tx2);margin-bottom:10px;">
+      选 2 人或 3 人独立打分时，这里把各份矩阵摆在一起：<b>一致的条目自动合并，分歧的条目列出来逐条裁定</b>。
+      裁定结果写回主矩阵，可直接进入一致性检验。</p>
+    <div id="ensPanel"></div>
   </div>
 
-  <div class="card">
+  <div class="card" data-grp="struct">
+    <h3>影响谱 <span class="tag">v1.2 新增</span></h3>
+    <p style="font-size:12.5px;color:var(--tx2);margin-bottom:10px;">
+      问的是「<b>如果某件事被强行实现，还剩下哪些可能</b>」。平台逐个把每个状态钉死、重算自洽情景集，
+      再与基准对比：<b>哪些可能被这条冲击打开、哪些被挤掉</b>；整行为 0 的，说明这件事与当前判断不相容。
+      德国软件里这块叫 Influence profile（影响谱），这里是其中的定性版。</p>
+    <div id="profBox"></div>
+  </div>
+
+  <div class="card" data-grp="struct">
     <h3>影响关系图 <span class="tag">v1.1 新增</span></h3>
     <p style="font-size:12.5px;color:var(--tx2);margin-bottom:10px;">
       把当前打分画成一张关系图：每个描述符是一个节点，连线代表影响。<b>绿线是促进、红线是抑制</b>，
@@ -1239,7 +1257,7 @@ pre.out::-webkit-scrollbar-thumb{background:#334155;border:2px solid transparent
     <div id="impactFig"></div>
   </div>
 
-  <div class="card">
+  <div class="card" data-grp="struct">
     <h3>影响路径分析 <span class="tag">v1.2 新增</span></h3>
     <p style="font-size:12.5px;color:var(--tx2);margin-bottom:10px;">
       两个描述符之间没有直接打分，不代表它们互不影响——影响可以通过第三个描述符<b>间接传导</b>。
@@ -1248,7 +1266,7 @@ pre.out::-webkit-scrollbar-thumb{background:#334155;border:2px solid transparent
     <div id="pathBox"></div>
   </div>
 
-  <div class="card">
+  <div class="card" data-grp="struct">
     <h3>主被动图 <span class="tag">v1.1 新增</span></h3>
     <p style="font-size:12.5px;color:var(--tx2);margin-bottom:10px;">
       给每个描述符算两个数：它<b>对外施加</b>的影响总和（主动和）和它<b>承受</b>的影响总和（被动和）。
@@ -1256,20 +1274,38 @@ pre.out::-webkit-scrollbar-thumb{background:#334155;border:2px solid transparent
     <div id="apFig"></div>
   </div>
 
-  <div class="card">
-    <h3>集成与分歧 <span class="tag">多专家</span></h3>
+  <div class="card" data-grp="struct">
+    <h3>相关性分析 <span class="tag">v1.2 新增</span></h3>
     <p style="font-size:12.5px;color:var(--tx2);margin-bottom:10px;">
-      选 2 人或 3 人独立打分时，这里把各份矩阵摆在一起：<b>一致的条目自动合并，分歧的条目列出来逐条裁定</b>。
-      裁定结果写回主矩阵，可直接进入一致性检验。</p>
-    <div id="ensPanel"></div>
+      回答「<b>哪些状态总是绑在一起出现</b>」。用 φ 系数衡量：<b>＋100%</b> 表示两者要么同时出现、
+      要么同时不出现；<b>−100%</b> 表示此消彼长。它只说明搭配关系，不说明因果——
+      因果仍要看交叉影响矩阵和传导链。</p>
+    <div id="corrBox"></div>
   </div>
 
-  <div class="card">
+  <div class="card" data-grp="struct">
+    <h3>情景表 <span class="tag">v1.1 新增</span></h3>
+    <p style="font-size:12.5px;color:var(--tx2);margin-bottom:10px;">
+      列是自洽情景，行是描述符。相邻情景里取同一个状态的格子会自动合并，并用颜色区分——
+      几十个情景的异同一眼扫出来。</p>
+    <div class="tabwrap" id="tabFig"></div>
+  </div>
+
+  <div class="card" data-grp="struct">
+    <h3>情景地图 <span class="tag">v1.2 新增</span></h3>
+    <p style="font-size:12.5px;color:var(--tx2);margin-bottom:10px;">
+      每个自洽情景画成一个点，取值相近的会聚在一起形成「<b>情景族</b>」；换一张图，则看每个描述符在各情景中取哪一档的分布。
+      <b>表看逐条明细，图看整体格局。</b></p>
+    <div class="tabswitch" id="mapTabs"></div>
+    <div id="mapFig"></div>
+  </div>
+
+  <div class="card" data-grp="out">
     <h3>时间轴 <span class="tag">双锚点</span></h3>
     <div id="timeline"></div>
   </div>
 
-  <div class="card">
+  <div class="card" data-grp="out">
     <h3>生成的配置文件 <span class="tag" id="fmtTag">XML</span></h3>
     <p style="font-size:12.5px;color:var(--tx2);margin-bottom:10px;" id="fmtNote"></p>
     <pre class="out" id="outPreview"></pre>
@@ -1288,7 +1324,7 @@ pre.out::-webkit-scrollbar-thumb{background:#334155;border:2px solid transparent
     </div>
   </div>
 
-  <div class="card">
+  <div class="card" data-grp="out">
     <h3>情景报告 <span class="tag">v1.1 新增</span></h3>
     <p style="font-size:12.5px;color:var(--tx2);margin-bottom:12px;">
       把这次配置整体写成一份可以拿给别人看的报告：选了哪些描述符、每个分数是怎么判的、哪些情景自洽、
@@ -1299,7 +1335,7 @@ pre.out::-webkit-scrollbar-thumb{background:#334155;border:2px solid transparent
     </div>
   </div>
 
-  <div class="card">
+  <div class="card" data-grp="out">
     <h3>本次配置摘要</h3>
     <div id="finalSum"></div>
   </div>
@@ -5624,6 +5660,40 @@ function renderBayes(){
   box.innerHTML=h;
 }
 
+/* ================= 第 7 步分组菜单 =================
+   17 块按用途分四组，一次只看一组——避免一屏一屏往下划。
+   「全部展开」保留通读与打印的出口。 */
+let p6grp='concl', p6allOn=false;
+const P6GNAME={concl:'结论',rel:'可靠性',struct:'结构',out:'交付'};
+function p6Apply(){
+  const sec=document.getElementById('p6');
+  if(!sec||typeof sec.setAttribute!=='function') return;
+  sec.setAttribute('data-g', p6allOn?'all':p6grp);
+  sec.classList.toggle('p6-all', p6allOn);
+  const tabs=(sec.querySelectorAll?sec.querySelectorAll('.p6tab'):[]);
+  for(let i=0;i<tabs.length;i++)
+    tabs[i].classList.toggle('sel', !p6allOn && tabs[i].getAttribute('data-g')===p6grp);
+  const b=document.getElementById('p6allBtn');
+  if(b) b.textContent=p6allOn?'只看一组':'全部展开';
+}
+function p6Group(g){
+  if(!P6GNAME[g]) return;
+  p6grp=g; p6allOn=false; p6Apply();
+  const sec=document.getElementById('p6');
+  if(sec&&typeof sec.getBoundingClientRect==='function'&&window.scrollTo){
+    const y=sec.getBoundingClientRect().top+(window.scrollY||0)-112;
+    window.scrollTo({top:Math.max(0,y),behavior:'smooth'});
+  }
+}
+function p6All(){ p6allOn=!p6allOn; p6Apply(); }
+function p6Status(){
+  const b=document.getElementById('p6stat');
+  if(!b||typeof b.innerHTML!=='string') return;
+  if(!cimResult){ b.textContent='尚未检验'; return; }
+  b.innerHTML='已检验：自洽 <b>'+cimResult.consistent.length+'</b> 组 · 检查 '
+    +cimResult.checked.toLocaleString()+' 组'+(cimResult.sampled?'（抽样）':'');
+}
+
 /* ================= 主渲染 ================= */
 function render(){
   renderSteps(); renderCmp(); layerTable(); renderTree(); renderStates();
@@ -5638,6 +5708,7 @@ function render(){
     ? '按 GCAM-China 的 configuration.xml 结构书写：ScenarioComponents 区块内，以 Value 的 name 属性指向参数项，元素内容为文件相对路径。'
     : '按 CHEER-CGE 的接口书写：CSV 覆盖 run.gms 中的路径变量与情景开关，之后用 GDXXRW.EXE 转为 GDX。');
   finalSum();
+  p6Apply(); p6Status();
 
   document.getElementById('pcmp').classList.toggle('on',inCmp);
   document.querySelectorAll('main .pane').forEach(p=>{
