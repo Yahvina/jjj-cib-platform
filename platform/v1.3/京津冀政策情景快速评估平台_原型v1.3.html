@@ -473,9 +473,12 @@ table.filttab td.num.on{color:var(--pri);font-weight:600;}
 table.cim td{position:relative;}
 table.cim td .stdot{position:absolute;right:2px;bottom:2px;width:4px;height:4px;
   border-radius:99px;background:var(--pri);}
-table.stmat{border-collapse:collapse;width:100%;font-size:11px;margin-top:6px;}
-table.stmat th{font-weight:400;color:var(--tx3);font-size:10.5px;padding:3px 2px;text-align:center;}
-table.stmat th:first-child{text-align:left;width:50px;font-size:10px;}
+.stcap{font-size:10.5px;color:var(--tx3);line-height:1.5;margin:4px 0 3px;}
+table.stmat{border-collapse:collapse;width:100%;font-size:11px;margin-top:2px;}
+table.stmat th{font-weight:400;color:var(--tx3);font-size:10px;padding:3px 2px;text-align:center;
+  line-height:1.3;white-space:normal;vertical-align:bottom;}
+table.stmat th.corner{text-align:left;width:66px;font-size:9px;}
+table.stmat th.rowh{text-align:left;width:66px;font-size:9.5px;line-height:1.25;vertical-align:middle;padding-left:2px;}
 table.stmat td{padding:2px;}
 table.stmat select.sts{width:100%;height:26px;border:1px solid var(--line);border-radius:5px;
   background:#fff;font-size:11px;color:var(--tx2);padding:0 2px;text-align:center;}
@@ -3233,7 +3236,7 @@ function cimSidePanel(){
   el.innerHTML=
    '<div class="shead">这一格的判断</div>'+
    '<div class="spair">'+(DSHORT[s]||s)+' <span class="ar">→</span> '+(DSHORT[t]||t)+'</div>'+
-   '<div class="sstate">'+(DSHORT[s]||s)+'：'+curStTxt(s)+'<br>'+(DSHORT[t]||t)+'：'+curStTxt(t)+'</div>'+
+   '<div class="sstate"><b>当前选中</b><br>'+(DSHORT[s]||s)+'：'+curStTxt(s)+'<br>'+(DSHORT[t]||t)+'：'+curStTxt(t)+'</div>'+
    '<div class="slabel">影响强度</div>'+
    '<div class="vrow">'+vs.map(v=>'<button class="vb'+(r.v===v?' on':'')+'" onclick="setV('+v+')">'+(v>0?'+':'')+v+'</button>').join('')+'</div>'+
    '<div class="sline">'+VWORD[String(r.v)]+'</div>'+
@@ -3243,7 +3246,7 @@ function cimSidePanel(){
    '<textarea class="txt why" oninput="setWhy(this.value)" placeholder="写下这条判断的依据……">'+(r.why||'')+'</textarea>'+
    '<button class="btn '+(r.rev?'':'pri')+'" style="width:100%;margin-top:10px;" onclick="toggleRev()">'+(r.rev?'✓ 已审核（点击撤销）':'标记为已审核')+'</button>'+
    '<div class="slabel" style="margin-top:16px;border-top:1px dashed var(--line);padding-top:12px;">'
-     +'状态级精判 <span class="dim">'+(nSt?'已改 '+nSt+' 格':'全部默认展开')+'</span></div>'+
+     +'状态级精判 <span class="dim">'+(nSt?'已改 '+nSt+' 格':'0 格精判，全部按默认展开')+'</span></div>'+
    stTable(s,t,r)+
    '<div class="dim" style="font-size:11px;line-height:1.7;margin-top:6px;">'
      +'上面选的是<b>整体倾向</b>，这里才是逐对判断。不改的格子按整体倾向自动展开；'
@@ -3253,10 +3256,12 @@ function cimSidePanel(){
 function stTable(s,t,r){
   const fs=ST(s), ts=ST(t);
   const fmt=v=>(Math.abs(v-Math.round(v))<0.05?String(Math.round(v)):v.toFixed(1));
-  let h='<table class="stmat"><tr><th>源＼目标</th>'
-    +ts.map(x=>'<th title="'+x+'">'+x.slice(0,2)+'</th>').join('')+'</tr>';
+  let h='<div class="stcap">行＝来源状态，列＝目标状态，共 '+fs.length+'×'+ts.length
+    +'＝'+(fs.length*ts.length)+' 格；下拉里“默(x)”表示按整体分自动展开</div>'
+    +'<table class="stmat"><tr><th class="corner">来源＼目标</th>'
+    +ts.map(x=>'<th title="'+x+'">'+x+'</th>').join('')+'</tr>';
   fs.forEach((sn,fi)=>{
-    h+='<tr><th title="'+sn+'">'+sn.slice(0,2)+'</th>';
+    h+='<tr><th class="rowh" title="'+sn+'">'+sn+'</th>';
     ts.forEach((tn,ti)=>{
       const ov=r.st?r.st[fi+'_'+ti]:undefined;
       const has=(typeof ov==='number');
