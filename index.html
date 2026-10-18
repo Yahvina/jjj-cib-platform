@@ -838,6 +838,9 @@ pre.out::-webkit-scrollbar-thumb{background:#334155;border:2px solid transparent
 
 ::selection{background:var(--pri-b);}
 
+/* 状态选择是单选：用圆形勾选标记，和可多选的复选框区分开 */
+.chk.rad{border-radius:50%;}
+
 </style>
 </head>
 <body>
@@ -969,7 +972,8 @@ pre.out::-webkit-scrollbar-thumb{background:#334155;border:2px solid transparent
   <h2 class="pt">选择描述符与状态</h2>
   <p class="pd">描述符按三级组织。勾选后点名称展开，可以看到它的<b>翻译依据</b>与<b>时间锚点</b>——这一步是整个流程的核心。
     每个状态右侧的数值区间是该档位的<b>取值锚点</b>：把「高速 / 中速」这类定性标签落到具体范围上，定性标签就变成了半定量档位。
-    点区间即可修改数值、重命名或增删状态——<b>标准不必只有一套</b>，可以换成自己的口径。</p>
+    点区间即可修改数值、重命名或增删状态——<b>标准不必只有一套</b>，可以换成自己的口径。
+    每个描述符<b>只取一个状态</b>（单选）：不同状态属于不同情景；要排除不可行的档位，请在「数值锚定」里做，那里有区间依据可追溯。</p>
 
   <div class="card" style="display:flex;align-items:center;gap:12px;padding:13px 16px;">
     <div style="flex:1;">
@@ -1758,10 +1762,13 @@ function selDesc(id){
   if(sel.desc[d.n]) delete sel.desc[d.n]; else sel.desc[d.n]={states:[],src:null};
   render();
 }
+/* 单选：一个情景假设 = 每个描述符取一个状态。
+   点已选中的状态＝取消（回到"未定"），点另一个＝替换。
+   "某些档位不可能"不在这里表达——用「数值锚定」，那里有区间依据可追溯。 */
 function tglState(nm,st){
   const b=sel.desc[nm]; if(!b) return;
-  const i=b.states.indexOf(st);
-  if(i>=0) b.states.splice(i,1); else b.states.push(st);
+  const cur=(b.states||[])[0];
+  b.states = (cur===st) ? [] : [st];
   cimResult=null; BAYES=null; layeredResult=null;
   corrResult=null;
   profResult=null;
@@ -1987,7 +1994,7 @@ function renderStates(){
         const on=c.states.indexOf(s.n)>=0, k=nm+'|'+s.n;
         const ed=(rngEdit===k);
         return `<div class="strow">
-            <span class="chk ${on?'on':''}" onclick="tglState('${nm}','${s.n}')">${on?TICK:''}</span>
+            <span class="chk rad ${on?'on':''}" onclick="tglState('${nm}','${s.n}')">${on?TICK:''}</span>
             <span class="stnm" onclick="tglState('${nm}','${s.n}')">${s.n}${s.custom?'<i class="cus">自定义</i>':''}${s.ev==='user'?'<i class="cus evu">已改</i>':''}</span>
             <span class="rngwrap" onclick="editRange('${nm}','${s.n}')" title="点此修改取值区间">${rngTxt(s)}</span>
           </div>`+
@@ -2881,7 +2888,13 @@ function loadCfg(){
     const raw=localStorage.getItem('jjj-cib-v10');
     if(!raw){ toast('本机没有已保存的配置'); return; }
     const d=JSON.parse(raw);
-    sel.desc=d.desc||{}; curModel=d.model||'gcam'; expertN=d.exp||1; useBayes=!!d.bayes;
+    sel.desc=d.desc||{};
+    // 旧存档可能是多选，收敛为第一个，避免"看起来选了三个、实际只用第一个"
+    Object.keys(sel.desc).forEach(nm=>{
+      const st=sel.desc[nm]&&sel.desc[nm].states;
+      if(Array.isArray(st)&&st.length>1) sel.desc[nm].states=[st[0]];
+    });
+    curModel=d.model||'gcam'; expertN=d.exp||1; useBayes=!!d.bayes;
     pulled=!!d.pulled; applied=new Set(d.applied||[]);
     document.querySelectorAll('[data-scale]').forEach(x=>{
       const on=(d.scales||[]).indexOf(x.dataset.scale)>=0;
@@ -3161,14 +3174,11 @@ function toggleRev(){ if(cimSelKey){ cim[cimSelKey].rev=!cim[cimSelKey].rev; ren
 // 某个描述符当前选定的状态及其区间——打分时先看清两端分别落在什么数值范围
 function curStTxt(nm){
   const c=sel.desc[nm];
-  if(!c||!c.states.length) return '<span style="color:var(--tx3)">状态未定</span>';
-  const defs=defsOf(nm);
-  const a=c.states.slice(0,2).map(sn=>{
-    const x=defs.find(y=>y.n===sn);
-    const rg=(!x||x.lo===null||x.hi===null)?'':'　'+x.lo+'–'+x.hi+(x.u?' '+x.u:'');
-    return '<span class="sstatv">'+sn+rg+'</span>';
-  });
-  return a.join(' / ')+(c.states.length>2?' 等 '+c.states.length+' 项':'');
+  const sn=c&&c.states&&c.states[0];
+  if(!sn) return '<span style="color:var(--tx3)">状态未定</span>';
+  const x=defsOf(nm).find(y=>y.n===sn);
+  const rg=(!x||x.lo===null||x.hi===null)?'':'　'+x.lo+'–'+x.hi+(x.u?' '+x.u:'');
+  return '<span class="sstatv">'+sn+rg+'</span>';
 }
 function renderCim(){
   const g=document.getElementById('cimGrid'); if(!g) return;
