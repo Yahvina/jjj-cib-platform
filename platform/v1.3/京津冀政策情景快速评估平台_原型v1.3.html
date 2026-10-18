@@ -2197,6 +2197,19 @@ function ancAllowed(nm){
   }
   return out;
 }
+/* 锚定与"已选状态"的冲突：选中状态若与锚定不相交，它不会进枚举，
+   但界面上仍显示为已选——必须显式提示，否则用户以为它被检验过了。 */
+function ancConflicts(){
+  const out=[];
+  Object.keys(sel.desc).forEach(nm=>{
+    const a=ancOf(nm); if(!a) return;
+    const sn=((sel.desc[nm]||{}).states||[])[0]; if(!sn) return;
+    const d=defsOf(nm).filter(x=>x.n===sn)[0];
+    if(!d||d.lo===null||d.hi===null||d.lo===undefined||d.hi===undefined) return;
+    if(d.hi<a.lo||d.lo>a.hi) out.push({nm:nm, st:sn, lo:d.lo, hi:d.hi, u:d.u||''});
+  });
+  return out;
+}
 function renderAnc(){
   const host=document.getElementById('ancBox'); if(!host) return;
   const ds=Object.keys(sel.desc);
@@ -2205,7 +2218,22 @@ function renderAnc(){
   }
   let before=1, after=1, nA=0;
   ds.forEach(nm=>{ before*=ST(nm).length; after*=ancAllowed(nm).length; if(ancOf(nm)) nA++; });
-  let h='<table class="anctab"><tr><th>描述符</th><th style="width:132px">锚定值 / 区间</th>'
+  const cf=ancConflicts(), deadOnes=ds.filter(nm=>ancOf(nm)&&!ancAllowed(nm).length);
+  let warn='';
+  if(cf.length||deadOnes.length){
+    warn='<div class="pwarn">';
+    if(deadOnes.length){
+      warn+='<b>锚定把某些描述符的所有状态都排除了：</b>'+deadOnes.join('、')
+        +'——检验会直接报错，请放宽锚定或改区间。<br>';
+    }
+    if(cf.length){
+      warn+='<b>你选中的状态与锚定不相交：</b>'
+        +cf.map(x=>x.nm+'「'+x.st+' '+x.lo+'–'+x.hi+(x.u?' '+x.u:'')+'」vs 锚定 '+ancTxt(x.nm)).join('；')
+        +'。检验时这些状态不会被考虑——请改选状态、放宽锚定，或确认锚定本身有误。';
+    }
+    warn+='</div>';
+  }
+  let h=warn+'<table class="anctab"><tr><th>描述符</th><th style="width:132px">锚定值 / 区间</th>'
     +'<th style="width:86px">单位</th><th style="width:104px">可用状态</th><th style="width:50px"></th></tr>';
   ds.forEach(nm=>{
     const a=ancOf(nm), al=ancAllowed(nm), tot=ST(nm).length, defs=defsOf(nm);
