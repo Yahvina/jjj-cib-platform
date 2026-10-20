@@ -5706,7 +5706,7 @@ function renderBayes(){
   let h='<div class="robkpi">'
     +'<div class="rk"><span>参与更新的判断</span><b>'+BAYES.n+' 条</b></div>'
     +'<div class="rk"><span>平均 90% 区间宽</span><b>'+avgWd.toFixed(2)+'</b></div>'
-    +'<div class="rk"><span>方向判不准（≥20%）</span><b>'+flip+' 条</b></div>'
+    +'<div class="rk"><span>方向未达 80%（判不准）</span><b>'+flip+' 条</b></div>'
     +'</div>';
   h+='<div class="robsec">区间最宽的判断（先审这几条）</div>';
   h+='<div class="robtbl">'+wid.map(x=>{
@@ -5716,10 +5716,11 @@ function renderBayes(){
         +'<div class="rst">后验 '+c.mean.toFixed(2)+'　区间 '+c.lo.toFixed(2)+' ~ '+c.hi.toFixed(2)+'</div>'
         +'<div class="rv">观测 '+c.n+' 条</div>'
         +'<div class="rj '+((c.pPos>=.8||c.pNeg>=.8)?'ok':(c.pPos>=.6||c.pNeg>=.6?'wn':'rd'))+'">'
-        +'P(+) '+Math.round(c.pPos*100)+'%</div></div>';
+        +'P(正) '+Math.round(c.pPos*100)+'%</div></div>';
     }).join('')+'</div>';
   h+='<div class="robnote">后验均值矩阵会替换原打分参与一致性检验——所以开关一开，结果会变。'
-    +'区间来自专家分歧与置信度，不是概率预测；分数越一致、置信度越高，区间越窄。</div>';
+    +'区间来自专家分歧与置信度，不是概率预测；分数越一致、置信度越高，区间越窄。'
+    +'「观测」是参与这次更新的打分份数，单人打分时恒为 1，因此区间偏宽属正常。</div>';
   h+='<div style="margin-top:9px;"><button class="btn sm" onclick="computeBayes();render()">重算后验</button></div>';
   box.innerHTML=h;
 }
