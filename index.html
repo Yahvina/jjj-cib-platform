@@ -903,6 +903,37 @@ pre.out::-webkit-scrollbar-thumb{background:#334155;border:2px solid transparent
 #p6.p6-all .card[data-grp]{display:block;}
 @media (max-width:820px){.p6nav{position:static;}}
 
+/* 矩阵格内置信度：文字表达，不单靠颜色 */
+table.cim td.cc .cfw{display:block;font-size:9px;line-height:1.15;font-style:normal;
+  margin-top:1px;letter-spacing:.2px;opacity:.9;}
+table.cim td.cc .cfw.l{opacity:.6;}
+table.cim td.cc .cfw.h{font-weight:600;}
+.cimlegend{font-size:11px;color:var(--tx3);line-height:1.65;margin-top:8px;
+  padding-top:7px;border-top:1px dashed var(--line2);}
+.cimlegend b{color:var(--tx2);font-weight:600;}
+
+/* 更新日志 */
+.chgintro{font-size:12.5px;color:var(--tx2);line-height:1.85;margin-bottom:8px;}
+.chgsum{font-size:11.5px;color:var(--tx3);margin-bottom:14px;padding-bottom:10px;
+  border-bottom:1px solid var(--line2);}
+.chglist{display:flex;flex-direction:column;}
+.chgrow{display:grid;grid-template-columns:56px 62px 1fr;gap:12px;
+  padding:11px 0;border-bottom:1px solid var(--line2);align-items:start;}
+.chgrow:last-child{border-bottom:none;}
+.chgd{font-size:11.5px;color:var(--tx3);font-variant-numeric:tabular-nums;padding-top:2px;}
+.chgk{padding-top:1px;}
+.ck{display:inline-block;font-size:10.5px;border-radius:4px;padding:1px 6px;white-space:nowrap;}
+.ck.rd{color:var(--rd);background:var(--rd-s);}
+.ck.ok{color:var(--ok);background:var(--ok-s);}
+.ck.wn{color:var(--wn);background:var(--wn-s);}
+.ck.gray{color:var(--tx2);background:var(--panel2);}
+.chgb b{display:block;font-size:12.5px;font-weight:600;color:var(--tx);line-height:1.6;}
+.chgb span{display:block;font-size:11.5px;color:var(--tx2);line-height:1.75;margin-top:2px;}
+@media (max-width:600px){
+  .chgrow{grid-template-columns:50px 1fr;row-gap:4px;}
+  .chgb{grid-column:1 / -1;}
+}
+
 </style>
 </head>
 <body>
@@ -918,6 +949,7 @@ pre.out::-webkit-scrollbar-thumb{background:#334155;border:2px solid transparent
   <button class="btn" onclick="backToCmp()">功能对比</button>
   <button class="btn" onclick="saveCfg()">保存配置</button>
   <button class="btn" onclick="loadCfg()">载入配置</button>
+  <button class="btn" onclick="openChangelog()">更新日志</button>
   <button class="btn" onclick="alert('原型 v1.3\n\n一致性检验已接入真实算法；v1.3 新增稳健性检验、描述符框架导入导出与报告 Word 导出；\n每个状态的取值区间可编辑、状态可增删——定性标签因此成为半定量档位；\n政策库内置 106 条路径及其与描述符的映射。')">关于</button>
 </header>
 
@@ -932,7 +964,7 @@ pre.out::-webkit-scrollbar-thumb{background:#334155;border:2px solid transparent
     <h2 class="hero-t">用 CIB 把政策组合筛成<span class="hl">自洽情景</span></h2>
     <p class="hero-sub">先把政策组合筛干净，再交给下游模型</p>
     <p class="hero-d">CIB（Cross-Impact Balance，交叉影响平衡）不预测未来，只判断哪些政策组合彼此打架。
-      平台把政策文本翻译成描述符取值、筛出自洽的情景族，再翻译成 GCAM-China / CHEER-CGE 能挂载的参数。
+      平台把政策文本翻译成描述符取值、筛出自洽的情景簇，再翻译成 GCAM-China / CHEER-CGE 能挂载的参数。
       <b>不算减排量</b>——那是模型的活；平台保证送进模型的那套政策包，自己立得住。</p>
   </div>
 
@@ -1354,7 +1386,7 @@ pre.out::-webkit-scrollbar-thumb{background:#334155;border:2px solid transparent
   <div class="card" data-grp="struct">
     <h3>情景地图</h3>
     <p style="font-size:12.5px;color:var(--tx2);margin-bottom:10px;">
-      每个自洽情景画成一个点，取值相近的会聚在一起形成「<b>情景族</b>」；换一张图，则看每个描述符在各情景中取哪一档的分布。
+      每个自洽情景画成一个点，取值相近的会聚在一起形成「<b>情景簇</b>」；换一张图，则看每个描述符在各情景中取哪一档的分布。
       <b>表看逐条明细，图看整体格局。</b></p>
     <div class="tabswitch" id="mapTabs"></div>
     <div id="mapFig"></div>
@@ -1409,6 +1441,17 @@ pre.out::-webkit-scrollbar-thumb{background:#334155;border:2px solid transparent
   <button class="btn" id="prevBtn" onclick="go(-1)">上一步</button>
   <button class="btn pri" id="nextBtn" onclick="nextStep()">下一步</button>
 </div>
+<div class="modal" id="chgModal">
+  <div class="mbox">
+    <div class="mhead">
+      <b>更新日志</b>
+      <div class="sp"></div>
+      <button class="btn" onclick="closeChangelog()">关闭</button>
+    </div>
+    <div class="mbody" id="chgBody"></div>
+  </div>
+</div>
+
 <div class="modal" id="reportModal">
   <div class="mbox">
     <div class="mhead">
@@ -3377,10 +3420,10 @@ function aiFill(){
   if(nSel()<2){ toast('先回到第 2 步，至少勾选两个描述符'); return; }
   const keys=cimKeys();
   clearCim();
-  keys.forEach(k=>{ cim[k]={v:0,conf:'低',why:'AI 未发现明显直接影响，待人工判断',rev:false}; });
+  keys.forEach(k=>{ cim[k]={v:0,conf:'低',why:'AI 未发现明显直接影响，待人工判断',rev:false,ai:true}; });
   AIRT.forEach(a=>{
     const k=a[0]+'>'+a[1];
-    if(cim[k]) cim[k]={v:a[2],conf:a[3],why:a[4],rev:false};
+    if(cim[k]) cim[k]={v:a[2],conf:a[3],why:a[4],rev:false,ai:true};
   });
   cimSelKey=null;
   toast('已预填 '+keys.length+' 条判断，请重点审核低置信度项'
@@ -3389,11 +3432,11 @@ function aiFill(){
 }
 function resetCim(){ clearCim(); cimSelKey=null; toast('已清空打分矩阵'); render(); }
 function pickCell(s,t){ cimSelKey=s+'>'+t; if(!cim[cimSelKey]) cim[cimSelKey]={v:0,conf:'低',why:'',rev:false}; renderCim(); }
-function setV(v){ if(cimSelKey){ cim[cimSelKey].v=v; cimResult=null; BAYES=null; renderCim(); } }
+function setV(v){ if(cimSelKey){ cim[cimSelKey].v=v; delete cim[cimSelKey].ai; cimResult=null; BAYES=null; renderCim(); } }
 corrResult=null;
 profResult=null;
 layeredResult=null;
-function setConf(c){ if(cimSelKey){ cim[cimSelKey].conf=c; renderCim(); } }
+function setConf(c){ if(cimSelKey){ cim[cimSelKey].conf=c; delete cim[cimSelKey].ai; renderCim(); } }
 function setWhy(w){ if(cimSelKey){ cim[cimSelKey].why=w; } }
 function toggleRev(){ if(cimSelKey){ cim[cimSelKey].rev=!cim[cimSelKey].rev; renderCim(); } }
 
@@ -3427,7 +3470,7 @@ function renderCim(){
       const k=s+'>'+t, r=cim[k];
       let cls='cc', txt='·', title='未打分';
       if(r){
-        txt=(r.v>0?'+':'')+r.v;
+        txt=(r.v>0?'+':'')+r.v+'<i class="cfw '+(r.conf==='低'?'l':(r.conf==='高'?'h':'m'))+'">'+(r.ai?'AI·':'')+r.conf+'</i>';
         cls='cc v'+r.v;
         if(r.conf==='低') cls+=' low';
         if(r.rev) cls+=' rev';
@@ -3453,6 +3496,7 @@ function renderCim(){
     '<span class="kv"><span>已填</span><span>'+done.length+' 条</span></span>'+
     '<span class="kv"><span>低置信度</span><span style="color:var(--rd)">'+low+' 条</span></span>'+
     '<span class="kv"><span>已审核</span><span style="color:var(--ok)">'+rev+' 条</span></span>'+
+    '<div class="cimlegend">格内上行＝影响分（−3…+3），下行＝置信度；<b>AI·</b> 表示这一格由 AI 预填、尚未经人工修改（改过分数或置信度即消失）；浅黄描边＝低置信度，需人审。</div>'+
     '<span class="kv"><span>待审核</span><span style="color:var(--wn)">'+need+' 条</span></span>'+
     '<span class="kv"><span>状态级精判</span><span>'+stK+' 条 / '+stC+' 格</span></span>'+
     '<div class="dim" style="margin-top:8px;font-size:12px;">整体为<b>描述符级</b>（19×19）；'
@@ -4407,13 +4451,13 @@ function renderMap(){
   const host=document.getElementById('mapFig'); if(!host) return;
   const tabs=document.getElementById('mapTabs');
   if(tabs){
-    tabs.innerHTML=[['cluster','情景族聚类图'],['heat','状态分布热力图']].map(([k,t])=>
+    tabs.innerHTML=[['cluster','情景簇聚类图'],['heat','状态分布热力图']].map(([k,t])=>
       '<button class="mtab'+(mapMode===k?' on':'')+'" onclick="setMapMode(\''+k+'\')">'+t+'</button>').join('');
   }
   if(!cimResult||!cimResult.consistent.length){
     host.innerHTML='<div style="padding:32px;text-align:center;color:var(--tx3);font-size:12.5px;line-height:1.9;">'
       +'运行一致性检验后，这里会把自洽情景画成图——<br>'
-      +'一张看它们分成几个「情景族」，一张看每个描述符在各情景中取哪一档。</div>';
+      +'一张看它们分成几个「情景簇」，一张看每个描述符在各情景中取哪一档。</div>';
     return;
   }
   if(filtN()&&!filtList().length){
@@ -4469,7 +4513,7 @@ function renderCluster(host){
   h+='<div style="font-size:12px;color:var(--tx3);margin-top:4px;line-height:1.8;">'
     +(filtN()?'<b>已按筛选条件</b>：':'共 ')
     +cl.total+' 个自洽情景'+(cl.total>N?('，图中显示前 '+N+' 个'):'')
-    +'，按取值相似度聚成 <b>'+G.length+'</b> 个情景族（族内平均差异不超过 '
+    +'，按取值相似度聚成 <b>'+G.length+'</b> 个情景簇（族内平均差异不超过 '
     +cl.allow+' 个描述符）。点靠得越近表示两个情景越像；鼠标悬停任一点可看它的完整取值。</div>';
   h+='<div class="mapfams">';
   G.forEach((g,gi)=>{
@@ -5723,6 +5767,62 @@ function renderBayes(){
     +'「观测」是参与这次更新的打分份数，单人打分时恒为 1，因此区间偏宽属正常。</div>';
   h+='<div style="margin-top:9px;"><button class="btn sm" onclick="computeBayes();render()">重算后验</button></div>';
   box.innerHTML=h;
+}
+
+
+/* ================= 更新日志 =================
+   记录每次讨论之后的缺陷修复、口径变更与新增功能，精确到「改了什么」。
+   类型：缺陷 / 功能 / 口径 / 术语 / 顺序 / 可用性。
+   与 git 提交对应；此处只列入对外可讲、能被核对的事项。 */
+const CHANGELOG=[
+ {d:'2026-10-22',k:'术语',x:'「情景族」改为「情景簇」',y:'cluster 的标准中文是「簇」；此前「族」与「组」混用，现统一为一套说法。'},
+ {d:'2026-10-22',k:'可用性',x:'打分矩阵格内显示置信度与 AI 标记',y:'原来只有边框颜色区分置信度，色弱或打印时看不出。现在格内直接写「AI·低」「中」「高」；人工改过分数或置信度后 AI 标记自动消失，能一眼分清哪些还没人审。'},
+ {d:'2026-10-22',k:'口径',x:'「目标节奏」区间统一为 20–30%',y:'技术文档与界面示例文案原写 21–28%，与状态定义表不一致；按平台实际数据统一，v1.2 历史归档保留原样。'},
+ {d:'2026-10-19',k:'缺陷',x:'「矛盾组合」由写死的表改为真算',y:'原表 4 条固定内容，与打分和检验结果无关；「采纳建议」只弹提示、不改状态。现从本次自洽集判断某两个状态是否从未同时出现，建议档位取自可共存的组合，点击即改状态并重新检验。'},
+ {d:'2026-10-19',k:'可用性',x:'状态选择改为单选',y:'原为复选框、可多选，但枚举时并不使用，等于标签。现在一个情景每个描述符只取一档；要排除不可行的档位请用数值锚定。'},
+ {d:'2026-10-19',k:'顺序',x:'数值锚定与跨层一致性移到第 3 步',y:'两者都是输入条件，原先放在最后的「检验与导出」页，与「输入在前、检验在后」的顺序相反。'},
+ {d:'2026-10-18',k:'缺陷',x:'贝叶斯由界面标签改为真算',y:'原开关只改界面文字，没有任何后验计算。现为有序 logit 后验：按置信度定噪声，输出均值与 90% 区间，后验均值矩阵替换打分参与一致性检验。'},
+ {d:'2026-10-18',k:'缺陷',x:'导出不再写「待定」',y:'按状态区间与「保守 / 中点 / 加码」取档生成参数值；缺区间时留空并标注需人工给值，不编数。装配文件不确定的描述符单独标出，不静默兜底。'},
+ {d:'2026-10-18',k:'功能',x:'稳健性检验',y:'按置信度把每条判断随机改一档、重算多轮，统计每个状态的出现率；单格翻转找出「改一档就推翻大批结论」的判断，人审力气照此分配。'},
+ {d:'2026-10-18',k:'缺陷',x:'修复逐层求解上级约束未传入',y:'链式层级时上级的 scope/cb 挂在路径末节，旧代码读顶层字段恒为空，等于上级约束从未下传；全零矩阵的旧测试恰好掩盖。修复后同数据省级 81→49 组。'},
+ {d:'2026-10-18',k:'功能',x:'逐层求解内核重写',y:'判筛分离：一条组合是否自洽只取决于它自己，整层判一次再按各级允许集归桶筛选。19 个描述符三层从跑不完降到 2.6 秒。'},
+ {d:'2026-10-17',k:'功能',x:'第 7 步分组导航',y:'17 个模块按「结论 / 可靠性 / 结构 / 交付」分四组，吸顶小菜单一次只看一组，右侧常驻检验状态。'},
+ {d:'2026-10-17',k:'功能',x:'描述符框架导入导出',y:'19 个描述符抽成 JSON（名称、类型、状态、区间），带五类校验；换一套行业或区域可整套替换，原框架自动存底。'},
+ {d:'2026-10-17',k:'功能',x:'情景报告导出 Word',y:'A4、宋体正文、黑体标题、实线表格，双击即改，不依赖服务端。'},
+ {d:'2026-10-17',k:'功能',x:'映射补证',y:'联网核实 15 条政策原文（含文号与关键条款），8 条中置信度凭原文升高、7 条维持并写明理由，挂入政策侧栏。'},
+ {d:'2026-10-16',k:'功能',x:'接入 CIB 一致性检验',y:'枚举状态组合、逐条计算影响平衡、按「选中状态是否为最大主动和」判自洽。这是平台第一次真的会算。'},
+ {d:'2026-10-16',k:'功能',x:'政策库与交叉影响打分',y:'内置 106 条政策路径及其与描述符的映射；n×n 可编辑矩阵、AI 预填、逐格置信度与依据。'}
+];
+const CHGKIND={缺陷:'rd',功能:'ok',口径:'wn',术语:'gray',顺序:'gray',可用性:'gray'};
+function openChangelog(){
+  const m=document.getElementById('chgModal');
+  if(!m) return;
+  renderChangelog();
+  m.classList.add('on');
+}
+function closeChangelog(){
+  const m=document.getElementById('chgModal');
+  if(m) m.classList.remove('on');
+}
+function renderChangelog(){
+  const b=document.getElementById('chgBody');
+  if(!b) return;
+  const cnt={};
+  CHANGELOG.forEach(e=>{ cnt[e.k]=(cnt[e.k]||0)+1; });
+  let h='<div class="chgintro">记录每次讨论之后的缺陷修复、口径变更与新增功能。'
+    +'每条都能在代码提交里找到对应；只列对外可讲、可核对的事项。</div>';
+  h+='<div class="chgsum">共 '+CHANGELOG.length+' 条　'
+    +Object.keys(cnt).map(k=>k+' '+cnt[k]).join('　')+'</div>';
+  h+='<div class="chglist">';
+  CHANGELOG.forEach(e=>{
+    h+='<div class="chgrow">'
+      +'<div class="chgd">'+e.d.slice(5)+'</div>'
+      +'<div class="chgk"><span class="ck '+(CHGKIND[e.k]||'gray')+'">'+e.k+'</span></div>'
+      +'<div class="chgb"><b>'+e.x+'</b><span>'+e.y+'</span></div>'
+      +'</div>';
+  });
+  h+='</div>';
+  b.innerHTML=h;
 }
 
 /* ================= 第 7 步分组菜单 =================
