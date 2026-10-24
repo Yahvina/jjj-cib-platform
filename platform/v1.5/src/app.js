@@ -666,6 +666,15 @@ function doAddState(nm){
   clearScopeCache(nm);
   rngAdd=null; render(); toast('已新增自定义状态「'+v+'」');
 }
+/* 属性值转义。data-tip 里会出现政策原文的引号（如碳达峰方案"二、主要目标"），
+   不转义会把属性提前闭合：提示被截断，后面拼的 scopeTag 等也被一并吞掉。 */
+function attrEsc(s){
+  return String(s===null||s===undefined?'':s)
+    .replace(/\s+/g,' ').trim()
+    .replace(/&/g,'&amp;').replace(/"/g,'&quot;')
+    .replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
 function renderStates(){
   const el=document.getElementById('statePanel'), names=Object.keys(sel.desc);
   if(!names.length){ el.innerHTML='<div class="empty">左侧勾选描述符后，这里显示它的状态选项</div>'; }
@@ -710,25 +719,24 @@ function renderStates(){
               <button class="btn sm pri" onclick="doAddState('${nm}')">添加</button>
               <button class="btn sm" onclick="addState('${nm}')">取消</button></div>
           </div>`:'';
-      const hint={direct:'区间已对齐政策目标',conv:'区间需换算后使用',example:'区间为示例值，待补政策依据',
-        exo:'外生输入，不由政策工具驱动'}[ev.k]||'';
       const snote=SCOPE_NOTE[nm+'|'+rngScope];
       const hasScope=defs.some(x=>x.scoped);
       const scopeTag=(rngScope!=='region')
         ? `<i class="evi ${hasScope?'scope':'example'}">${hasScope?('已按'+SCOPE_NAME[rngScope]+'口径'):'沿用区域级'}</i>`
         : '';
-      const lineTxt=snote||ev.t;
-      const lineLb=snote?'本辖区口径':(ev.k==='direct'?'政策依据':'目标口径（需换算）');
-      const showLine=!!snote || ev.k==='direct' || ev.k==='conv';
-      const hintTxt=(rngScope!=='region'&&!hasScope)?'本辖区暂无独立口径，沿用区域级区间':hint;
+      /* 卡片里不再单列「依据行」与页脚小字：二者的内容都是解释性的，且与徽标重复。
+         现在徽标自己就是悬停锚点，说明文字挂在它的 data-tip 上——
+         本辖区口径优先，其次取档方式依据；再补「沿用区域级」这类口径说明。 */
+      let evTip=snote||ev.t||'';
+      if(rngScope!=='region'&&!hasScope){
+        evTip+=(evTip?'；':'')+'本辖区暂无独立口径，沿用区域级区间。';
+      }
       return `<div class="stbox"><div class="hd">${nm}
         ${c.src?`<span class="src">来源：${c.src}</span>`:''}
-        <i class="evi ${ev.k}" title="${ev.t}">${EVID_WORD[ev.k]||''}</i>${scopeTag}</div>`
-        +(showLine?`<div class="evline"><b>${lineLb}</b>　${lineTxt}</div>`:'')
+        <i class="evi tip wide ${ev.k}" tabindex="0" data-tip="${attrEsc(evTip)}">${EVID_WORD[ev.k]||''}</i>${scopeTag}</div>`
         +rows+addBox+ancRowHTML(nm)+
         `<div class="stfoot"><button class="btn sm" onclick="addState('${nm}')">＋ 自定义状态</button>
-          ${hasScope&&rngScope!=='region'?`<button class="btn sm" onclick="dropScopeOverride('${nm}')">恢复区域级</button>`:''}
-          <span class="sthint">${hintTxt}</span></div>`+
+          ${hasScope&&rngScope!=='region'?`<button class="btn sm" onclick="dropScopeOverride('${nm}')">恢复区域级</button>`:''}</div>`+
         (bad.length?`<div class="stbad">区间衔接提示：${bad.join('；')}</div>`:'')+
         `</div>`;
     }).join('')
@@ -4228,6 +4236,9 @@ function renderBayes(){
    已有情景需要重新检验；省略 = 不动结果（只改界面、措辞、性能或新增旁路分析）。
    与 git 提交对应；此处只列入对外可讲、能被核对的事项。 */
 const CHANGELOG=[
+ {d:'2026-10-24',k:'可用性',x:'状态设置区的解释文字改为悬停显示',y:'这一段原本常驻两处解释：描述符树下一条"结果型不能勾选"的说明，以及状态设置下方整段"勾选只用于定点检验与取档导出、不缩小搜索范围"。它们讲的是同一件事的两面，却占了状态区上方最显眼的两块位置，第一次用的人还没选到任何东西就先读了两段说明。现在都收进标题旁的悬停提示，鼠标移上去才展开；文字一字未删，只是不再常驻。状态行末尾的证据等级徽标也从裸 title 换成同一套气泡，样式统一。'},
+ {d:'2026-10-24',k:'缺陷',x:'悬停提示含引号时会截断气泡、弄坏页面结构',y:'提示文本是拼进 HTML 属性的，里面只要出现一个双引号，属性就在那里提前闭合，后面的文字漏进标签之间：气泡显示不全，页面结构也跟着错位。现在统一经 attrEsc() 转义后再拼。这是加了新气泡才暴露出来的——原先那几处提示恰好没有引号，一直没触发。'},
+ {d:'2026-10-24',k:'缺陷',x:'测试闸门跳过的用例看起来和通过的一样',y:'不带 -Prod 时跑不了成品冒烟，闸门把它从名单里删掉后照旧打印"29/29 全部通过"，与真跑满 30 套的输出一字不差——跳过一套和跑过一套分不出来。现在汇总行写明跳过了哪几套。同类问题还有一处：-Repo 从工作区跑时按相对路径解析，指向一个根本不存在的目录，这个开关一直是坏的，现在会自己去仓库里找归档副本。'},
  {d:'2026-10-24',k:'可用性',x:'删掉演示模式',y:'它把已经算好的结果重新排成一套翻页演示，信息量与正常页面完全重叠，却多出一条独立入口与一套导航。面向导师汇报的场景用正常页面讲即可，不需要一个只能读不能改的副本。入口、弹层、导航、十章渲染代码一并移除。'},
  {d:'2026-10-24',k:'可用性',x:'删掉跨层一致性台账',y:'那张表要用户手工给每层填一个档位、再查相邻层是否方向相反，但它不参与任何计算——枚举、逐层求解、逐层约束都不读它，改它不影响任何结果，是一份填了也没用的账。档位方向的判定现在长在逐层求解的结果上（layConflicts），判的是真正被算出来的组合；能力保留，只去掉手工台账。'},
  {d:'2026-10-24',k:'可用性',x:'数值锚定下沉进状态面板，改叫已知值',y:'原先是第 3 步里一张独立的表格，但它与选状态本来就是同一层输入——先选档位、再说这个档位在数值上成不成立，拆成两处要来回对照。现在每个描述符的状态框下方多一行已知值输入，选完状态顺手定它。数值上无解的描述符直接标红；选中状态与已知值不相交时也在面板里点名——不说的话用户会以为它被检验过了。'},

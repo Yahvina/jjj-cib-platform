@@ -248,7 +248,6 @@ p.pd{color:var(--tx2);font-size:15px;line-height:1.75;margin-bottom:20px;max-wid
 .re-dash{color:var(--tx3);}
 .stfoot{display:flex;align-items:center;gap:10px;padding:8px 12px;
   border-top:1px solid var(--line2);background:#fff;}
-.stfoot .sthint{font-size:11px;color:var(--tx3);}
 .stbad{margin:0 12px 10px;padding:7px 11px;font-size:13px;color:var(--wn);
   background:var(--wn-s);border-radius:3px;}
 .btn.danger{color:var(--rd);border-color:var(--rd-b);}
@@ -562,6 +561,8 @@ table.stmat select.sts.on{border-color:var(--pri);color:var(--pri);font-weight:6
 /* 区间证据标记 */
 .hd .evi{font-size:11px;font-weight:500;font-style:normal;padding:2px 8px;border-radius:9px;
   margin-left:8px;vertical-align:middle;cursor:help;}
+/* 徽标自己当悬停锚点时，不要 .tip 的虚线下划线——它已经有底色和边框了 */
+.hd .evi.tip{border-bottom:none;}
 .evi.direct{background:#ECF0F2;color:#2F4858;border:1px solid #C3D0D6;}
 .evi.conv{background:#F8F2EA;color:#8C5A3C;border:1px solid #E4CDB5;}
 .evi.example{background:#F1EEE7;color:#6E675D;border:1px solid #E3DCD0;}
@@ -570,11 +571,6 @@ table.stmat select.sts.on{border-color:var(--pri);color:var(--pri);font-weight:6
 .rngedit .re-ev{font-size:13px;color:var(--tx2);line-height:1.7;background:var(--panel2);
   padding:7px 10px;border-radius:3px;margin:8px 0;}
 .rngedit .re-ev b{color:var(--pri);font-weight:500;}
-
-/* 描述符卡片里的依据行（比徽标更醒目） */
-.stbox .evline{font-size:13px;color:var(--tx2);background:var(--panel2);
-  padding:7px 12px;line-height:1.7;border-bottom:1px solid var(--line);}
-.stbox .evline b{color:var(--pri);font-weight:500;}
 
 /* 区间视角切换（区域级 / 北京 / 天津 / 河北） */
 .scopebar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;background:var(--panel2);
@@ -1139,6 +1135,10 @@ details.fold .foldbody{padding:10px 14px;margin-top:8px;border-left:2px solid va
 #pdoc .doc-back a:hover{color:var(--tx);border-bottom-color:var(--tx);}
 /* 统计标签上的解释：不加下划线，鼠标变问号 */
 .tip.quiet{border-bottom:none;cursor:help;}
+/* 状态设置区把解释性文字收进提示里，锚点就是原来的标签本身（不加下划线、不加图标，
+   否则又把版面加回去了）。只留两个可发现的线索：光标变 help、悬停时文字加深。
+   只作用于 span——证据徽标是 i.evi，有自己的配色，不该被这条改掉。 */
+span.tip.quiet:hover,span.tip.quiet:focus-visible{color:var(--tx);}
 /* 政策库：标记说明挪到表格右上，作为辅助入口 */
 .polhelp{display:flex;justify-content:flex-end;margin:0 0 8px;}
 .polhelp .fold{margin:0;}
@@ -1218,5 +1218,8 @@ main .ltab .hd,main .lstab .hd{background:transparent;}
 /* 描述符树与右侧面板：去边框，用细线分节 */
 main .tree{border:0;border-radius:0;border-top:1px solid var(--line);}
 main .tl1{background:transparent;}
-main .stbox{border:0;border-radius:0;border-top:1px solid var(--line);background:transparent;}
+/* overflow 必须开着：状态卡里的解释收进了悬停提示，而 .tip::after 是绝对定位的，
+   被 overflow:hidden 裁掉就只剩半个气泡。这里边框与圆角都已去掉，无需再裁。 */
+main .stbox{border:0;border-radius:0;border-top:1px solid var(--line);background:transparent;
+  overflow:visible;}
 main .stbox .hd{background:transparent;border-bottom:1px solid var(--line);}

@@ -35,12 +35,29 @@ $CROSS = [string][char]0x2717   # the cross mark used by the tests
 # Auto-detect instead of making the caller pass a flag, so the archived copy
 # keeps working after the folder is moved or cloned elsewhere.
 $isArchive = (-not (Test-Path (Join-Path $root 'v15'))) -and (Test-Path (Join-Path $root '..\src\app.js'))
-if ($Repo -or $isArchive) {
+
+# -Repo means "test the archived copy". That copy lives in the git repo, not
+# beside this script, so resolve it explicitly -- the old code just used '..\'
+# and produced a path that never existed, making -Repo fail from the workspace.
+$repoRoot = $null
+if ($Repo -and -not $isArchive) {
+  $candRepo = Join-Path $root '..\jjj-cib-platform\platform\v1.5\tests'
+  if (Test-Path (Join-Path $candRepo '..\src\app.js')) { $repoRoot = $candRepo }
+  elseif (Test-Path (Join-Path $root '..\src\app.js')) { $repoRoot = $root }
+}
+
+if ($repoRoot) {
+  $srcArg  = Join-Path $repoRoot '..\src\app.js'
+  $htmlArg = Join-Path $repoRoot '..\index.html'
+  $testDir = $repoRoot
+} elseif ($Repo -or $isArchive) {
   $srcArg  = Join-Path $root '..\src\app.js'
   $htmlArg = Join-Path $root '..\index.html'
+  $testDir = $root
 } else {
   $srcArg  = Join-Path $root 'v15\src\app.js'
   $htmlArg = Join-Path $root 'v15\index.html'
+  $testDir = $root
 }
 # The built file has a Chinese name; this script is ASCII-only, so locate the
 # newest single-file build by pattern instead of pasting the name in. From the
@@ -61,8 +78,16 @@ function Get-TestArg([string]$name) {
   return $srcArg
 }
 
-$tests = Get-ChildItem (Join-Path $root 'test_*.js') | Sort-Object Name
-if (-not $Prod) { $tests = $tests | Where-Object { $_.Name -ne 'test_gen_smoke.js' } }
+$allTests = Get-ChildItem (Join-Path $testDir 'test_*.js') | Sort-Object Name
+$tests = $allTests
+# A skipped test must never look like a passed one. Without -Prod the smoke test
+# cannot run, so drop it from the run but remember it: the summary prints the
+# skip count, otherwise "29/29 all passed" reads as if all 30 files ran.
+$skipped = @()
+if (-not $Prod) {
+  $skipped = @($tests | Where-Object { $_.Name -eq 'test_gen_smoke.js' })
+  $tests = $tests | Where-Object { $_.Name -ne 'test_gen_smoke.js' }
+}
 
 $pass = 0
 $failed = @()
@@ -95,11 +120,16 @@ foreach ($t in $tests) {
 Write-Host ''
 $total = $tests.Count
 $where = if ($Repo -or $isArchive) { 'archive copy' } else { 'workspace source' }
+$skipNote = ''
+if ($skipped.Count -gt 0) {
+  # ASCII-only script: build the wording from $skipped names, no non-ASCII literals.
+  $skipNote = ' (+' + $skipped.Count + ' skipped, not run: ' + (($skipped | ForEach-Object { $_.Name }) -join ', ') + ')'
+}
 if ($failed.Count -eq 0) {
-  Write-Host ('[' + $where + '] ' + $pass + '/' + $total + ' all passed (no cross marks, no non-zero exits)')
+  Write-Host ('[' + $where + '] ' + $pass + '/' + $total + ' all passed (no cross marks, no non-zero exits)' + $skipNote)
   exit 0
 } else {
-  Write-Host ('[' + $where + '] ' + $pass + '/' + $total + ' passed, ' + $failed.Count + ' failed:')
+  Write-Host ('[' + $where + '] ' + $pass + '/' + $total + ' passed, ' + $failed.Count + ' failed:' + $skipNote)
   foreach ($f in $failed) {
     Write-Host ('  FAIL ' + $f.Name + '   ' + $f.Why)
     foreach ($d in $f.Detail) { Write-Host ('       ' + $d.Trim()) }

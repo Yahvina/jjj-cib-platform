@@ -173,14 +173,12 @@
         <button class="btn sm" onclick="setSearch('')">清除</button>
       </div>
       <div style="font-size:13px;color:var(--tx2);margin-bottom:8px;">
-        描述符树　<span id="treeCnt">共 19 个 · 已选 0 项</span></div>
+        <span class="tip quiet wide" tabindex="0" data-tip="结果型由模型算出、不能勾选，节点内已标注「不可作为输入」。">描述符树</span>　<span id="treeCnt">共 19 个 · 已选 0 项</span></div>
       <div class="tree" id="tree"></div>
-      <div class="note" style="margin-top:10px;"><b>结果型由模型算出，不能勾选</b>（节点内已标注）。</div>
     </div>
     <div>
-      <div style="font-size:13px;color:var(--tx2);margin-bottom:8px;">状态设置 <span class="dim">（含取值区间，可编辑）</span></div>
-      <p class="hintline" style="margin-bottom:9px;">勾选状态<b>只用于定点检验与取档导出</b>，不改变全量检验——一致性检验始终把每个描述符的<b>全部状态</b>都枚举一遍，
-        勾选不缩小搜索范围。要排除数值上站不住的档位，用每个描述符下方的<b>已知值</b>。</p>
+      <div style="font-size:13px;color:var(--tx2);margin-bottom:8px;">
+        <span class="tip quiet wide" tabindex="0" data-tip="含取值区间，可编辑。勾选状态只用于定点检验与取档导出，不改变全量检验——一致性检验始终把每个描述符的全部状态都枚举一遍，勾选不缩小搜索范围。要排除数值上站不住的档位，用每个描述符下方的已知值。">状态设置</span></div>
       <div class="scopebar">
         <span class="slb">区间视角</span>
         <span class="scopebtns" id="scopeBtns"></span>
