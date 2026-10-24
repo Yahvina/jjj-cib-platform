@@ -100,6 +100,31 @@ jjj-cib-platform/
 
 ---
 
+## 发布流程（改一次就发一次）
+
+平台源码的**工作副本在** `C:\Users\guiqu\WorkBuddy\2026-09-16-21-47-56\_src\v15\`（`index.html` + `src/app.js` + `src/styles.css`），本仓库里的是**归档副本**。改完一处就按下面三步走，线上始终等于仓库里的成品：
+
+```powershell
+# 1. 在本机工作副本改完，跑自检（30 套，全过才继续）
+cd C:\Users\guiqu\WorkBuddy\2026-09-16-21-47-56\_src
+foreach($t in Get-ChildItem test_*.js){ node $t.Name v15/src/app.js }   # test_menu/test_doc 传 v15/index.html
+
+# 2. 合并成单文件并写进仓库（--repo 会同时更新 platform/<版本>/ 与本仓库根 index.html）
+python merge_v15.py --repo
+
+# 3. 提交并推送（Pages 约 1 分钟后自动更新）
+cd ..\jjj-cib-platform
+git add -A; git commit -m "简述这次改了什么"; git push origin main
+```
+
+**`--repo` 不能省**：不带它时只写桌面与工作区 `output/`，仓库与线上都不会动。带它时会自动做三件事——写 `platform/<版本>/` 单文件成品、镜像分文件源码、**把仓库里的源码重新合并一遍并断言与成品逐字节相同**（防止仓库源码与线上成品变成两套东西），同时把 30 套测试一起归档。
+
+**版本号三处绑定**：`merge_v15.py` 的 `VER`、成品文件名 `NAME`、`index.html` 的 `<title>`。改版本号要三处一起改，否则发布出去的成品与归档目录对不上。
+
+**验证发布成功**：`git rev-parse HEAD` 与 `git rev-parse origin/main` 相等即已推送（推送时 PowerShell 可能因 `git` 往 stderr 写进度而报 `NativeCommandError` / exit 1，**那是显示问题不是失败**，看哈希相等即可）。线上确认：打开 https://yahvina.github.io/jjj-cib-platform/ ，标题栏应显示对应版本号。
+
+---
+
 ## 版本记录
 
 | 版本 | 日期 | 说明 |
@@ -158,4 +183,4 @@ jjj-cib-platform/
 
 ---
 
-*清华大学 · 2026-10-17*
+*清华大学 · 2026-10-24*
