@@ -35,7 +35,8 @@ code{font-family:ui-monospace,Consolas,monospace;background:var(--line2);padding
 <div class="wrap">
 
   <h1>平台亮点模块索引</h1>
-  <p class="sub">从 v1.5 工作副本（<code>_src/v15/</code>）里切出的可复用功能模块。每个模块单独成目录，含 HTML 片段、核心逻辑与样式摘录，可独立取用、按需拼装。全部由 <code>build_highlights.py</code> 生成，不是手工摘抄。</p>
+  <p class="sub">从 v1.5 工作副本（<code>_src/v15/</code>）里切出的功能模块摘录。每个模块单独成目录，含 HTML 片段、核心逻辑与样式摘录，按需拼装。全部由 <code>build_highlights.py</code> 生成，不是手工摘抄。</p>
+  <p class="sub" style="color:var(--wn)"><b>这不是可直接运行的 demo。</b>切出的是片段与逻辑摘录：各模块都还调用着平台里的其他辅助函数与全局状态，直接拷走本目录跑不起来——每个模块的 <code>README.md</code> 里逐条列出了缺哪些。要看运行效果请打开完整平台；要复用请把列出的依赖一并取走。</p>
   <div class="meta">
     <span class="tag hi">8 个模块</span>
     <span class="tag">公共样式 _shared/base.css</span>

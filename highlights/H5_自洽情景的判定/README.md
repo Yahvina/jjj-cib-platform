@@ -53,6 +53,13 @@
 
 `sel`、`cim`、`cimResult`、`filt`、`toast`、`render`
 
+## 目录外的函数依赖
+
+本模块还调用了 17 个**没有随本目录切出**的辅助函数，直接拷走本目录跑不起来；
+要跑请用完整平台，或连同下列调用一起取：
+
+`ST`　`TREE`　`ancAllowed`　`ancOf`　`computeBayes`　`defsOf`　`el`　`expandV`　`kv`　`nowStr`　`prepErr`　`presence`　`rangeSize`　`rngTxt`　`rows`　`seen`　`selIdxOf`
+
 ## 复用方式
 
 1. 引入 `../_shared/base.css`（含 v1.5 全部设计令牌与基础组件）；

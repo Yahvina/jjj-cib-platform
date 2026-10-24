@@ -374,6 +374,71 @@ def css_rules(text):
 CSS_RULES = css_rules(CSS)
 
 
+JS_FUNCS = set(re.findall(r'(?:^|\n)\s*function\s+([A-Za-z_$][\w$]*)', JS))
+
+# JS 语法关键字与内建，不算"外部依赖"
+JS_BUILTIN = set('''if for while switch catch return function typeof new delete void in of do else try
+Math JSON Object Array String Number Boolean Date RegExp Error Map Set Promise parseInt parseFloat
+isNaN isFinite encodeURIComponent decodeURIComponent setTimeout setInterval clearTimeout clearInterval
+requestAnimationFrame Blob FileReader URL from keys values entries assign freeze isInteger abs min max
+getElementById querySelector querySelectorAll addEventListener removeEventListener createElement
+appendChild removeChild getItem setItem removeItem getAttribute setAttribute classList contains
+closest matches focus blur click scrollTo scrollIntoView getBoundingClientRect createObjectURL
+revokeObjectURL download toFixed slice splice split join replace trim toLowerCase toUpperCase push
+pop shift unshift sort filter map forEach reduce indexOf lastIndexOf includes concat repeat padStart
+padEnd toLocaleString toLocaleDateString btoa atob escape unescape structuredClone queueMicrotask
+Int32Array Uint8Array Float64Array'''.split())
+
+
+def _locals(text):
+    """文本自己声明的名字：函数形参、箭头函数形参、局部 const/let/var。
+
+    这些名字看起来像调用（`x=>`、`function(g)`、`const cells=`），但都是模块
+    自己的局部量，列进"外部依赖"就是误报。
+    """
+    out = set()
+    for args in re.findall(r'function\s*[A-Za-z_$\w]*\s*\(([^)]*)\)', text):
+        out |= set(re.findall(r'[A-Za-z_$][\w$]*', args))
+    for args in re.findall(r'\(([^()]*)\)\s*=>', text):        # (a, b) =>
+        out |= set(re.findall(r'[A-Za-z_$][\w$]*', args))
+    out |= set(re.findall(r'(?<![\w$.])([A-Za-z_$][\w$]*)\s*=>', text))  # a =>
+    out |= set(re.findall(r'(?:const|let|var)\s+([A-Za-z_$][\w$]*)\s*=', text))
+    return out
+
+
+# 浏览器宿主对象：出现即证明是环境 API，不是本项目的辅助函数
+JS_HOST = set('''document window navigator location localStorage console screen history
+matchMedia requestAnimationFrame cancelAnimationFrame getComputedStyle ResizeObserver
+IntersectionObserver CustomEvent Event FileReader Blob URL Image Audio'''.split())
+
+
+def _calls(text):
+    """文本里出现的「函数调用名」。去注释、去字符串、去属性访问后取 `name(`。"""
+    t = re.sub(r'//[^\n]*', '', text)
+    t = re.sub(r'/\*.*?\*/', '', t, flags=re.S)
+    t = re.sub(r"'[^'\n]*'", '""', t)
+    t = re.sub(r'"[^"\n]*"', '""', t)
+    t = re.sub(r'\.[A-Za-z_$][\w$]*', '', t)
+    return set(re.findall(r'\b([A-Za-z_$][\w$]*)\s*\(', t))
+
+
+def external_calls(fragment, logic, globals_, declared):
+    """本模块调了、但既没随模块切出、也不是浏览器内建的那些名字。
+
+    这是 README 里「依赖什么」那一节的数据来源。**不维护这张表就会说谎**：
+    早期 README 只写「依赖的平台状态」，读者会以为逻辑是自足的，实际上每个
+    模块都调了几十个没切出来的辅助函数（el / kv / dOf / ST …），直接拷走
+    跑不起来。诚实的说法是「片段 + 逻辑摘录」，不是「可运行 demo」。
+
+    按源码静态扫描得出，只求「别谎称自足」，不追求零误报——所以过滤掉了
+    模块自己的局部量与宿主对象，剩下的即使有个别噪声也只会让读者更保守。
+    """
+    text = fragment + '\n' + logic
+    names = _calls(text)
+    skip = declared | globals_ | JS_BUILTIN | JS_HOST | _locals(text)
+    return sorted(n for n in names if n not in skip)
+
+
 def css_block(keys):
     """按选择器关键字摘出相关规则；:root 永远带上（设计令牌）。"""
     keep = []
@@ -556,11 +621,23 @@ def gen_module(spec):
         code, l0, l1 = extract_decl(name)
         parts.append(code)
         locs.append((name, l0, l1))
+    logic = '\n\n'.join(parts)
     files['logic.js'] = (
         '/* %s ｜ %s ｜ 核心逻辑\n'
         '   摘自 _src/v15/src/app.js，按声明整段切出，未作改写。\n'
         '   下面每个函数在 app.js 里的位置见本目录 README。 */\n\n%s\n'
-        % (spec['no'], spec['title'], '\n\n'.join(parts)))
+        % (spec['no'], spec['title'], logic))
+
+    # 本模块调用了、但没随模块切出的外部函数——README 必须如实列出，
+    # 否则读者会以为拷走本目录就能跑（见 external_calls 的说明）。
+    declared = set()
+    for name in spec['js']:
+        declared.add(name)
+    ext = external_calls(html, logic, set(spec['globals']), declared)
+    ext_txt = ('本模块还调用了 %d 个**没有随本目录切出**的辅助函数，直接拷走本目录跑不起来；\n'
+               '要跑请用完整平台，或连同下列调用一起取：\n\n%s\n'
+               % (len(ext), '　'.join('`%s`' % n for n in ext))) if ext else \
+              '本模块不调用目录外的函数，逻辑自足。\n'
 
     files['style.css'] = (
         '/* %s ｜ %s ｜ 相关样式摘录\n'
@@ -584,13 +661,15 @@ def gen_module(spec):
         '| `README.md` | 本说明 |\n\n'
         '## 依赖的平台状态（未随本模块导出）\n\n'
         '%s\n\n'
+        '## 目录外的函数依赖\n\n'
+        '%s\n'
         '## 复用方式\n\n'
         '1. 引入 `../_shared/base.css`（含 v1.5 全部设计令牌与基础组件）；\n'
         '2. 把 `fragment.html` 粘进页面结构；\n'
         '3. 引入 `logic.js`，在数据准备好之后调用其渲染入口。\n\n'
         '> 本目录由 `build_highlights.py` 从源码切出，请勿手改——改平台源码后重新生成。\n'
         % (spec['no'], spec['title'], spec['why'], line_ranges(seq), rows,
-           '、'.join('`%s`' % g for g in spec['globals'])))
+           '、'.join('`%s`' % g for g in spec['globals']), ext_txt))
     return files
 
 
@@ -651,9 +730,14 @@ def gen_index():
         '.foot{margin-top:26px;font-size:12.5px;color:var(--tx3);}\n'
         '</style>\n</head>\n<body>\n<div class="wrap">\n\n'
         '  <h1>平台亮点模块索引</h1>\n'
-        '  <p class="sub">从 %s 工作副本（<code>_src/v15/</code>）里切出的可复用功能模块。'
-        '每个模块单独成目录，含 HTML 片段、核心逻辑与样式摘录，可独立取用、按需拼装。'
+        '  <p class="sub">从 %s 工作副本（<code>_src/v15/</code>）里切出的功能模块摘录。'
+        '每个模块单独成目录，含 HTML 片段、核心逻辑与样式摘录，按需拼装。'
         '全部由 <code>build_highlights.py</code> 生成，不是手工摘抄。</p>\n'
+        '  <p class="sub" style="color:var(--wn)">'
+        '<b>这不是可直接运行的 demo。</b>切出的是片段与逻辑摘录：各模块都还调用着'
+        '平台里的其他辅助函数与全局状态，直接拷走本目录跑不起来——每个模块的 '
+        '<code>README.md</code> 里逐条列出了缺哪些。要看运行效果请打开完整平台；'
+        '要复用请把列出的依赖一并取走。</p>\n'
         '  <div class="meta">\n'
         '    <span class="tag hi">%d 个模块</span>\n'
         '    <span class="tag">公共样式 _shared/base.css</span>\n'

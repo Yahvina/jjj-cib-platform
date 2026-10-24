@@ -75,6 +75,13 @@
 
 `sel`、`rngScope`、`rngEdit`、`rngAdd`、`cimResult`、`BAYES`、`render`
 
+## 目录外的函数依赖
+
+本模块还调用了 11 个**没有随本目录切出**的辅助函数，直接拷走本目录跑不起来；
+要跑请用完整平台，或连同下列调用一起取：
+
+`TREE`　`after`　`allDescs`　`collapsed`　`dOf`　`expanded`　`nSel`　`names`　`searchQ`　`toast`　`xlPickHTML`
+
 ## 复用方式
 
 1. 引入 `../_shared/base.css`（含 v1.5 全部设计令牌与基础组件）；
