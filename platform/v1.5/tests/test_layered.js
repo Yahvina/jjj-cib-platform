@@ -126,24 +126,31 @@ if(okChain){
 }
 
 console.log();
-console.log('=== 8. 档位方向判定长在真解上（原跨层一致性表已下沉）===');
-console.log('  layConflicts 存在:', (typeof layConflicts==='function')?'✓':'✗');
-console.log('  layDirectionHTML 存在:', (typeof layDirectionHTML==='function')?'✓':'✗');
-renderLay();
-const lh=document.getElementById('layBox').innerHTML;
-console.log('  渲染出档位方向块:', /档位方向/.test(lh)?'✓':'✗');
-console.log('  无冲突时给出「约束已生效」而非「没查」:', /约束已经生效/.test(lh)?'✓':'✗');
-// 造一条必然冲突的假结果：同一描述符相邻两层差 2 档
-const fake={ds:[A], order:['region','prov'], combos:1, ts:'0ms',
-  layers:[{scope:'region',n:1,checked:1},{scope:'prov',n:1,checked:1}],
-  final:[{path:[{scope:'region',cb:[0]},{scope:'prov',cb:[2]}]}]};
-const bad=layConflicts(fake);
-console.log('  差 2 档被判定为冲突:', (bad.length===1&&bad[0].diff===2)?'✓':'✗');
-const fakeOK={ds:[A], order:['region','prov'], combos:1, ts:'0ms',
-  layers:[{scope:'region',n:1,checked:1},{scope:'prov',n:1,checked:1}],
-  final:[{path:[{scope:'region',cb:[1]},{scope:'prov',cb:[2]}]}]};
-console.log('  差 1 档不算冲突:', layConflicts(fakeOK).length===0?'✓':'✗');
-console.log('  面板会列出冲突条目:', /相差 2 档/.test(layDirectionHTML(fake))?'✓':'✗');
+console.log('=== 8. 约束前置：上层档位筛掉不相容的下层档位 ===');
+// 2026-10-24 决策一②：原先的事后检查器（layConflicts/layDirectionHTML，跑完枚举再
+// 回头比档位）已删，改成下层档位在选之前就被筛。判定内核没变，仍是
+// 「方向相差 ≥2 档、或取值区间不相交」，只是提前到选择时执行。这里直接测内核。
+console.log('  xlReason 存在:', (typeof xlReason==='function')?'✓':'✗');
+console.log('  事后检查器已删:', (typeof layConflicts==='undefined'&&typeof layDirectionHTML==='undefined')?'✓':'✗');
+console.log('  求解出口仍在（下沉未删）:', (typeof runLayered==='function'&&typeof renderLay==='function')?'✓':'✗');
+[['region',0,'bj',2],['region',2,'bj',0],['region',1,'bj',2],['region',0,'bj',0]].forEach(([us,ui,ds,di])=>{
+  const w=xlReason(A,us,ui,ds,di);
+  console.log('  '+XL_NAME[us]+'「'+ST(A)[ui]+'」→ '+XL_NAME[ds]+'「'+ST(A)[di]+'」: '+(w?('不可选（'+w+'）'):'可选'));
+});
+// 相差 2 档必然被筛掉（与旧口径一致），这是不能再退让的那条
+console.log('  差 2 档必被筛:', xlReason(A,'region',0,'bj',2)?'✓':'✗');
+console.log('  同档必可选:', xlReason(A,'region',0,'bj',0)===null?'✓':'✗');
+// 同一层不该自我限制
+console.log('  同层不判定:', xlReason(A,'region',0,'region',2)===null?'✓':'✗');
+// 缺值一律放行，不能因为没选就锁死界面
+console.log('  未选上级时不锁:', (xlReason(A,'region',null,'bj',2)===null&&xlReason(A,'region',0,'bj',null)===null)?'✓':'✗');
+// 筛选必须真的接进渲染：选层 ≥2 时每个描述符多出分层档位行
+xlayers=function(){ return ['region','prov','city']; };
+const pickHTML=xlPickHTML(A);
+console.log('  分层档位行已渲染:', (/xlrow/.test(pickHTML)&&/xlSet/.test(pickHTML))?'✓':'✗');
+console.log('  首层不重复出现（不设两个真相）:', pickHTML.indexOf('>区域级<')<0?'✓':'✗');
+xlayers=function(){ return ['region']; };
+console.log('  只勾一层时不出分层行:', xlPickHTML(A)===''?'✓':'✗');
 `;
 
 try { new Function(code + test)(); } catch (e) {

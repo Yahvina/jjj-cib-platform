@@ -310,14 +310,13 @@
 
 <!-- ============ 步骤 7 ============ -->
 <section class="pane" id="p6">
-  <h2 class="pt tip wide" tabindex="0" data-tip="本页只做两件事：看一致性检验结果，导出配置文件。锚定与状态在前面的步骤已完成。">检验与导出</h2>
+  <h2 class="pt tip wide" tabindex="0" data-tip="本页只做三件事：看一致性检验结果、判断结果信不信、把交付物拿走。跨层约束在前面的步骤已经生效，这里不再重复检查。">检验与导出</h2>
 
   <div class="p6nav">
     <div class="p6tabs">
       <button class="p6tab sel" data-g="concl" onclick="p6Group('concl')">结论<span>3</span></button>
-      <button class="p6tab" data-g="rel" onclick="p6Group('rel')">可靠性<span>3</span></button>
-      <button class="p6tab" data-g="struct" onclick="p6Group('struct')">结构<span>7</span></button>
-      <button class="p6tab" data-g="out" onclick="p6Group('out')">交付<span>4</span></button>
+      <button class="p6tab" data-g="rel" onclick="p6Group('rel')">可靠性<span>4</span></button>
+      <button class="p6tab" data-g="out" onclick="p6Group('out')">交付<span>3</span></button>
     </div>
     <div class="sp"></div>
     <span class="p6stat" id="p6stat"></span>
@@ -327,31 +326,25 @@
   <div class="card" data-grp="concl">
     <h3>检验结果</h3>
     <div id="checkResult"></div>
-  </div>
-
-  <div class="card" data-grp="concl">
-    <h3>矛盾组合与处理建议</h3>
-    
-    <div id="confList"></div>
-  </div>
-
-  <div class="card" data-grp="concl">
-    <h3>情景筛选</h3>
-    <details class="fold"><summary>情景筛选是什么</summary><div class="foldbody">自洽情景往往几十上百个，看不过来。<b>给描述符指定要求取值</b>，切到「结构」组里的情景表与情景地图，就只看命中的那一部分——
+    <details class="fold" id="layFold"><summary>跨层逐层求解（勾了多个层级时才用得上）</summary><div class="foldbody">
+      <p style="margin:0 0 6px;">上面的检验把所有描述符放在<b>同一层</b>枚举。勾了多个层级时，还可以让上级的取值去<b>约束</b>下级再解一遍：下级与上级区间不相交的状态根本进不了枚举，得到的是每层取值都记下来的「跨层相容组合」。</p>
+      <div id="layBox"></div>
+    </div></details>
+    <details class="fold"><summary>情景筛选是什么</summary><div class="foldbody">自洽情景往往几十上百个，看不过来。<b>给描述符指定要求取值</b>，本页的情景地图与下方分析工具箱里的情景表就只看命中的那一部分——
       这是用假设去反查「哪种未来更可能」的入口。<b>筛选只影响展示，不改变检验结果本身。</b></div></details>
     <div id="filtBox"></div>
   </div>
 
-  <div class="card" data-grp="rel">
-    <h3>逐层求解</h3>
-    <details class="fold"><summary>逐层求解怎么把约束传下去</summary><div class="foldbody">逐层求解不是在每层独立算完再比对档位差，而是把上级已定的取值作为约束<b>传进</b>下级——
-      区域级解出的每个情景，其取值转成下级的约束，下级与它<b>区间不相交</b>的状态直接不进枚举。
-      上级定「目标节奏（20–30%）」，下级「快速清洁化（30–40%）」根本不会被算到，而不是算出来再判它矛盾。<br>
-      <b>代价是有的</b>：上级某个情景可能让下级完全无解。那不是程序出错，<b>那就是结论</b>——
-      这套上级设想在下级没有对应的实现空间。<br>
-      求解完成后还会给出<b>档位方向</b>的复核：对每条跨层相容组合逐个比对相邻层级的档位差，
-      差 0 完全一致、差 1 是允许的梯度、<b>差 ≥2 判为方向相反</b>。</div></details>
-    <div id="layBox"></div>
+  <div class="card" data-grp="concl">
+    <h3>矛盾组合与处理建议</h3>
+    <div id="confList"></div>
+  </div>
+
+  <div class="card" data-grp="concl">
+    <h3>情景地图</h3>
+    <p class="hintline"><span class="tip" tabindex="0" data-tip="每个自洽情景画成一个点，取值相近的会聚在一起形成「情景簇」；换一张图，则看每个描述符在各情景中取哪一档的分布。 表看逐条明细，图看整体格局。">点怎么聚成簇</span></p>
+    <div class="tabswitch" id="mapTabs"></div>
+    <div id="mapFig"></div>
   </div>
 
   <div class="card" data-grp="rel">
@@ -368,36 +361,7 @@
     <div id="ensPanel"></div>
   </div>
 
-  <div class="card" data-grp="struct">
-    <h3>影响谱</h3>
-    <details class="fold"><summary>冲击分析问的是什么</summary><div class="foldbody">问的是「<b>如果某件事被强行实现，还剩下哪些可能</b>」。平台逐个把每个状态钉死、重算自洽情景集，
-      再与基准对比：<b>哪些可能被这条冲击打开、哪些被挤掉</b>；整行为 0 的，说明这件事与当前判断不相容。
-      德国软件里这块叫 Influence profile（影响谱），这里是其中的定性版。</div></details>
-    <div id="profBox"></div>
-  </div>
-
-  <div class="card" data-grp="struct">
-    <h3>影响关系图</h3>
-    <p class="hintline"><span class="tip" tabindex="0" data-tip="把当前打分画成一张关系图：每个描述符是一个节点，连线代表影响。赭色是促进、靛色是抑制， 线越粗表示影响越强。鼠标悬停任一连线，可以看到这条判断的依据。">线怎么读</span></p>
-    <div id="impactFig"></div>
-  </div>
-
-  <div class="card" data-grp="struct">
-    <h3>影响路径分析</h3>
-    <details class="fold"><summary>间接传导怎么找</summary><div class="foldbody">两个描述符之间没有直接打分，不代表它们互不影响——影响可以通过第三个描述符<b>间接传导</b>。
-      这里把「起点 → 终点」之间所有 2～3 段的传导链找出来，并按<b>最弱环节</b>排序：
-      一条链有多强，取决于它最弱的那一段。<b>跨层传导（国家目标 → 省域结构 → 市级排放）本质就是路径问题。</b></div></details>
-    <div id="pathBox"></div>
-  </div>
-
-  <div class="card" data-grp="struct">
-    <h3>主被动图</h3>
-    <details class="fold"><summary>象限怎么读</summary><div class="foldbody">给每个描述符算两个数：它<b>对外施加</b>的影响总和（主动和）和它<b>承受</b>的影响总和（被动和）。
-      横轴是被动和、纵轴是主动和，四个象限对应四种角色——这张图回答的是「<b>我该动哪个描述符</b>」。<b>注意</b>：这里的主动和／被动和是描述符级的两个总量，与判定自洽用的「影响平衡值」（状态级）不是同一个数。</div></details>
-    <div id="apFig"></div>
-  </div>
-
-  <div class="card" data-grp="struct">
+  <div class="card" data-grp="rel">
     <h3>相关性分析</h3>
     <details class="fold"><summary>φ 系数怎么读</summary><div class="foldbody">回答「<b>哪些状态总是绑在一起出现</b>」。用 φ 系数衡量：<b>＋100%</b> 表示两者要么同时出现、
       要么同时不出现；<b>−100%</b> 表示此消彼长。它只说明搭配关系，不说明因果——
@@ -405,22 +369,12 @@
     <div id="corrBox"></div>
   </div>
 
-  <div class="card" data-grp="struct">
-    <h3>情景表</h3>
-    <p class="hintline"><span class="tip" tabindex="0" data-tip="列是自洽情景，行是描述符。相邻情景里取同一个状态的格子会自动合并，并用颜色区分—— 几十个情景的异同一眼扫出来。">同色格子什么意思</span></p>
-    <div class="tabwrap" id="tabFig"></div>
-  </div>
-
-  <div class="card" data-grp="struct">
-    <h3>情景地图</h3>
-    <p class="hintline"><span class="tip" tabindex="0" data-tip="每个自洽情景画成一个点，取值相近的会聚在一起形成「情景簇」；换一张图，则看每个描述符在各情景中取哪一档的分布。 表看逐条明细，图看整体格局。">点怎么聚成簇</span></p>
-    <div class="tabswitch" id="mapTabs"></div>
-    <div id="mapFig"></div>
-  </div>
-
-  <div class="card" data-grp="out">
-    <h3>时间轴</h3>
-    <div id="timeline"></div>
+  <div class="card" data-grp="rel">
+    <h3>影响谱</h3>
+    <details class="fold"><summary>冲击分析问的是什么</summary><div class="foldbody">问的是「<b>如果某件事被强行实现，还剩下哪些可能</b>」。平台逐个把每个状态钉死、重算自洽情景集，
+      再与基准对比：<b>哪些可能被这条冲击打开、哪些被挤掉</b>；整行为 0 的，说明这件事与当前判断不相容。
+      德国软件里这块叫 Influence profile（影响谱），这里是其中的定性版。</div></details>
+    <div id="profBox"></div>
   </div>
 
   <div class="card" data-grp="out">
@@ -443,7 +397,33 @@
   <div class="card" data-grp="out">
     <h3>本次配置摘要</h3>
     <div id="finalSum"></div>
+    <details class="fold"><summary>时间轴里的三个年份是什么</summary><div class="foldbody">2025 参照年、2030 政策锚点、2035 情景锚点，按当前勾选的描述符逐个列出——
+      它展示的政策时间锚点本身就是这次配置的一部分，所以并入本块。</div></details>
+    <div id="timeline"></div>
   </div>
+
+  <details class="card toolbox" id="toolBox">
+    <summary>分析工具箱<span>3</span></summary>
+    <div class="toolboxbody">
+      <div class="card">
+        <h3>影响关系图</h3>
+        <p class="hintline"><span class="tip" tabindex="0" data-tip="把当前打分画成一张关系图：每个描述符是一个节点，连线代表影响。赭色是促进、靛色是抑制， 线越粗表示影响越强。鼠标悬停任一连线，可以看到这条判断的依据。">线怎么读</span></p>
+        <div id="impactFig"></div>
+      </div>
+      <div class="card">
+        <h3>影响路径分析</h3>
+        <details class="fold"><summary>间接传导怎么找</summary><div class="foldbody">两个描述符之间没有直接打分，不代表它们互不影响——影响可以通过第三个描述符<b>间接传导</b>。
+          这里把「起点 → 终点」之间所有 2～3 段的传导链找出来，并按<b>最弱环节</b>排序：
+          一条链有多强，取决于它最弱的那一段。<b>跨层传导（国家目标 → 省域结构 → 市级排放）本质就是路径问题。</b></div></details>
+        <div id="pathBox"></div>
+      </div>
+      <div class="card">
+        <h3>情景表</h3>
+        <p class="hintline"><span class="tip" tabindex="0" data-tip="列是自洽情景，行是描述符。相邻情景里取同一个状态的格子会自动合并，并用颜色区分—— 几十个情景的异同一眼扫出来。">同色格子什么意思</span></p>
+        <div class="tabwrap" id="tabFig"></div>
+      </div>
+    </div>
+  </details>
 </section>
 
 
@@ -512,7 +492,7 @@
       <p>选择下游模型，平台按其文件格式生成配置：GCAM-China 走 XML 装配清单，CHEER-CGE 走 CSV 参数表。选模型只影响导出格式，不影响前面的判定。</p>
 
       <h3>第 7 步　检验与导出</h3>
-      <p>本页只做两件事：看一致性检验结果，导出配置文件。状态选择与已知值已在前面的步骤完成。页面下方还提供稳健性、逐层求解、影响谱、相关性等分析，用于检查结论是否被少数判断左右。</p>
+      <p>本页只做三件事：看一致性检验结果、判断结果信不信、把交付物拿走。状态选择与已知值已在前面的步骤完成。页面下方还提供稳健性、影响谱、相关性等分析，用于检查结论是否被少数判断左右；若第 1 步勾了多个层级，这里还有一个默认收起的折叠段可以跑跨层逐层求解。</p>
 
       <div class="dgrp">算法说明</div>
       <p class="dnote">下面三节按<b>方法块</b>切分，不按界面上的步骤顺序。切法只有一条依据：<b>一个方法块 = 一段能独立讲清、也能独立验证的计算</b>。所以「判定与算法」讲判定本身怎么来，「跨层与锚定」讲约束怎么进到枚举里，「导出与模型」讲结果怎么落到下游——它们各自对应代码里一组独立的函数，改动一块不会牵动另一块。</p>
@@ -534,7 +514,7 @@
 
       <h2 id="d4">四　跨层与锚定</h2>
       <h3>三层关系</h3>
-      <p>国家级给方向、区域级做加总、省市级做分解。跨层核对目前只做<b>档位方向</b>：相邻层级之间按「档位不反向」检查，上级定的方向，下级不能反着来。这个判定<b>长在逐层求解的结果上</b>——判的是真正被算出来的跨层组合，不需要另外手工填一遍。数值加总（各省加总等于全国、下级加总不超上级）暂不自动校验——层级树的成员尚不完整（京津下级缺位），要先把每层成员补齐。</p>
+      <p>国家级给方向、区域级做加总、省市级做分解。跨层核对做的是<b>档位方向</b>：相邻层级之间按「档位不反向」检查，上级定的方向，下级不能反着来。这个判定<b>前置到了选档位的时候</b>——第 3 步按层给每个描述符选档位，与上级方向相差 ≥2 档、或取值区间不相交的档位直接不可选，不必等算完再回头查。数值加总（各省加总等于全国、下级加总不超上级）暂不自动校验——层级树的成员尚不完整（京津下级缺位），要先把每层成员补齐。</p>
 
       <h3>已知值</h3>
       <p>给某个描述符填一个已知值或现实区间（例如「经济增速已知在 4.5–5.0」），凡区间与它<b>完全不相交</b>的状态直接排除——这套假设在数值上就站不住，不必再拿去比对。</p>
@@ -543,8 +523,8 @@
       <h3>区间分层</h3>
       <p>同一描述符在不同辖区可以有不同的档位边界——北京三产占比 86% 与河北 55%，用一套区间会同时错位。平台因此允许分层设区间，而不是全区域共用一套。</p>
 
-      <h3>逐层求解</h3>
-      <p>「逐层求解」不是在每层独立算完再比对，而是把上级已定的档位作为约束<b>传进</b>下级求解：下级只在自己被允许的空间里枚举。这样得到的组合天生满足跨层要求，不必事后过滤。</p>
+      <h3>约束前置</h3>
+      <p>跨层的一致<b>不问事后</b>：第 3 步按层给每个描述符选档位，选定的上层档位立刻筛下层——与它方向相差 ≥2 档、或取值区间与它不相交的档位，直接置灰不可选，原因写成悬停文字。这样枚举出来的组合天生满足跨层要求，不会有「算完才发现矛盾」的组合。<b>平台不会替用户改档</b>：上层改动后，下层原来选的档位若已不相容，只清空并说明原因，由用户重选——档位冲突可能是真实的政策张力，替用户消解它等于替用户做政策判断。</p>
 
       <h2 id="d5">五　导出与模型</h2>
       <h3>GCAM-China</h3>
@@ -593,7 +573,6 @@
         <tr><td>状态</td><td>描述符的档位，带数值区间</td></tr>
         <tr><td>有序对</td><td>一行状态对一列状态的影响判断，取 −3 至 +3</td></tr>
         <tr><td>影响平衡值</td><td>某状态受到的其余状态影响之和，平台据此判定自洽（取最大者）</td></tr>
-        <tr><td>主动和 / 被动和</td><td>主被动图的两根轴：某描述符对外施加的影响总和 / 承受的影响总和</td></tr>
         <tr><td>自洽</td><td>影响平衡值最大且与其他判断不冲突的组合</td></tr>
         <tr><td>情景簇</td><td>若干彼此接近的自洽情景的集合</td></tr>
         <tr><td>给定层</td><td>国家级：取值来自外部政策目标，不参与枚举</td></tr>

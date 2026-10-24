@@ -23,7 +23,6 @@ const TERM = '\u5f71\u54cd\u5e73\u8861\u503c';   // 影响平衡值
 const ACT = '\u4e3b\u52a8\u548c';                 // 主动和
 const PAS = '\u88ab\u52a8\u548c';                 // 被动和
 const NOTSAME = '\u4e0d\u662f\u540c\u4e00\u4e2a\u6570'; // 不是同一个数
-
 let bad = 0;
 function ck(label, cond, extra) {
   const mk = cond ? '\u2713' : '\u2717';
@@ -50,13 +49,17 @@ ck('至少一处同句讲完判据（最大 + 无冲突/不矛盾）',
   defLines.some(l => /\u6700\u5927/.test(l) && (/\u65e0\u51b2\u7a81/.test(l) || /\u4e0d\u4e0e\u5176\u4ed6\u5224\u65ad\u77db\u76fe/.test(l))));
 
 console.log();
-console.log('=== 3. 主动和／被动和 与影响平衡值必须被显式分开 ===');
-ck('写明两者不是同一个数', html.indexOf(NOTSAME) >= 0);
-// 该澄清句必须把「状态级」这个限定说清楚，否则读者仍会以为是一回事
-const disamb = html.split('\n').find(l => l.indexOf(NOTSAME) >= 0);
-if (disamb) {
-  ck('澄清句点出状态级', disamb.indexOf('\u72b6\u6001\u7ea7') >= 0, '\u72b6\u6001\u7ea7');
-  ck('澄清句点出描述符级两个总量', disamb.indexOf('\u63cf\u8ff0\u7b26\u7ea7') >= 0, '\u63cf\u8ff0\u7b26\u7ea7');
+console.log('=== 3. 主被动图撤掉后，这两个词不再面向读者 ===');
+// 2026-10-24 决策三：主被动图与影响关系图重复，删 UI 留引擎（renderAP 保留，
+// 但 apFig 已不在页面上，函数首行即 return）。原先那张卡片里的澄清句
+// 「…与影响平衡值（状态级）不是同一个数」随之消失——它没有存在的必要了：
+// 读者再也看不到「主动和」这个词，就不存在混淆。这里改为反向把关，
+// 防止有人把术语表条目或澄清句留在页面上而图却没了（那才是真的误导）。
+ck('术语表不再提「主被动图」', html.indexOf('\u4e3b\u88ab\u52a8\u56fe') < 0);
+ck('页面上不再出现「主动和」（术语表条目已随图撤掉）', html.indexOf(ACT) < 0);
+// 澄清句若还在，说明有人恢复了那段旧文案，此时必须同时有图，否则就是悬空引用
+if (html.indexOf(NOTSAME) >= 0) {
+  ck('澄清句存在时必须有对应的图容器', html.indexOf('id="apFig"') >= 0);
 }
 
 console.log();

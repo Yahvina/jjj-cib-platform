@@ -832,9 +832,24 @@ pre.out::-webkit-scrollbar-thumb{background:#4A4640;border:2px solid transparent
 #p6 .card[data-grp]{display:none;}
 #p6[data-g="concl"] .card[data-grp="concl"],
 #p6[data-g="rel"] .card[data-grp="rel"],
-#p6[data-g="struct"] .card[data-grp="struct"],
 #p6[data-g="out"] .card[data-grp="out"]{display:block;}
 #p6.p6-all .card[data-grp]{display:block;}
+/* 分析工具箱：默认收起，外层也是 .card 但不受分组开关管辖 */
+#toolBox{display:block;}
+#toolBox>summary{cursor:pointer;font-weight:600;font-size:14px;color:var(--tx);
+  display:flex;align-items:center;gap:8px;list-style:none;}
+#toolBox>summary::-webkit-details-marker{display:none;}
+#toolBox>summary::before{content:'▸';color:var(--tx3);font-size:12px;transition:transform .15s var(--ease);}
+#toolBox[open]>summary::before{transform:rotate(90deg);}
+#toolBox>summary span{font-size:11px;color:var(--tx3);background:var(--panel2);
+  border-radius:99px;padding:0 6px;line-height:15px;}
+.toolboxbody{margin-top:12px;display:flex;flex-direction:column;gap:14px;}
+.toolboxbody .card{margin:0;background:var(--panel2);}
+/* 分层档位（决策一②）：只在勾了 ≥2 个求解层时出现在状态卡里 */
+.xlrow{display:flex;align-items:center;gap:8px;margin-top:7px;}
+.xlrow .xllb{font-size:12px;color:var(--tx3);width:52px;flex:none;}
+.xlrow .xlsel{flex:1;min-width:0;}
+.xlrow select option:disabled{color:var(--tx3);}
 @media (max-width:820px){.p6nav{position:static;}}
 
 /* 矩阵格内置信度：文字表达，不单靠颜色 */

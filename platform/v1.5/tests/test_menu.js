@@ -1,5 +1,6 @@
-/* 第 7 步分组菜单结构测试：确认 17 块全部归类、组内不重不漏、导航与分组一致。
-   这是纯结构校验（读 index.html），不做 DOM 渲染。 */
+/* 第 7 步分组菜单结构测试：确认 10 个明面块全部归类、组内不重不漏、导航与分组一致，
+   外加默认收起的「分析工具箱」。这是纯结构校验（读 index.html），不做 DOM 渲染。
+   2026-10-24 决策三：17 块 → 10 块 + 工具箱 3 块；四个 tab → 三个。 */
 const fs = require('fs');
 const path = process.argv[2] || 'v11/index.html';
 const html = fs.readFileSync(path, 'utf8');
@@ -12,24 +13,28 @@ const chk = (cond, label, extra) => {
   console.log('  ' + label + ':', ok(cond), extra === undefined ? '' : extra);
 };
 
+// 标题里可能嵌动态标记（「生成结果与导出 <span class="tag" id="fmtTag">XML</span>」，
+// 那个 XML 是随形态变的）。整块去掉这类 span，再剥剩下的标签，否则标题文本会
+// 随当前形态漂移，断言值也跟着漂。
+const clean = (s) => s.replace(/<span[^>]*class="tag"[^>]*>[\s\S]*?<\/span>/g, '').replace(/<[^>]*>/g, '').trim();
 const sec = html.slice(html.indexOf('<section class="pane" id="p6">'), html.indexOf('</section>', html.indexOf('<section class="pane" id="p6">')));
-const cards = [...sec.matchAll(/<div class="card" data-grp="([a-z]+)">\s*<h3>(.*?)</g)]
-  .map(m => ({ g: m[1], t: m[2].trim() }));
+const cards = [...sec.matchAll(/<div class="card" data-grp="([a-z]+)">\s*<h3>(.*?)<\/h3>/g)]
+  .map(m => ({ g: m[1], t: clean(m[2]) }));
 
 console.log('=== 1. 卡片数量与归类 ===');
-chk(cards.length === 17, '17 块全部带分组', cards.length + ' 块');
+chk(cards.length === 10, '10 个明面块全部带分组', cards.length + ' 块');
 
 const names = cards.map(c => c.t);
 chk(new Set(names).size === names.length, '无重复卡片', names.length + ' 个标题');
 
+// 收敛后的三组：结论（结果是什么）/ 可靠性（信不信）/ 交付（怎么拿走）
 const want = {
-  concl: ['检验结果', '矛盾组合与处理建议', '情景筛选'],
-  rel: ['逐层求解', '稳健性检验', '集成与分歧'],
-  struct: ['影响谱', '影响关系图', '影响路径分析', '主被动图', '相关性分析', '情景表', '情景地图'],
-  out: ['时间轴', '生成结果与导出', '情景报告', '本次配置摘要'],
+  concl: ['检验结果', '矛盾组合与处理建议', '情景地图'],
+  rel: ['稳健性检验', '集成与分歧', '相关性分析', '影响谱'],
+  out: ['生成结果与导出', '情景报告', '本次配置摘要'],
 };
 
-console.log('=== 2. 四组内容与顺序 ===');
+console.log('=== 2. 三组内容与顺序 ===');
 Object.keys(want).forEach(g => {
   const got = cards.filter(c => c.g === g).map(c => c.t);
   const same = got.length === want[g].length && got.every((x, i) => x === want[g][i]);
@@ -39,28 +44,66 @@ Object.keys(want).forEach(g => {
 console.log('=== 3. 页面顺序按组连续 ===');
 const seq = cards.map(c => c.g);
 const runs = seq.filter((g, i) => i === 0 || g !== seq[i - 1]);
-chk(runs.length === 4 && new Set(runs).size === 4, '四组各自连续、不交错', runs.join(' → '));
+chk(runs.length === 3 && new Set(runs).size === 3, '三组各自连续、不交错', runs.join(' → '));
 
 console.log('=== 4. 导航条 ===');
 const tabs = [...sec.matchAll(/class="p6tab[^"]*" data-g="([a-z]+)"/g)].map(m => m[1]);
-chk(tabs.length === 4, '四个标签', tabs.join(','));
+chk(tabs.length === 3, '三个标签', tabs.join(','));
 chk(tabs.every(g => want[g]), '标签组名与卡片组名对应');
 chk(/class="p6tab sel" data-g="concl"/.test(sec), '默认选中「结论」');
+// 徽章数字必须等于该组块数：写错了读者会以为有块没显示
+const badge = {};
+[...sec.matchAll(/class="p6tab[^"]*" data-g="([a-z]+)"[^>]*>[^<]+<span>(\d+)<\/span>/g)]
+  .forEach(m => { badge[m[1]] = +m[2]; });
+Object.keys(want).forEach(g => chk(badge[g] === want[g].length,
+  g + ' 徽章 = ' + want[g].length, '实际 ' + badge[g]));
 chk(sec.indexOf('p6allBtn') >= 0 && sec.indexOf('全部展开') >= 0, '有「全部展开」按钮');
 chk(sec.indexOf('id="p6stat"') >= 0, '有检验状态提示位');
 
-console.log('=== 5. 文案一致性 ===');
-chk(sec.indexOf('下面的情景表与情景地图') < 0, '情景筛选不再说「下面的」表与地图');
-chk(sec.indexOf('「结构」组里的情景表与情景地图') >= 0, '改为指向「结构」组');
+console.log('=== 5. 分析工具箱（默认收起）===');
+chk(/<details class="card toolbox" id="toolBox">/.test(sec), '工具箱是 details 且默认收起（无 open）');
+chk(sec.indexOf('id="toolBox"') >= 0 && sec.indexOf('分析工具箱') >= 0, '工具箱标题在位');
+const tb = sec.slice(sec.indexOf('id="toolBox"'));
+const tbCards = [...tb.matchAll(/<div class="card">\s*<h3>(.*?)<\/h3>/g)].map(m => m[1].trim());
+chk(tbCards.length === 3, '工具箱内 3 块', tbCards.join(' / '));
+['影响关系图', '影响路径分析', '情景表'].forEach(n =>
+  chk(tbCards.indexOf(n) >= 0, '工具箱含「' + n + '」'));
+// 工具箱里的块不能同时带 data-grp，否则会被分组开关的二选一逻辑藏掉
+chk(!/class="card" data-grp/.test(tb), '工具箱内卡片不带 data-grp（不受分组开关管辖）');
 
-console.log('=== 6. 交互逻辑 ===');
+console.log('=== 6. 已收敛掉的东西不该回来 ===');
+// 逐层求解：常驻卡片撤掉，能力下沉进「检验结果」卡里一个默认收起的折叠段。
+// 判据是「不再占一块 + 折叠默认收起 + 出口还在」，而不是「标识符消失」——
+// 它现在是检验结果卡内部的一段，标识符本来就该在。
+chk(!/data-grp="[a-z]+">\s*<h3>逐层求解<\/h3>/.test(sec), '逐层求解不再是独立卡片');
+chk(/<details class="fold" id="layFold">/.test(sec), '逐层求解下沉为折叠段');
+chk(!/<details class="fold" id="layFold" open>/.test(sec), '折叠段默认收起');
+chk(sec.indexOf('id="layBox"') >= 0, '下沉后仍有渲染出口 layBox');
+chk(app.indexOf('function renderLay') >= 0, '逐层求解的渲染函数仍在');
+chk(app.indexOf('function runLayered') >= 0, '逐层求解的驱动器仍在（功能未删）');
+// 事后检查器已由约束前置取代，这两个函数必须消失
+chk(app.indexOf('function layConflicts') < 0, '事后检查器 layConflicts 已删');
+chk(app.indexOf('function layDirectionHTML') < 0, '事后检查器 layDirectionHTML 已删');
+// 主被动图：与影响关系图重复，删 UI 留引擎
+chk(sec.indexOf('id="apFig"') < 0, '主被动图卡片已删');
+chk(app.indexOf('function renderAP') >= 0, '主被动图引擎仍在（删 UI 不删引擎）');
+// 情景筛选与时间轴并入别的块，不再是独立卡片
+chk(sec.indexOf('id="filtBox"') >= 0, '情景筛选并入了检验结果块');
+chk(!/data-grp="concl">\s*<h3>情景筛选/.test(sec), '情景筛选不再是独立卡片');
+chk(sec.indexOf('id="timeline"') >= 0, '时间轴并入了本次配置摘要');
+chk(!/<h3>时间轴<\/h3>/.test(sec), '时间轴不再是独立卡片');
+// 结构组已整组撤销
+chk(sec.indexOf('data-g="struct"') < 0, '「结构」组已撤销（不再是四个 tab）');
+chk(app.indexOf("struct:'结构'") < 0, 'P6GNAME 里不再有 struct');
+
+console.log('=== 7. 交互逻辑 ===');
 ['function p6Apply', 'function p6Group', 'function p6All', 'function p6Status'].forEach(f => {
   chk(app.indexOf(f) >= 0, f + ' 存在');
 });
 chk(/p6Apply\(\); p6Status\(\);/.test(app), 'render 中调用分组与状态刷新');
 chk(app.indexOf("sec.setAttribute('data-g'") >= 0, '分组写入 data-g');
 
-console.log('=== 7. 关键元素未被属性破坏 ===');
+console.log('=== 8. 关键元素未被属性破坏 ===');
 ['outPreview', 'fmtNote', 'finalSum', 'checkResult', 'confList'].forEach(id => {
   chk(html.indexOf('id="' + id + '"') >= 0, id + ' 存在');
 });

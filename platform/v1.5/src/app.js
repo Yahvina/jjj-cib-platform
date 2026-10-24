@@ -734,7 +734,7 @@ function renderStates(){
       return `<div class="stbox"><div class="hd">${nm}
         ${c.src?`<span class="src">来源：${c.src}</span>`:''}
         <i class="evi tip wide ${ev.k}" tabindex="0" data-tip="${attrEsc(evTip)}">${EVID_WORD[ev.k]||''}</i>${scopeTag}</div>`
-        +rows+addBox+ancRowHTML(nm)+
+        +rows+addBox+ancRowHTML(nm)+xlPickHTML(nm)+
         `<div class="stfoot"><button class="btn sm" onclick="addState('${nm}')">＋ 自定义状态</button>
           ${hasScope&&rngScope!=='region'?`<button class="btn sm" onclick="dropScopeOverride('${nm}')">恢复区域级</button>`:''}</div>`+
         (bad.length?`<div class="stbad">区间衔接提示：${bad.join('；')}</div>`:'')+
@@ -1119,11 +1119,8 @@ function runLayered(){
   if(pe){ toast(pe); return; }
   const layers=[]; let parents=null;
   layeredResult=null;
-  const host=document.getElementById('layBox');
   const step=()=>{
     const scope=order[layers.length];
-    if(host) host.innerHTML='<div class="empty">正在求解 '+XL_NAME[scope]
-      +'（第 '+(layers.length+1)+' / '+order.length+' 层）……</div>';
     setTimeout(()=>{
       const r=solveLayer(ds, scope, parents);
       layers.push({scope:scope, n:r.sols.length, checked:r.checked,
@@ -1144,13 +1141,23 @@ function runLayered(){
   step();
 }
 
-
+/* 逐层求解的出口。原先是第 7 步一张常驻卡片，占着一屏却只在勾了多层辖区时才有内容；
+   决策三把它下沉成检验结果卡里的一个默认收起的折叠段（决策一②同时把「事后查档位差」
+   换成第 3 步的约束前置，删掉了 layConflicts/layDirectionHTML 那套事后检查）。
+   这里只讲逐层求解本身：上级取值约束下级、逐层往下推的结果。 */
 function renderLay(){
   const host=document.getElementById('layBox'); if(!host) return;
   const ds=Object.keys(sel.desc);
-  if(ds.length<2){ host.innerHTML='<div class="empty">先在第 3 步勾选至少两个描述符</div>'; return; }
   const order=xlayers().filter(s=>s!=='nation');
-  if(!order.length){ host.innerHTML='<div class="empty">第 1 步至少要勾一个参与求解的层级（区域 / 省 / 市）</div>'; return; }
+  // 没勾多层时这一段没有意义，直接收起整段（连 summary 一起藏），不占读者注意力
+  const fold=document.getElementById('layFold');
+  const applicable=ds.length>=2&&order.length>=2;
+  if(fold) fold.style.display=applicable?'':'none';
+  if(!applicable){
+    host.innerHTML='';
+    if(fold&&/layFold/.test(fold.innerHTML)===false) fold.open=false;
+    return;
+  }
   if(!layeredResult){
     host.innerHTML='<div style="font-size:13px;line-height:1.85;">'
       +'<b>还没有逐层求解结果。</b>点下面的按钮，平台先解「'+XL_NAME[order[0]]+'」，'
@@ -1174,8 +1181,7 @@ function renderLay(){
   if(R.layers.some(x=>x.sampled)){
     h+='<div class="dim" style="font-size:13px;margin:6px 0 0;">'
       +'标注「抽样」的层组合空间超过 25 万，按固定种子抽样估计（自洽组合数是<b>下限</b>，'
-      +'小空间层仍为精确枚举）。19 个描述符全开时全空间约 5.17 亿种，逐层判一遍而非每组判一遍，'
-      +'才能在这个规模跑完。</div>';
+      +'小空间层仍为精确枚举）。</div>';
   }
   h+=kv('最终跨层相容组合', '<span style="color:var(--pri);font-weight:600;">'+R.combos.toLocaleString()
     +(R.layers.some(x=>x.truncated)?'+':'')+' 条</span>', 'margin-top:4px');
@@ -1203,62 +1209,7 @@ function renderLay(){
   h+='<div style="margin-top:12px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;">'
     +'<button class="btn sm" onclick="runLayered()">重新求解</button>'
     +'<span class="dim" style="font-size:13px;">计算时间 '+R.ts+'</span></div>';
-  h+=layDirectionHTML(R);
   host.innerHTML=h;
-}
-
-/* 档位方向判定。原先由第 3 步那张手工「跨层一致性」表承担——用户给每层填一个档位，
-   再查相邻层是否方向相反。那张表不参与任何计算，改它不影响结果；现在判定长在
-   真正被算出来的组合上：对每条跨层相容组合，逐对相邻层比同一描述符的档位。
-   判据不变——差 0 完全一致、差 1 是允许的梯度、差 ≥2 判为方向相反。
-   逐层求解本身就用区间相交筛过下级（allowUnder），所以正常情况下这里应当是 0 项；
-   若出现非 0，说明相邻两层的状态区间有重叠，档位索引差大而数值仍相容，值得看一眼。 */
-function layConflicts(R){
-  const out=[];
-  if(!R||!R.final||!R.final.length) return out;
-  R.final.forEach((f,fi)=>{
-    const seq=f.path||[];
-    for(let i=0;i<seq.length-1;i++){
-      const u=seq[i], d=seq[i+1];
-      if(!u||!d) continue;
-      R.ds.forEach((nm,j)=>{
-        const ui=u.cb[j], di=d.cb[j];
-        if(ui===undefined||di===undefined) return;
-        const diff=Math.abs(ui-di);
-        if(diff>=2) out.push({i:fi,nm:nm,u:u.scope,d:d.scope,ui:ui,di:di,diff:diff});
-      });
-    }
-  });
-  return out;
-}
-function layDirectionHTML(R){
-  if(!R||!R.combos) return '';
-  const bad=layConflicts(R);
-  const nPair=Math.max(0,(R.order?R.order.length:0)-1);
-  const nDesc=(R.ds||[]).length;
-  let h='<div class="laydir">';
-  h+='<div class="laydirhd"><b>档位方向</b>'
-    +'<span class="dim">检查 '+nPair+' 组相邻层级 × '+nDesc+' 个描述符'
-    +'，对全部 '+R.combos+' 条组合逐条比对</span></div>';
-  if(!bad.length){
-    h+='<div class="rok">相邻层级之间<b>没有方向相反的组合</b>。'
-      +'逐层求解在枚举下级时就用上级区间做了筛选，方向冲突的组合从一开始就不会被算出来——'
-      +'所以这里是「约束已经生效」，不是「没查」。</div>';
-  }else{
-    h+='<div class="rnote"><b>'+bad.length+' 处档位方向相反</b>，出现在已求解的组合里。'
-      +'这通常说明相邻两层的状态区间有重叠：档位索引差得远，数值上却仍相容。'
-      +'若这种跨度不符合预期，回到第 3 步收窄对应层级的区间。</div>';
-    h+='<div class="laybads">';
-    bad.slice(0,12).forEach(b=>{
-      h+='<div class="laybad">组合 #'+(b.i+1)+'　<b>'+(DSHORT[b.nm]||b.nm)+'</b>：'
-        +XL_NAME[b.u]+'取「'+(ST(b.nm)[b.ui]||'?')+'」，'+XL_NAME[b.d]+'取「'
-        +(ST(b.nm)[b.di]||'?')+'」——相差 '+b.diff+' 档</div>';
-    });
-    h+='</div>';
-    if(bad.length>12) h+='<div class="dim" style="font-size:13px;margin-top:6px;">此处列出前 12 处，共 '+bad.length+' 处。</div>';
-  }
-  h+='</div>';
-  return h;
 }
 
 /* 「我选的那套情景」到底成不成立——这是状态选择的用处。
@@ -3084,6 +3035,87 @@ function xlayers(){
   return XL_ORDER.filter(l=>on.indexOf(l)>=0);
 }
 
+/* ================= 跨层档位（决策一②：约束前置） =================
+   第 1 步勾了 ≥2 个求解层时，每个描述符除了自己已选的档位（首层，沿用状态区那个单选），
+   还要为后续每一层选一个档位。选定的上层档位会限制下层：
+   与它方向相差 ≥2 档、或取值区间不相交的下层档位直接置灰，原因写在选项文字里。
+   这与枚举内核的判据一致——allowUnder 本来就是拿上级区间去筛下级（区间不相交即排除），
+   档位索引差 ≥2 则是 layConflicts 一直用来判「方向相反」的口径。
+
+   置灰只限制「能不能选」，平台绝不自动改写任何一方已定的档位：档位冲突可能是真实的
+   政策张力，替用户消解它等于平台替用户做政策判断。所以上层改动后，若下层原选已不相容，
+   只把它清空并在提示里说明原因，由用户重新选——不是静默改档。 */
+let xlPick={};                      // 描述符名 -> { 层: 状态索引 }（只存首层之后的层）
+const xlAct=()=>xlayers().filter(s=>s!=='nation');
+function xlPickOf(nm,scope){
+  const act=xlAct(), i=act.indexOf(scope);
+  if(i<0) return null;
+  if(i===0){                        // 首层＝状态区选的那一档，不另存一份，避免两个真相
+    const s=(sel.desc[nm]&&sel.desc[nm].states)||[];
+    const j=s.length?ST(nm).indexOf(s[0]):-1;
+    return j<0?null:j;
+  }
+  const p=xlPick[nm]||{};
+  return (typeof p[scope]==='number')?p[scope]:null;
+}
+/* 下层某档为什么不能选；能选则返回 null */
+function xlReason(nm,upScope,ui,dnScope,di){
+  if(ui===null||ui===undefined||di===null||di===undefined) return null;
+  if(upScope===dnScope) return null;
+  const st=ST(nm), un=st[ui], dn=st[di];
+  if(un===undefined||dn===undefined) return null;
+  const d=Math.abs(ui-di);
+  if(d>=2) return '与'+XL_NAME[upScope]+'「'+un+'」方向相差 '+d+' 档';
+  const pR=rangeOf(nm,upScope).find(x=>x.n===un);
+  const cR=rangeOf(nm,dnScope).find(x=>x.n===dn);
+  if(pR&&cR&&pR.lo!==null&&pR.hi!==null&&cR.lo!==null&&cR.hi!==null
+     &&(cR.hi<pR.lo||cR.lo>pR.hi))
+    return '与'+XL_NAME[upScope]+'「'+un+'」的取值区间不相交';
+  return null;
+}
+function xlSet(nm,scope,v){
+  xlPick[nm]=xlPick[nm]||{};
+  if(v==='') delete xlPick[nm][scope]; else xlPick[nm][scope]=+v;
+  /* 上层变了，下层原选可能已不相容——清掉并说清原因，不静默改档 */
+  const act=xlAct(), i=act.indexOf(scope);
+  let dropped=null;
+  for(let k=i+1;k<act.length;k++){
+    const dn=act[k], cur=xlPickOf(nm,dn);
+    if(cur===null) continue;
+    if(xlReason(nm,scope,xlPickOf(nm,scope),dn,cur)){
+      dropped=XL_NAME[dn]+'原选的「'+ST(nm)[cur]+'」';
+      delete xlPick[nm][dn];
+    }
+  }
+  cimResult=null; BAYES=null; layeredResult=null; corrResult=null; profResult=null;
+  render();
+  toast(dropped?(XL_NAME[scope]+'改动后，'+dropped+'已不相容，已清空请重选'):'已记录'+XL_NAME[scope]+'档位');
+}
+/* 分层档位的那几行；只在勾了 ≥2 个求解层时出现 */
+function xlPickHTML(nm){
+  const act=xlAct();
+  if(act.length<2) return '';
+  let h='';
+  for(let i=1;i<act.length;i++){
+    const scope=act[i], up=act[i-1];
+    const ui=xlPickOf(nm,up), cur=xlPickOf(nm,scope);
+    const tip=ui===null
+      ? '先在'+XL_NAME[up]+'选一档，这里会按它筛出可用的档位。'
+      : XL_NAME[up]+'已定「'+ST(nm)[ui]+'」：与它方向相差 ≥2 档、或取值区间不相交的档位已置灰。';
+    h+='<div class="xlrow"><span class="xllb">'+XL_NAME[scope]+'</span>'
+      +'<select class="txt xlsel" onchange="xlSet(\''+nm+'\',\''+scope+'\',this.value)">'
+      +'<option value="">（不指定）</option>'
+      +ST(nm).map((s,j)=>{
+        const why=(ui===null)?null:xlReason(nm,up,ui,scope,j);
+        return '<option value="'+j+'"'+(cur===j?' selected':'')
+          +(why?' disabled':'')+'>'+s+(why?'（'+why+'，不可选）':'')+'</option>';
+      }).join('')
+      +'</select>'
+      +'<span class="tip" tabindex="0" data-tip="'+attrEsc(tip)+'">?</span></div>';
+  }
+  return h;
+}
+
 /* ================= 情景筛选（v1.2 新增，对应德国软件的选择管理器） =================
    自洽情景常常几十上百个，看不过来。允许对任意描述符指定要求取值，
    展示层（情景表、情景地图）就只看命中的子集——这是"用假设反查未来"的入口。
@@ -4236,11 +4268,13 @@ function renderBayes(){
    已有情景需要重新检验；省略 = 不动结果（只改界面、措辞、性能或新增旁路分析）。
    与 git 提交对应；此处只列入对外可讲、能被核对的事项。 */
 const CHANGELOG=[
+ {d:'2026-10-24',k:'可用性',x:'第 7 步从 17 块收敛到 10 块，逐层求解下沉为折叠段',y:'原先这一页堆了 17 块内容，「结构」组还占着四个 tab。撤掉「结构」组，时间轴并入本次配置摘要，情景筛选并入检验结果块，主被动图卡片删除——它与影响关系图讲同一件事，只是换个轴画法，引擎保留。逐层求解原是一张常驻卡片，占着一屏却只在勾了多个层级时才有内容，改成检验结果卡里一个默认收起的折叠段：不勾多层时整段（连标题）都不出现。删的只是入口与卡片，求解内核与出口全部保留。'},
+ {d:'2026-10-24',k:'功能',x:'跨层档位判定前置到选档位时（约束前置）',y:'原先档位方向要等逐层求解跑完、再回头比相邻层，用户选的时候不知道会不会冲突，算完才发现。现在第 3 步按层给每个描述符选档位，选定的上层档位立刻筛下层：与它方向相差 ≥2 档、或取值区间不相交的档位直接置灰不可选，原因写在选项文字里。判据与枚举内核一致——allowUnder 本来就是拿上级区间去筛下级。平台不替用户改档：上层改动后下层原选若已不相容，只清空并说明原因，由用户重选，因为档位冲突可能是真实的政策张力，替用户消解它等于替用户做政策判断。'},
  {d:'2026-10-24',k:'可用性',x:'状态设置区的解释文字改为悬停显示',y:'这一段原本常驻两处解释：描述符树下一条"结果型不能勾选"的说明，以及状态设置下方整段"勾选只用于定点检验与取档导出、不缩小搜索范围"。它们讲的是同一件事的两面，却占了状态区上方最显眼的两块位置，第一次用的人还没选到任何东西就先读了两段说明。现在都收进标题旁的悬停提示，鼠标移上去才展开；文字一字未删，只是不再常驻。状态行末尾的证据等级徽标也从裸 title 换成同一套气泡，样式统一。'},
  {d:'2026-10-24',k:'缺陷',x:'悬停提示含引号时会截断气泡、弄坏页面结构',y:'提示文本是拼进 HTML 属性的，里面只要出现一个双引号，属性就在那里提前闭合，后面的文字漏进标签之间：气泡显示不全，页面结构也跟着错位。现在统一经 attrEsc() 转义后再拼。这是加了新气泡才暴露出来的——原先那几处提示恰好没有引号，一直没触发。'},
  {d:'2026-10-24',k:'缺陷',x:'测试闸门跳过的用例看起来和通过的一样',y:'不带 -Prod 时跑不了成品冒烟，闸门把它从名单里删掉后照旧打印"29/29 全部通过"，与真跑满 30 套的输出一字不差——跳过一套和跑过一套分不出来。现在汇总行写明跳过了哪几套。同类问题还有一处：-Repo 从工作区跑时按相对路径解析，指向一个根本不存在的目录，这个开关一直是坏的，现在会自己去仓库里找归档副本。'},
  {d:'2026-10-24',k:'可用性',x:'删掉演示模式',y:'它把已经算好的结果重新排成一套翻页演示，信息量与正常页面完全重叠，却多出一条独立入口与一套导航。面向导师汇报的场景用正常页面讲即可，不需要一个只能读不能改的副本。入口、弹层、导航、十章渲染代码一并移除。'},
- {d:'2026-10-24',k:'可用性',x:'删掉跨层一致性台账',y:'那张表要用户手工给每层填一个档位、再查相邻层是否方向相反，但它不参与任何计算——枚举、逐层求解、逐层约束都不读它，改它不影响任何结果，是一份填了也没用的账。档位方向的判定现在长在逐层求解的结果上（layConflicts），判的是真正被算出来的组合；能力保留，只去掉手工台账。'},
+ {d:'2026-10-24',k:'可用性',x:'删掉跨层一致性台账',y:'那张表要用户手工给每层填一个档位、再查相邻层是否方向相反，但它不参与任何计算——枚举、逐层求解、逐层约束都不读它，改它不影响任何结果，是一份填了也没用的账。档位方向的判定改到第 3 步：选档位时就按下级能取到的区间筛，选不出理由的档位直接不可选；能力保留，只去掉手工台账。'},
  {d:'2026-10-24',k:'可用性',x:'数值锚定下沉进状态面板，改叫已知值',y:'原先是第 3 步里一张独立的表格，但它与选状态本来就是同一层输入——先选档位、再说这个档位在数值上成不成立，拆成两处要来回对照。现在每个描述符的状态框下方多一行已知值输入，选完状态顺手定它。数值上无解的描述符直接标红；选中状态与已知值不相交时也在面板里点名——不说的话用户会以为它被检验过了。'},
  {d:'2026-10-24',k:'缺陷',x:'四份自检脚本吞掉崩溃、报通过',y:'这四份脚本把核心断言包在 try/catch 里，捕获到异常只打一行崩溃检测就结束，从不设非零退出码——引用到不存在的函数时，脚本看起来还是全部通过。现在 catch 里补上 process.exit(1)，崩溃就是失败。'},
  {d:'2026-10-24',k:'口径',x:'判自洽的量统一叫「影响平衡值」',y:'同一个量原先有两个名字、指向还相反：一处把它叫「主动和」（术语表又定义「主动和 = 施加」），而判定实际取的是「这个状态从其余状态承受到的总量」。现在全部改叫「影响平衡值」——每个描述符的选定状态都是它自身影响平衡值中得分最高的那一项，这样自洽的判据才读得通。「主动和／被动和」只保留给主被动图的两根横纵轴，两者不再混用。这条会影响报告与 PPT 措辞。'},
@@ -4322,7 +4356,7 @@ function renderChangelog(){
    17 块按用途分四组，一次只看一组——避免一屏一屏往下划。
    「全部展开」保留通读与打印的出口。 */
 let p6grp='concl', p6allOn=false;
-const P6GNAME={concl:'结论',rel:'可靠性',struct:'结构',out:'交付'};
+const P6GNAME={concl:'结论',rel:'可靠性',out:'交付'};
 function p6Apply(){
   const sec=document.getElementById('p6');
   if(!sec||typeof sec.setAttribute!=='function') return;
@@ -4358,7 +4392,7 @@ function render(){
   expDetail(); renderEnsBox(); scaleSum(); renderPolicy();
   renderCim(); renderEnsBar(); modelDetail(); renderScopeBar(); checkResult(); renderLay(); renderFilt();
   renderTableau(); renderMap();
-  confList(); timeline(); renderImpact(); renderPath(); renderAP(); renderProf(); renderCorr(); renderEnsPanel();
+  confList(); timeline(); renderImpact(); renderPath(); renderProf(); renderCorr(); renderEnsPanel();
   renderRobust(); renderFW(); renderBayes();
   renderGenOut();
   finalSum();
