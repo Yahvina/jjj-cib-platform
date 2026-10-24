@@ -58,7 +58,7 @@ footer{margin-top:64px;padding-top:18px;border-top:1px solid var(--line);font-si
   <div><span>代码规模</span><span>可编辑源码 <code>platform/v1.5/index.html</code> 656 行 + <code>src/styles.css</code> 1269 行 + <code>src/app.js</code> 4996 行；合并后单文件成品 468,116 字节，仓库根 <code>index.html</code> 与 <code>platform/v1.5/</code> 内的成品逐字节一致（同一份构建产物）</span></div>
   <div><span>自检</span><span>31 个自检文件（源码级 30 套 + 成品冒烟 1 套），统一闸门 <code>tests/run_tests.ps1</code>——唯一会因断言失败而非零退出的入口；<code>-Repo</code> 改验归档副本，<code>-Prod</code> 才跑成品冒烟</span></div>
   <div><span>本版变化</span><span>界面整体重做（纸墨配色、字号收 6 档、左轨七步、常驻小字改悬停、新增「怎么用」）；0 的语义修正；参数生成扩成四种并增列情景号；使用说明页按五区七节重建；判自洽的量定名「影响平衡值」；第 7 步由 17 块收敛到 10 块；跨层档位判定改为约束前置；状态勾选改为「划定可信范围」；矛盾组合改为全局互斥对并单列孤立档位；讨论日志与版本日志各开一页。已删除演示模式、跨层一致性台账、主被动图卡片与时间轴独立卡片</span></div>
-  <div><span>留档</span><span>每完成一块即提交一次，仓库为 89 个提交的单线 main（本文件写作时计数；<code>app.js</code> 的 <code>VER_GAPS</code> 第 6 条记的 82 是该常量写入时的快照）；仓库无 tag，版本边界靠提交标题与 README 版本表界定</span></div>
+  <div><span>留档</span><span>每完成一块即提交一次，仓库为 92 个提交的单线 main（2026-10-25 计数；<code>app.js</code> 的 <code>VER_GAPS</code> 第 6 条记的 82 是该常量写入时的快照）；仓库无 tag，版本边界靠提交标题与 README 版本表界定</span></div>
 </div>
 
 <h2>零、方法框架：一条政策到模型参数，要走三跳</h2>
@@ -842,7 +842,7 @@ pwsh -File run_tests.ps1 -Quiet     # 只输出汇总</pre>
 <h2>四、版本记录</h2>
 
 <h3>提交级记录</h3>
-<p>下表只列每个版本的代表性提交与内容。仓库共 89 个提交（<code>VER_GAPS</code> 第 6 条里记的 82 个是这条常量写入时的计数），全部在 main 一条线上，<b>没有 tag</b>——版本边界靠提交标题与 README 版本表界定，这是本仓库已知的一条工程欠账（见下面 VER_GAPS 第 6 条）。</p>
+<p>下表只列每个版本的代表性提交与内容。仓库共 92 个提交（2026-10-25 计数；<code>VER_GAPS</code> 第 6 条里记的 82 个是这条常量写入时的计数），全部在 main 一条线上，<b>没有 tag</b>——版本边界靠提交标题与 README 版本表界定，这是本仓库已知的一条工程欠账（见下面 VER_GAPS 第 6 条）。</p>
 
 <table>
   <tr><th style="width:110px">提交</th><th>内容</th></tr>
