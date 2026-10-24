@@ -15,7 +15,7 @@
 其他入口：
 
 - 亮点模块索引：https://yahvina.github.io/jjj-cib-platform/highlights/index.html
-- 技术文档：https://yahvina.github.io/jjj-cib-platform/docs/技术文档_v1.3.html
+- 技术文档：https://yahvina.github.io/jjj-cib-platform/docs/技术文档_v1.5.html（v1.1/v1.2/v1.3 三份留档同目录）
 
 ---
 
@@ -54,7 +54,7 @@ jjj-cib-platform/
 │   ├── H6_矛盾组合与处理建议/
 │   ├── H7_逐层求解/
 │   └── H8_四形态导出/
-└── docs/                          ← 技术文档
+└── docs/                          ← 技术文档（最新 技术文档_v1.5.html）
 ```
 
 每个亮点模块目录内含：
