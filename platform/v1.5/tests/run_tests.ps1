@@ -1,8 +1,8 @@
 # run_tests.ps1 -- unified self-check entry point for the platform
 #
-# Why this exists: 23 of the 28 _src/test_*.js files only PRINT the assertion
-# result as a check/cross mark; they never exit non-zero. So "28/28 passed"
-# has only ever meant "28/28 did not crash". This script closes that gap: it
+# Why this exists: most of the _src/test_*.js files only PRINT the assertion
+# result as a check/cross mark; they never exit non-zero. So "30/30 passed"
+# has only ever meant "30/30 did not crash". This script closes that gap: it
 # captures each test's stdout, counts cross marks, and treats any cross mark or
 # non-zero exit as a failure.
 #
@@ -82,7 +82,7 @@ $allTests = Get-ChildItem (Join-Path $testDir 'test_*.js') | Sort-Object Name
 $tests = $allTests
 # A skipped test must never look like a passed one. Without -Prod the smoke test
 # cannot run, so drop it from the run but remember it: the summary prints the
-# skip count, otherwise "29/29 all passed" reads as if all 30 files ran.
+# skip count, otherwise "30/30 all passed" reads as if all 31 files ran.
 $skipped = @()
 if (-not $Prod) {
   $skipped = @($tests | Where-Object { $_.Name -eq 'test_gen_smoke.js' })

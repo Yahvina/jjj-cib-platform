@@ -41,7 +41,7 @@ jjj-cib-platform/
 │       ├── index.html              ← 分文件源码入口（引用同目录 src/）
 │       ├── src/app.js
 │       ├── src/styles.css
-│       └── tests/                  ← 30 套自检，对着本目录源码跑（跑法见其中 README）
+│       └── tests/                  ← 31 套自检 + 统一闸门 run_tests.ps1（跑法见其中 README）
 ├── highlights/                    ← 亮点模块（由 build_highlights.py 从源码切出）
 │   ├── index.html                 ← 亮点索引页（建议先看这个）
 │   ├── build_highlights.py        ← 切片器 + 一致性校验（改完源码要重跑）
@@ -120,9 +120,9 @@ python build_highlights.py --check  # 校验是否与源码一致（退出码 1 
 平台源码的**工作副本在** `C:\Users\guiqu\WorkBuddy\2026-09-16-21-47-56\_src\v15\`（`index.html` + `src/app.js` + `src/styles.css`），本仓库里的是**归档副本**。改完一处就按下面三步走，线上始终等于仓库里的成品：
 
 ```powershell
-# 1. 在本机工作副本改完，跑自检（30 套，全过才继续）
+# 1. 在本机工作副本改完，跑自检（31 套，全过才继续）
 cd C:\Users\guiqu\WorkBuddy\2026-09-16-21-47-56\_src
-foreach($t in Get-ChildItem test_*.js){ node $t.Name v15/src/app.js }   # test_menu/test_doc 传 v15/index.html
+powershell -File run_tests.ps1          # 唯一会因断言失败而非零退出的入口；-Prod 另含成品冒烟
 
 # 2. 合并成单文件并写进仓库（--repo 会同时更新 platform/<版本>/ 与本仓库根 index.html）
 python merge_v15.py --repo   # 顺带做两项自检：仓库源码重新合并 = 成品；亮点模块与源码一致
@@ -132,7 +132,7 @@ cd ..\jjj-cib-platform
 git add -A; git commit -m "简述这次改了什么"; git push origin main
 ```
 
-**`--repo` 不能省**：不带它时只写桌面与工作区 `output/`，仓库与线上都不会动。带它时会自动做三件事——写 `platform/<版本>/` 单文件成品、镜像分文件源码、**把仓库里的源码重新合并一遍并断言与成品逐字节相同**（防止仓库源码与线上成品变成两套东西），同时把 30 套测试一起归档。
+**`--repo` 不能省**：不带它时只写桌面与工作区 `output/`，仓库与线上都不会动。带它时会自动做三件事——写 `platform/<版本>/` 单文件成品、镜像分文件源码、**把仓库里的源码重新合并一遍并断言与成品逐字节相同**（防止仓库源码与线上成品变成两套东西），同时把 31 套测试与统一闸门一起归档。
 
 **版本号三处绑定**：`merge_v15.py` 的 `VER`、成品文件名 `NAME`、`index.html` 的 `<title>`。改版本号要三处一起改，否则发布出去的成品与归档目录对不上。
 
