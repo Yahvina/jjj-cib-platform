@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>京津冀政策情景快速评估平台 · 原型 v1.5</title>
+  <link rel="stylesheet" href="src/styles.css">
+</head>
+<body>
+
+<header class="topbar">
+  <a class="mark" href="#" onclick="backToCmp();return false;" title="回到概览" aria-label="回到概览">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true">
+      <rect x="2.5" y="2.5" width="19" height="19"/>
+      <rect class="cellmark" x="9" y="9" width="6" height="6" fill="#8C5A3C" stroke="none"/>
+    </svg>
+  </a>
+  <div class="brand">京津冀<i>·</i>CIB<em>SCENARIO</em></div>
+  <div class="sp"></div>
+  <span class="ctx" id="ctxNow">概览</span>
+  <button class="iconbtn" onclick="openChangelog()" title="更新日志" aria-label="更新日志">
+    <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+      <path d="M4 7h16M4 12h16M4 17h9"/><circle cx="18.5" cy="17" r="1.6"/>
+    </svg>
+  </button>
+  <button class="iconbtn" onclick="openDoc()" title="怎么用" aria-label="怎么用">
+    <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+      <circle cx="12" cy="12" r="8.2"/><path d="M12 11v5.4"/><circle cx="12" cy="7.9" r=".9" fill="currentColor" stroke="none"/>
+    </svg>
+  </button>
+  <div class="menu-wrap">
+    <button class="iconbtn" onclick="tglMenu(event)" title="更多" aria-label="更多">
+      <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+        <path d="M4 8h10M18 8h2M4 16h4M12 16h8"/><circle cx="16" cy="8" r="1.8"/><circle cx="10" cy="16" r="1.8"/>
+      </svg>
+    </button>
+    <div class="menu" id="moreMenu" role="menu">
+      <button role="menuitem" onclick="closeMenu();openHelp()">一分钟上手</button>
+      <button role="menuitem" onclick="closeMenu();openPres()">演示模式</button>
+      <button role="menuitem" onclick="closeMenu();backToCmp()">回到概览</button>
+      <button role="menuitem" onclick="closeMenu();saveCfg()">保存配置</button>
+      <button role="menuitem" onclick="closeMenu();loadCfg()">载入配置</button>
+      <button role="menuitem" onclick="closeMenu();aboutApp()">关于</button>
+    </div>
+  </div>
+</header>
+
+<div class="steps" id="steps"></div>
+
+<main>
+
+<!-- ============ 概览：文献式首页 ============ -->
+<section class="pane on" id="pcmp">
+  <section class="hero">
+    <div>
+      <div class="kicker">FIG.00　CROSS-IMPACT BALANCE</div>
+      <h1><span class="cib">CIB</span>：政策情景的<br>一致性检验</h1>
+      <p class="lead">交叉影响平衡是平台的核心方法：政策文本转为描述符取值，两两判定影响方向，枚举组合后只保留自洽者；通过检验的情景再转译为 GCAM-China 与 CHEER 的输入参数。</p>
+      <div class="go">
+        <a href="#" onclick="enterWizard(event);return false;">开始配置情景<span class="ar">→</span></a>
+        <a class="go2" href="#" onclick="openDoc();return false;">使用说明</a>
+      </div>
+    </div>
+
+    <figure class="fig">
+      <div class="mwrap">
+        <div class="mrow">
+          <span class="ylab">影响来源</span>
+          <div class="grid" id="hmGrid"></div>
+        </div>
+        <div class="xlab"><span>影响对象 →</span><span>节选 9 × 9</span></div>
+        <div class="mfoot">
+          <span id="hmRead">判定 342 对　·　自洽 12 组</span>
+          <span>−3 … +3</span>
+        </div>
+      </div>
+      <figcaption class="cap">FIG.01　交叉影响矩阵（结构示意）</figcaption>
+    </figure>
+  </section>
+
+  <div class="facts" id="homeStats"></div>
+
+  <blockquote class="quote">
+    <p>“对本市地方碳市场重点排放单位实行年度配额分配、排放报告核查、配额交易与清缴。配额以免费发放为主、有偿发放为辅。”</p>
+    <cite>北京市碳排放权交易管理办法 · 平台解析的原文条款</cite>
+  </blockquote>
+
+  <div class="steps">
+    <div><b>01</b><h3 class="tip" tabindex="0" data-tip="描述符是政策要设定的量；每个描述符分若干状态并挂区间，作为两两判定的对象。">界定描述符与状态</h3><p>文本 → 变量 → 档位</p></div>
+    <div><b>02</b><h3 class="tip" tabindex="0" data-tip="取 −3 至 +3，表示一行状态对一列状态的抑制或促进作用；19 个描述符共 342 对。">两两判定影响方向</h3><p>−3 … +3，342 对判断</p></div>
+    <div><b>03</b><h3 class="tip" tabindex="0" data-tip="每个状态受其余状态影响之和即其影响平衡值；影响平衡值最大、且无冲突的组合，才判为自洽情景。">求取自洽情景</h3><p>影响平衡值排序 → 留存十余组</p></div>
+  </div>
+
+  <div class="foot">
+    <span class="mono">CIB / SCENARIO ASSESSMENT</span>
+    <span class="sp"></span>
+  </div>
+</section>
+
+<!-- ============ 步骤 2 ============ -->
+<section class="pane" id="p0">
+  <h2 class="pt tip wide" tabindex="0" data-tip="区域、省、市三层是待探索变量，可以任意组合；勾了哪几层，跨层核对就在哪几层之间做。">选择分析尺度</h2>
+
+  <div class="grid2">
+    <div class="opt sel" data-scale="nation" onclick="tglScale(this)">
+      <div class="t">国家级 <span class="chk on"><span class="tick"></span></span></div>
+      <div class="d">全国总量与目标，作为分解的起点</div>
+    </div>
+    <div class="opt sel" data-scale="region" onclick="tglScale(this)">
+      <div class="t">区域级（京津冀） <span class="chk on"><span class="tick"></span></span></div>
+      <div class="d">三地合计口径，是省级加总的落点</div>
+    </div>
+    <div class="opt sel" data-scale="prov" onclick="tglScale(this)">
+      <div class="t">省级 <span class="chk on"><span class="tick"></span></span></div>
+      <div class="d">北京市、天津市、河北省</div>
+    </div>
+    <div class="opt" data-scale="city" onclick="tglScale(this)">
+      <div class="t">市级 <span class="chk"></span></div>
+      <div class="d">河北 11 个地级市及省直管县级市</div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:16px;">
+    <h3 class="tip" tabindex="0" data-tip="同一年的人口与经济口径在四层不一样，跨层核对就是管这件事：上级定了档位，下级只在自己被允许的范围内取档。">各层差异预览</h3>
+    <div id="layerTable"></div>
+  </div>
+</section>
+
+<!-- ============ 步骤 2：政策库与映射（v1.1 新增） ============ -->
+<section class="pane" id="p1">
+  <h2 class="pt tip wide" tabindex="0" data-tip="内置 106 条路径（89 条国家库 + 17 条地方补充）。点开任一条，右侧显示它挂在哪些描述符上。">政策库与映射</h2>
+
+  <div class="card">
+    <div class="cimbar">
+      <button class="btn pri" onclick="applyPolicy()">按政策库预填来源</button>
+      <button class="btn" onclick="uploadPolicy()">上传政策清单</button>
+      <div class="sp"></div>
+      <span class="cimf">类别
+        <select class="txt" id="polCat" onchange="renderPolicy()">
+          <option value="all">全部</option>
+          <option>经济工具</option><option>规制工具</option><option>政府投资与消费</option>
+          <option>信息工具</option><option>自愿措施</option>
+        </select></span>
+      <span class="cimf">只看
+        <select class="txt" id="polOnly" onchange="renderPolicy()">
+          <option value="all">全部路径</option>
+          <option value="hit">有对应的</option>
+          <option value="miss">无对应的</option>
+        </select></span>
+    </div>
+    <div class="cimstat" id="polStat"></div>
+  </div>
+
+  <div class="polhelp"><details class="fold"><summary>三个标记什么意思</summary><div class="foldbody">列表每行右侧三个标记：<b>代码</b>＝工具类型的英文缩写（如 REC 指可交易可再生能源证书/配额），用来和数据集里的工具条目对上号；
+    <b>数字</b>＝已对应到的描述符条数；<b>证</b>＝数据集里有工具级记录，点开可查文件名与条款。
+    地方补充的路径不显示代码，直接标“地方”。</div></details></div>
+
+  <div class="polwrap">
+    <div class="pollist" id="polList"></div>
+    <div class="polside" id="polSide">
+      <div class="empty">点左侧任一条政策路径，查看它对应到哪些描述符</div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 步骤 3 ============ -->
+<section class="pane" id="p2">
+  <h2 class="pt tip wide" tabindex="0" data-tip="每个描述符只取一个状态。状态区间的数值把「高速」这类标签落到具体范围，标签因此成为半定量档位。">选择描述符与状态</h2>
+
+  <div class="grid2">
+    <div>
+      <div class="tools">
+        <input class="txt" id="search" placeholder="搜索描述符或对应变量…" oninput="onSearch()">
+        <button class="btn sm" onclick="setSearch('')">清除</button>
+      </div>
+      <div style="font-size:13px;color:var(--tx2);margin-bottom:8px;">
+        描述符树　<span id="treeCnt">共 19 个 · 已选 0 项</span></div>
+      <div class="tree" id="tree"></div>
+      <div class="note" style="margin-top:10px;"><b>结果型由模型算出，不能勾选</b>（节点内已标注）。</div>
+    </div>
+    <div>
+      <div style="font-size:13px;color:var(--tx2);margin-bottom:8px;">状态设置 <span class="dim">（含取值区间，可编辑）</span></div>
+      <div class="scopebar">
+        <span class="slb">区间视角</span>
+        <span class="scopebtns" id="scopeBtns"></span>
+        <span class="tip snote-h" tabindex="0" data-tip="同一描述符在不同辖区可以有不同档位边界：北京三产 86% 与河北 55%，用一套区间就会错位。">?</span>
+      </div>
+      <div id="statePanel"><div class="empty">左侧勾选描述符后，这里显示它的状态选项</div></div>
+      <div id="outPanel"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>数值锚定</h3>
+    <details class="fold"><summary>区间怎么参与检算</summary><div class="foldbody">状态区间原本只是说明性标注，这里让它<b>参与检算</b>。给某个描述符填一个已知值或现实区间
+      （比如「经济增速已知在 4.5~5.0」）。它和状态选择是同一层的输入，所以放在这一页，选完状态就能顺手定。检算时凡是区间与它<b>完全不相交</b>的状态都直接排除——
+      这套假设在数值上就站不住，不必再拿去比对。<br>
+      <b>与下面的「情景筛选」不是一回事</b>：锚定是<b>检算前</b>缩小搜索空间（会改变组合数与检验结果），
+      筛选是<b>检算后</b>过滤展示（不改变检验结果）。锚定管"数值上行不行"，筛选管"逻辑上剩下哪些"。</div></details>
+    <div id="ancBox"></div>
+  </div>
+
+  <div class="card">
+    <h3>跨层一致性</h3>
+    <details class="fold"><summary>跨层怎么比</summary><div class="foldbody">同一套假设摊到国家、省、市三个尺度上，<b>上级定的调子，下级不能反着来</b>。
+      每层默认<b>跟随你在上面选的状态</b>，可单独改；平台只比较相邻两层——<b>档位差 ≥2 判为方向相反</b>。改一格立刻重算冲突，点「把下级调到相邻档」可一键修正。
+      这是「纵向一致性」，与上面的 CIB「横向自洽」是两回事：横向管这套假设内部打不打架，纵向管它上下说不说得通。</div></details>
+    <div id="xlBox"></div>
+  </div>
+
+  <div class="card">
+    <h3>描述符框架</h3>
+    <details class="fold"><summary>为什么换一套行业也能跑</summary><div class="foldbody">这套算法不认「京津冀」——它只认一组描述符、每档区间、两两判断。所以描述符集可以整体导出/导入：
+      换一套行业或区域，同一套流程照跑。落地靠本地数据，通用性就靠这一层。</div></details>
+    <div id="fwBox"></div>
+  </div>
+</section>
+
+<!-- ============ 步骤 4 ============ -->
+<section class="pane" id="p3">
+  <h2 class="pt tip wide" tabindex="0" data-tip="决定由谁来打分：全部人工、全部 AI 预填，或 AI 预填后再人工复核。AI 预填的开关在下一步「交叉影响打分」。">设置校验方式</h2>
+
+  <div class="card">
+    <h3>专家校验模式</h3>
+    <div class="grid3">
+      <div class="opt sel" onclick="pick(this,'exp')">
+        <div class="t">单人判断 <span class="chk on"><span class="tick"></span></span></div>
+        <div class="d">一人完成全部打分，速度最快</div>
+      </div>
+      <div class="opt" onclick="pick(this,'exp')">
+        <div class="t">双人独立打分 <span class="chk"></span></div>
+        <div class="d">两人分别打分，系统自动比对分歧项</div>
+      </div>
+      <div class="opt" onclick="pick(this,'exp')">
+        <div class="t">三人打分并校验 <span class="chk"></span></div>
+        <div class="d">三人打分，系统给出一致性系数并标出争议项</div>
+      </div>
+    </div>
+    <div id="expDetail"></div>
+    <div id="ensBox"></div>
+  </div>
+
+  <div class="card">
+    <h3>参数生成方式</h3>
+    <div class="grid2">
+      <div class="opt sel" data-gen="config" onclick="pick(this,'gen')">
+        <div class="t">模型配置文件 <span class="chk on"><span class="tick"></span></span></div>
+        <div class="d">给模型直接读的装配文件：GCAM 走 XML 清单，CHEER 走 CSV</div>
+      </div>
+      <div class="opt" data-gen="table" onclick="pick(this,'gen')">
+        <div class="t">结构化参数表 <span class="chk"></span></div>
+        <div class="d">只有参数名与数值，不带依据与叙述，便于逐项核对</div>
+      </div>
+      <div class="opt" data-gen="narrative" onclick="pick(this,'gen')">
+        <div class="t">定性叙事 <span class="chk"></span></div>
+        <div class="d">一段情景特征文字，说明每个描述符取哪一档</div>
+      </div>
+      <div class="opt" data-gen="bayes" onclick="pick(this,'gen')">
+        <div class="t">贝叶斯概率分布 <span class="chk"></span></div>
+        <div class="d">给出每条判断的后验均值与 90% 区间，区间宽窄即分歧大小</div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="card">
+    <h3 class="tip wide" tabindex="0" data-tip="不凭空造值：先给一个弱信息先验（±3 上的正态分布），再用专家打分更新。">贝叶斯后验</h3>
+    <p class="hintline"><span class="tip" tabindex="0" data-tip="开启后，后验均值矩阵会替换原打分参与一致性检验。">开启后会改变什么</span></p>
+    <div id="bayesBox"></div>
+  </div>
+
+  <div class="card">
+    <h3>本次校验规模</h3>
+    <div id="scaleSum"></div>
+  </div>
+</section>
+
+<!-- ============ 步骤 5：交叉影响打分（v1.1 新增） ============ -->
+<section class="pane" id="p4">
+  <h2 class="pt tip wide" tabindex="0" data-tip="逐对判断「一行状态对一列状态」的促进或抑制，取 −3 至 +3；填 0 表示两者之间没有直接关系，留空才表示还没判。">交叉影响打分</h2>
+
+  <div class="card">
+    <div id="ensBar"></div>
+    <div class="cimbar">
+      <button class="btn pri" id="aiBtn" onclick="aiFill()">AI 预填一版</button>
+      <button class="btn" onclick="resetCim()">清空重来</button>
+      <div class="sp"></div>
+      <span class="cimf">筛选
+        <select class="txt" id="confFilter" onchange="renderCim()">
+          <option value="all">全部格</option>
+          <option value="low">仅低置信度</option>
+          <option value="unrev">仅未审核</option>
+        </select></span>
+    </div>
+    <div class="cimstat" id="cimStat"></div>
+  </div>
+
+  <div class="cimwrap">
+    <div class="cimscroll"><table class="cim" id="cimGrid"></table></div>
+    <div class="cimside" id="cimSide">
+      <div class="empty">点击矩阵中任意一格，查看或修改这条判断</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>影响平衡预览</h3>
+    <p class="hintline"><span class="tip" tabindex="0" data-tip="把某个状态下的所有来向影响相加，就得到该描述符的影响平衡值。箭头标出的是当前取值中得分最高的一项—— 如果这一项正好是情景里选定的状态，就说明该假设是自洽的。">影响平衡怎么读</span></p>
+    <div id="cimBalance"></div>
+  </div>
+</section>
+
+<!-- ============ 步骤 6 ============ -->
+<section class="pane" id="p5">
+  <h2 class="pt tip wide" tabindex="0" data-tip="选中模型后，按它要求的文件格式生成情景配置，可直接下载。">选择目标模型</h2>
+  <div class="grid2">
+    <div class="opt sel" data-model="gcam" onclick="tglModel(this)">
+      <div class="t">GCAM-China <span class="chk on"><span class="tick"></span></span></div>
+      <div class="d">综合评估模型，覆盖能源、土地、水与经济活动<br>
+        <span style="color:var(--tx3);font-size:13px;">接受的配置格式：XML（配置文件层）</span></div>
+    </div>
+    <div class="opt" data-model="cheer" onclick="tglModel(this)">
+      <div class="t">CHEER-CGE <span class="chk"></span></div>
+      <div class="d">可计算一般均衡模型，侧重经济部门与要素市场<br>
+        <span style="color:var(--tx3);font-size:13px;">接受的配置格式：CSV，再由 GDXXRW 转 GDX</span></div>
+    </div>
+  </div>
+  <div class="card" style="margin-top:16px;" id="modelDetail"></div>
+</section>
+
+<!-- ============ 步骤 7 ============ -->
+<section class="pane" id="p6">
+  <h2 class="pt tip wide" tabindex="0" data-tip="本页只做两件事：看一致性检验结果，导出配置文件。锚定与状态在前面的步骤已完成。">检验与导出</h2>
+
+  <div class="p6nav">
+    <div class="p6tabs">
+      <button class="p6tab sel" data-g="concl" onclick="p6Group('concl')">结论<span>3</span></button>
+      <button class="p6tab" data-g="rel" onclick="p6Group('rel')">可靠性<span>3</span></button>
+      <button class="p6tab" data-g="struct" onclick="p6Group('struct')">结构<span>7</span></button>
+      <button class="p6tab" data-g="out" onclick="p6Group('out')">交付<span>4</span></button>
+    </div>
+    <div class="sp"></div>
+    <span class="p6stat" id="p6stat"></span>
+    <button class="btn sm" id="p6allBtn" onclick="p6All()">全部展开</button>
+  </div>
+
+  <div class="card" data-grp="concl">
+    <h3>检验结果</h3>
+    <div id="checkResult"></div>
+  </div>
+
+  <div class="card" data-grp="concl">
+    <h3>矛盾组合与处理建议</h3>
+    
+    <div id="confList"></div>
+  </div>
+
+  <div class="card" data-grp="concl">
+    <h3>情景筛选</h3>
+    <details class="fold"><summary>情景筛选是什么</summary><div class="foldbody">自洽情景往往几十上百个，看不过来。<b>给描述符指定要求取值</b>，切到「结构」组里的情景表与情景地图，就只看命中的那一部分——
+      这是用假设去反查「哪种未来更可能」的入口。<b>筛选只影响展示，不改变检验结果本身。</b></div></details>
+    <div id="filtBox"></div>
+  </div>
+
+  <div class="card" data-grp="rel">
+    <h3>逐层求解</h3>
+    <details class="fold"><summary>逐层求解怎么把约束传下去</summary><div class="foldbody">上面那张是<b>算完再查</b>：先各自求解，再比对档位差。这里是<b>算的时候就带着上级的条件</b>——
+      区域级解出的每个情景，其取值转成下级的约束，下级与它<b>区间不相交</b>的状态直接不进枚举。
+      上级定「目标节奏（20–30%）」，下级「快速清洁化（30–40%）」根本不会被算到，而不是算出来再判它矛盾。<br>
+      <b>代价是有的</b>：上级某个情景可能让下级完全无解。那不是程序出错，<b>那就是结论</b>——
+      这套上级设想在下级没有对应的实现空间。</div></details>
+    <div id="layBox"></div>
+  </div>
+
+  <div class="card" data-grp="rel">
+    <h3>稳健性检验</h3>
+    <details class="fold"><summary>稳健性在扰动什么</summary><div class="foldbody">一致性检验的输入是人给的 −3 到 +3。这一块把每条判断按置信度随机改动一档，重算几十轮：
+      <b>出现率一直高的状态</b>可以当成结论的骨架；<b>单独改一档就让大批结论失效的那条判断</b>，
+      就是人审该优先花力气的地方。结果不是概率，只衡量结论对判断的敏感程度。</div></details>
+    <div id="robBox"></div>
+  </div>
+
+  <div class="card" data-grp="rel">
+    <h3>集成与分歧</h3>
+    <p class="hintline"><span class="tip" tabindex="0" data-tip="选 2 人或 3 人独立打分时，这里把各份矩阵摆在一起：一致的条目自动合并，分歧的条目列出来逐条裁定。 裁定结果写回主矩阵，可直接进入一致性检验。">分歧怎么裁定</span></p>
+    <div id="ensPanel"></div>
+  </div>
+
+  <div class="card" data-grp="struct">
+    <h3>影响谱</h3>
+    <details class="fold"><summary>冲击分析问的是什么</summary><div class="foldbody">问的是「<b>如果某件事被强行实现，还剩下哪些可能</b>」。平台逐个把每个状态钉死、重算自洽情景集，
+      再与基准对比：<b>哪些可能被这条冲击打开、哪些被挤掉</b>；整行为 0 的，说明这件事与当前判断不相容。
+      德国软件里这块叫 Influence profile（影响谱），这里是其中的定性版。</div></details>
+    <div id="profBox"></div>
+  </div>
+
+  <div class="card" data-grp="struct">
+    <h3>影响关系图</h3>
+    <p class="hintline"><span class="tip" tabindex="0" data-tip="把当前打分画成一张关系图：每个描述符是一个节点，连线代表影响。赭色是促进、靛色是抑制， 线越粗表示影响越强。鼠标悬停任一连线，可以看到这条判断的依据。">线怎么读</span></p>
+    <div id="impactFig"></div>
+  </div>
+
+  <div class="card" data-grp="struct">
+    <h3>影响路径分析</h3>
+    <details class="fold"><summary>间接传导怎么找</summary><div class="foldbody">两个描述符之间没有直接打分，不代表它们互不影响——影响可以通过第三个描述符<b>间接传导</b>。
+      这里把「起点 → 终点」之间所有 2～3 段的传导链找出来，并按<b>最弱环节</b>排序：
+      一条链有多强，取决于它最弱的那一段。<b>跨层传导（国家目标 → 省域结构 → 市级排放）本质就是路径问题。</b></div></details>
+    <div id="pathBox"></div>
+  </div>
+
+  <div class="card" data-grp="struct">
+    <h3>主被动图</h3>
+    <details class="fold"><summary>象限怎么读</summary><div class="foldbody">给每个描述符算两个数：它<b>对外施加</b>的影响总和（主动和）和它<b>承受</b>的影响总和（被动和）。
+      横轴是被动和、纵轴是主动和，四个象限对应四种角色——这张图回答的是「<b>我该动哪个描述符</b>」。<b>注意</b>：这里的主动和／被动和是描述符级的两个总量，与判定自洽用的「影响平衡值」（状态级）不是同一个数。</div></details>
+    <div id="apFig"></div>
+  </div>
+
+  <div class="card" data-grp="struct">
+    <h3>相关性分析</h3>
+    <details class="fold"><summary>φ 系数怎么读</summary><div class="foldbody">回答「<b>哪些状态总是绑在一起出现</b>」。用 φ 系数衡量：<b>＋100%</b> 表示两者要么同时出现、
+      要么同时不出现；<b>−100%</b> 表示此消彼长。它只说明搭配关系，不说明因果——
+      因果仍要看交叉影响矩阵和传导链。</div></details>
+    <div id="corrBox"></div>
+  </div>
+
+  <div class="card" data-grp="struct">
+    <h3>情景表</h3>
+    <p class="hintline"><span class="tip" tabindex="0" data-tip="列是自洽情景，行是描述符。相邻情景里取同一个状态的格子会自动合并，并用颜色区分—— 几十个情景的异同一眼扫出来。">同色格子什么意思</span></p>
+    <div class="tabwrap" id="tabFig"></div>
+  </div>
+
+  <div class="card" data-grp="struct">
+    <h3>情景地图</h3>
+    <p class="hintline"><span class="tip" tabindex="0" data-tip="每个自洽情景画成一个点，取值相近的会聚在一起形成「情景簇」；换一张图，则看每个描述符在各情景中取哪一档的分布。 表看逐条明细，图看整体格局。">点怎么聚成簇</span></p>
+    <div class="tabswitch" id="mapTabs"></div>
+    <div id="mapFig"></div>
+  </div>
+
+  <div class="card" data-grp="out">
+    <h3>时间轴</h3>
+    <div id="timeline"></div>
+  </div>
+
+  <div class="card" data-grp="out">
+    <h3>生成结果与导出 <span class="tag" id="fmtTag">XML</span></h3>
+    <p class="fmtnote" id="fmtNote"></p>
+    <pre class="out" id="outPreview"></pre>
+    <div id="outBtns" style="margin-top:14px;display:flex;gap:10px;flex-wrap:wrap;align-items:center;"></div>
+  </div>
+
+  <div class="card" data-grp="out">
+    <h3>情景报告</h3>
+    <details class="fold"><summary>报告里有什么</summary><div class="foldbody">把这次配置整体写成一份可以拿给别人看的报告：选了哪些描述符、每个分数是怎么判的、哪些情景自洽、
+      矛盾在哪、参数的双锚点依据是什么。<b>既能给人看，也能导出成 JSON 交给别的系统。</b></div></details>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;">
+      <button class="btn pri" onclick="openReport()">生成情景报告</button>
+      <button class="btn" onclick="downloadReportJSON()">导出 JSON</button>
+    </div>
+  </div>
+
+  <div class="card" data-grp="out">
+    <h3>本次配置摘要</h3>
+    <div id="finalSum"></div>
+  </div>
+</section>
+
+
+<!-- ============ 使用说明（独立页） ============ -->
+<section class="pane" id="pdoc">
+  <div class="doc-h">
+    <div class="doc-k">MANUAL　使用说明</div>
+    <h1>平台使用说明</h1>
+    <p>按七步流程走完一遍，就能产出可交付的情景配置。本页集中说明每一步在做什么、参数怎么定、结果怎么读——界面上不再重复这些文字，把版面留给操作本身。</p>
+    <p class="doc-back"><a href="#" onclick="closeDoc();return false;">← 返回概览</a></p>
+  </div>
+
+  <div class="doc-cols">
+    <nav class="doc-nav" id="docNav">
+      <div class="dn-g">简介</div>
+      <a href="#d1"><span>01</span>平台做什么</a>
+      <div class="dn-g">使用手册</div>
+      <a href="#d2"><span>02</span>七步流程</a>
+      <div class="dn-g">算法说明</div>
+      <a href="#d3"><span>03</span>判定与算法</a>
+      <a href="#d4"><span>04</span>跨层与锚定</a>
+      <a href="#d5"><span>05</span>导出与模型</a>
+      <div class="dn-g">案例</div>
+      <a href="#d6"><span>06</span>换一个领域</a>
+      <div class="dn-g">参考</div>
+      <a href="#d7"><span>07</span>术语对照</a>
+      <a href="#d8"><span>08</span>版本与讨论日志</a>
+    </nav>
+
+    <div class="doc-body">
+      <div class="dgrp">简介</div>
+      <h2 id="d1">一　平台做什么</h2>
+      <p>交叉影响平衡（Cross-Impact Balance，CIB）不预测未来，也不计算减排量。它只回答一个问题：<b>这一组政策摆在一起，是否互相抵消。</b></p>
+      <p>平台的做法是：把政策条款转译为描述符取值，逐对判定影响方向，枚举所有组合并筛出彼此不冲突的情景簇，最后转译成下游模型能挂载的参数。它保证送进模型的那套政策包自己在逻辑上立得住，效果如何由模型计算。</p>
+      <table>
+        <tr><th>适合</th><th>不适合</th></tr>
+        <tr><td>情景设定的前期论证</td><td>评估政策效果</td></tr>
+        <tr><td>跨层假设的一致性检查</td><td>给出减排路径或幅度</td></tr>
+        <tr><td>为下游模型准备输入</td><td>预测经济增速、人口规模</td></tr>
+      </table>
+
+      <div class="dgrp">使用手册</div>
+      <h2 id="d2">二　七步流程</h2>
+      <h3>第 1 步　选择尺度</h3>
+      <p>勾选本次情景覆盖的层级。<b>国家级是「给定层」</b>，取值来自国家政策目标，属于外部条件；区域、省、市三层才是需要探索的变量。</p>
+      <p>勾选两层以上才会启用跨层核对：相邻层级之间按「档位不反向」检查，上级定的方向，下级不能反着来。只勾一层时，平台等同于在单层内做一致性检验。</p>
+
+      <h3>第 2 步　政策库与映射</h3>
+      <p>内置 106 条政策路径，其中 89 条来自 CCPID 国家库、17 条为京津冀地方补充；也可以上传自己的清单。每条路径挂到零个或多个描述符上，列表右侧的数字就是映射个数。</p>
+      <p><b>映射为 0 不是缺陷。</b>它表示这条工具不落在当前模型的变量口径内——这类记录本身就是结论，说明模型看不见某些政策。点开任一条路径，右侧显示它对应的描述符、映射依据与政策原文。</p>
+
+      <h3>第 3 步　描述符与状态</h3>
+      <p>描述符按三级组织：输入型（经济增速、人口分布、协同机制）、参数型（产业结构、电力互济、可再生开发、钢铁工艺、CCUS、碳移除、用水）、结果型（一次能源结构、终端电气化率）。共 19 个，合计 55 个状态。</p>
+      <p>每个状态右侧的数值区间是该档位的<b>取值锚点</b>：把「高速 / 中速」这类定性标签落到具体范围上，标签就变成了半定量档位。区间可改，状态可增删——标准不必只有一套，可以换成自己的口径。状态定义的来源说明可以回<b>第 2 步</b>用「按政策库预填来源」一次性写好，不必逐条手敲。</p>
+      <p><b>每个描述符只取一个状态（单选）。</b>不同状态属于不同情景；要排除不可行的档位，请用本页的「数值锚定」，那里有区间依据可追溯。结果型描述符由模型算出，不能勾选。</p>
+
+      <h3>第 4 步　校验方式</h3>
+      <p>决定 342 对判断由谁来打：全部人工、全部 AI 预填，或 AI 预填后人工复核。三条路走的是同一套评分口径，区别只在效率与可追溯性。</p>
+
+      <h3>第 5 步　交叉影响打分</h3>
+      <p>逐个判断「一个描述符取某状态」会怎样影响「另一个描述符的状态」，取 −3 至 +3：正值表示促进，负值表示抑制，<b>0 表示两者之间没有直接关系</b>。19 个描述符两两组合共 342 对——方向有意义（甲影响乙与乙影响甲是两条），所以按<b>有序对</b>计。</p>
+      <p><b>0 是一个判断，不是「没把握」。</b>「两者无直接关系」可以判得很有把握，也可能只是暂时看不清——影响分与置信度是两条独立的轴，分开填。真正没做判断的格子留空，与填 0 不是一回事。</p>
+      <p>建议先用 AI 预填一版——它只写自己确实找出直接影响的那几条，其余留空交给人判。留空的格子是「还没有判断」，不是「判为 0」；预填过的格子带 <b>AI·</b> 标记，人工改过分数或置信度后标记自动消失。复核时优先看低置信度的格子——那些格子通常缺少原文依据或专家意见不一致，是结论最脆弱的地方。</p>
+
+      <h3>第 6 步　目标模型</h3>
+      <p>选择下游模型，平台按其文件格式生成配置：GCAM-China 走 XML 装配清单，CHEER-CGE 走 CSV 参数表。选模型只影响导出格式，不影响前面的判定。</p>
+
+      <h3>第 7 步　检验与导出</h3>
+      <p>本页只做两件事：看一致性检验结果，导出配置文件。数值锚定与状态选择已在前面的步骤完成。页面下方还提供稳健性、跨层一致性、逐层求解、影响谱等分析，用于检查结论是否被少数判断左右。</p>
+
+      <div class="dgrp">算法说明</div>
+      <p class="dnote">下面三节按<b>方法块</b>切分，不按界面上的步骤顺序。切法只有一条依据：<b>一个方法块 = 一段能独立讲清、也能独立验证的计算</b>。所以「判定与算法」讲判定本身怎么来，「跨层与锚定」讲约束怎么进到枚举里，「导出与模型」讲结果怎么落到下游——它们各自对应代码里一组独立的函数，改动一块不会牵动另一块。</p>
+      <p class="dnote">这里说明的是<b>平台怎么算</b>。描述符之间的关系<b>依据什么</b>判定（须来自同行评议文献或真实历史数据，不以政策文本为据）、高低分段的文献共识从哪来、由谁验证——属评分规则工作，待其定稿后另立一节。</p>
+      <h2 id="d3">三　判定与算法</h2>
+      <h3>打分与自洽</h3>
+      <p>每一对判断是有方向的：行状态对列状态的影响，不等于列对行。给定一组情景（每个描述符选一个状态），某个状态受到的其余状态影响之和即其<b>影响平衡值</b>。影响平衡值最大、且不与其他判断矛盾的组合，判为<b>自洽</b>。</p>
+      <p>自洽不等于「好」。一组政策可以全部促进增长，却依然互相排斥——判的是内部是否打架，不是优劣。</p>
+
+      <h3>贝叶斯后验</h3>
+      <p>把每份专家矩阵当作对同一条判断的观测：先给潜在影响值一个弱信息先验（±3 量表上的正态分布），再用观测更新，得到后验均值与 90% 区间。置信度决定噪声：高置信噪声小、低置信噪声大。区间宽窄直接反映分歧程度，主观性因此看得见、可复算。</p>
+      <p>开启后，后验均值矩阵会替换原始打分参与一致性检验；同时给出「方向判不准」的清单，供人工回看。</p>
+
+      <h3>稳健性检验</h3>
+      <p>一致性检验的输入是人给的 −3 到 +3。稳健性检验按置信度扰动这些判断，重跑一遍，看结论是否翻转。翻转的那些，就是不能写进报告的结论。</p>
+
+      <h3>矛盾组合</h3>
+      <p>冲突不是预置表，而是由当前矩阵实时算出来的：两个描述符之间的判断方向与其状态组合相反，即判为冲突。改动任何一格，冲突清单会跟着变。</p>
+
+      <h2 id="d4">四　跨层与锚定</h2>
+      <h3>三层关系</h3>
+      <p>国家级给方向、区域级做加总、省市级做分解。跨层核对目前只做<b>档位方向</b>：相邻层级之间按「档位不反向」检查，上级定的方向，下级不能反着来。数值加总（各省加总等于全国、下级加总不超上级）暂不自动校验——层级树的成员尚不完整（京津下级缺位），要先把每层成员补齐。</p>
+
+      <h3>数值锚定</h3>
+      <p>给某个描述符填一个已知值或现实区间（例如「经济增速已知在 4.5–5.0」），凡区间与它<b>完全不相交</b>的状态直接排除——这套假设在数值上就站不住，不必再拿去比对。</p>
+      <p><b>锚定与筛选不是一回事：</b>锚定在检算<b>前</b>缩小搜索空间，会改变组合数与检验结果；筛选在检算<b>后</b>过滤展示，不改变结果。锚定管「数值上行不行」，筛选管「逻辑上剩下哪些」。</p>
+
+      <h3>区间分层</h3>
+      <p>同一描述符在不同辖区可以有不同的档位边界——北京三产占比 86% 与河北 55%，用一套区间会同时错位。平台因此允许分层设区间，而不是全区域共用一套。</p>
+
+      <h3>逐层求解</h3>
+      <p>「逐层求解」不是在每层独立算完再比对，而是把上级已定的档位作为约束<b>传进</b>下级求解：下级只在自己被允许的空间里枚举。这样得到的组合天生满足跨层要求，不必事后过滤。</p>
+
+      <h2 id="d5">五　导出与模型</h2>
+      <h3>GCAM-China</h3>
+      <p>导出 XML 装配清单，指向 <code>input/policy/</code> 下的配置文件，由 <code>configuration.xml</code> 装配。清单只写已核实的节点；无法确认的项标注「需人工补齐」，不猜路径。</p>
+
+      <h3>CHEER-CGE</h3>
+      <p>导出 CSV 参数表，覆盖 <code>run.gms</code> 中的路径变量与情景开关，之后用 GDXXRW.EXE 转成 GDX。</p>
+
+      <h3>取档方式</h3>
+      <p>每个状态的区间提供三档取值：下界（保守）、中点（中性）、上界（加码）。同一套情景可以按三种口径各导一份，用于敏感性对比。</p>
+
+      <div class="dgrp">案例</div>
+      <h2 id="d6">六　换一个领域：描述符怎么来</h2>
+      <p>平台自带的 19 个描述符是<b>为京津冀政策翻译出来的</b>，不是通用清单。换一套政策（交通、工业、建筑，或另一个区域），描述符要重新翻译——平台不预设变量，只提供判据和录入工具。</p>
+
+      <h3>翻译四步</h3>
+      <p><b>第一步，读条款找「要设定的量」。</b>不看政策想达到什么效果，只看它要求谁、把什么改到什么程度。一句话通常只对应一个量。</p>
+      <p><b>第二步，去模型里找落点。</b>打开下游模型的变量清单，找有没有一个变量装的就是这个量。平台记录的是<b>模型变量名</b>（如 <code>GDP|MER</code>、<code>Carbon Capture</code>）——它同时是模型的输出口径，也是情景设定能对上的那个名字。找到它，落点就定了。</p>
+      <p><b>第三步，按判据归类。</b>判据只有一条：模型里有没有一个变量，装的就是这个量。</p>
+      <table>
+        <tr><th>模型里的情况</th><th>类型</th><th>政策怎么起作用</th></tr>
+        <tr><td>有变量，装的就是这个量</td><td>输入型</td><td>直接设它，判定最硬</td></tr>
+        <tr><td>有变量，但装的是系数、弹性、曲线或潜力</td><td>参数型</td><td>通过参数间接作用，链条更长</td></tr>
+        <tr><td>没有这个变量</td><td>结果型</td><td>只能由模型算出，作为输出预期看</td></tr>
+      </table>
+      <p><b>第四步，定状态与区间。</b>每个描述符给 2–3 个状态，每个状态配一个数值区间。区间要来自本地统计或政策目标，不能凭空填——它是后面「数值锚定」与「取档」的依据。</p>
+
+      <h3>一个跨领域例子</h3>
+      <p>假设换成交通领域，下游是交通能源模型：</p>
+      <table>
+        <tr><th>政策条款</th><th>要设定的量</th><th>模型变量</th><th>判定</th></tr>
+        <tr><td>2030 年新增公交全部电动化</td><td>公交电动化率</td><td><code>Trans|Bus|ElecShare</code>（装的就是它）</td><td>输入型</td></tr>
+        <tr><td>提高燃油车使用成本</td><td>燃油需求价格弹性</td><td>装的是弹性系数，不是成本本身</td><td>参数型</td></tr>
+        <tr><td>优化居民出行结构</td><td>出行方式分担</td><td>无直接变量，由效用函数算出</td><td>结果型</td></tr>
+      </table>
+
+      <h3>录入与导入</h3>
+      <p>在第 3 步「描述符框架」里先<b>导出当前框架的 JSON</b>，它就是格式模板：改 <code>n</code>（名称）、<code>t</code>（类型）、<code>v</code>（模型变量名）、<code>s</code>（状态数组）四个字段，再把文件<b>导入</b>即可。名称不能重复，每个描述符至少两个状态，类型只能是上面三种之一。</p>
+      <p><b>换框架的代价要提前知道：</b>导入的 JSON 只带变量结构，不带判断——原来的打分全部作废，需要重新逐对判定。这也是「算法通用、底料本地」的分界：平台可以换一套变量跑，但数据与专家判断必须由本地给。</p>
+
+      <div class="dgrp">参考</div>
+      <h2 id="d7">七　术语对照</h2>
+      <table>
+        <tr><th>术语</th><th>含义</th></tr>
+        <tr><td>描述符</td><td>政策要设定的量，是模型里的一个变量入口</td></tr>
+        <tr><td>状态</td><td>描述符的档位，带数值区间</td></tr>
+        <tr><td>有序对</td><td>一行状态对一列状态的影响判断，取 −3 至 +3</td></tr>
+        <tr><td>影响平衡值</td><td>某状态受到的其余状态影响之和，平台据此判定自洽（取最大者）</td></tr>
+        <tr><td>主动和 / 被动和</td><td>主被动图的两根轴：某描述符对外施加的影响总和 / 承受的影响总和</td></tr>
+        <tr><td>自洽</td><td>影响平衡值最大且与其他判断不冲突的组合</td></tr>
+        <tr><td>情景簇</td><td>若干彼此接近的自洽情景的集合</td></tr>
+        <tr><td>给定层</td><td>国家级：取值来自外部政策目标，不参与枚举</td></tr>
+        <tr><td>档位不反向</td><td>下级层级的方向不能与上级相反</td></tr>
+        <tr><td>后验</td><td>用专家打分更新先验后得到的均值与区间</td></tr>
+      </table>
+
+      <h2 id="d8">八　版本与讨论日志</h2>
+      <p>记录每次讨论之后的缺陷修复、口径变更与新增功能，倒序排列，最新的在最上面。每条都能在代码提交里找到对应，只列对外可讲、可核对的事项。</p>
+      <p>每条末尾的「<b>影响面</b>」说明这次改动会不会动到已有结果：标注「<b>不动结果</b>」的，一致性检验的输入与输出都不变，重跑一遍结论一样；标注「<b>影响结果</b>」的，需要重新检验、必要时重出报告。</p>
+      <div id="chgBody"></div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<div class="footbar">
+  <span class="cnt" id="footCnt"></span>
+  <div class="sp"></div>
+  <button class="btn" id="prevBtn" onclick="go(-1)">上一步</button>
+  <button class="btn pri" id="nextBtn" onclick="nextStep()">下一步</button>
+</div>
+<div class="modal" id="reportModal">
+  <div class="mbox">
+    <div class="mhead">
+      <b>情景报告</b>
+      <div class="sp"></div>
+      <button class="btn" onclick="downloadReport()">下载 HTML</button>
+      <button class="btn" onclick="downloadReportDoc()">下载 Word</button>
+      <button class="btn" onclick="downloadReportJSON()">下载 JSON</button>
+      <button class="btn" onclick="closeReport()">关闭</button>
+    </div>
+    <div class="mbody" id="reportBody"></div>
+  </div>
+</div>
+<div class="pres" id="pres">
+  <div class="presnav" id="presNav"></div>
+  <div class="presmain">
+    <div class="presbody" id="presBody"></div>
+    <div class="presfoot">
+      <button class="pbtn" onclick="presPrev()">← 上一页</button>
+      <span id="presCnt" class="pcnt"></span>
+      <button class="pbtn" onclick="presNext()">下一页 →</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="helpModal" onclick="if(event.target===this)closeId('helpModal')">
+  <div class="mbox" style="max-width:620px;">
+    <div class="mhead"><b>这个平台怎么用</b><div class="sp"></div>
+      <button class="btn sm" onclick="closeId('helpModal')">关闭</button></div>
+    <div class="mbody" style="font-size:15px;line-height:1.9;">
+      <p><b>它做什么</b>：把政策组合筛成不互相打架的情景，再翻译成 GCAM-China / CHEER 能用的参数。<b>它不算减排量</b>，那是下游模型的活。</p>
+      <p><b>七步</b>：选尺度 → 映射政策 → 定状态 → 定校验方式 → 两两打分 → 选目标模型 → 检验与导出。左侧竖排就是这七步，随时可跳。</p>
+      <p><b>最常用的一步</b>：第 5 步的两两打分。每格填 −3…+3，表示「一行取这个状态，会促进还是抑制一列」。填完自动筛出没有内部矛盾的情景簇。</p>
+      <p><b>拿不准的地方</b>：文字带虚线下划线的，鼠标放上去有解释。</p>
+      <p><b>想快看一遍</b>：右上角菜单里的「演示模式」。</p>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="src/app.js"></script>
+</body>
+</html>

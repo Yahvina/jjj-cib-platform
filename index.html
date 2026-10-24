@@ -743,7 +743,7 @@ table.proftab tr.pgroup td{background:var(--panel2);color:var(--tx);font-weight:
   font-size:13px;text-align:left;padding:9px 11px;border-bottom:1px solid var(--line);}
 .ptable td,.ptab2 td,.pmat td{padding:9px 11px;border-bottom:1px solid var(--line2);vertical-align:top;}
 .ptab2 th,.ptab2 td{text-align:center;padding:7px 5px;font-size:13px;}
-.ptab2 .pcnr,.pmat .pcnr{text-align:left;min-width:96px;}
+.ptab2 .pcnr,.pmat .pcnr,.pmat .pcrh{text-align:left;min-width:96px;}
 .prng{display:inline-block;font-size:11px;color:var(--tx2);background:var(--panel2);
   border:1px solid var(--line);border-radius:4px;padding:0 5px;margin-left:3px;vertical-align:1px;}
 .pconf{font-size:11px;color:var(--tx3);margin-left:4px;}
@@ -1092,10 +1092,6 @@ details.fold .foldbody{padding:10px 14px;margin-top:8px;border-left:2px solid va
 .topbar .mark:hover .cellmark{transform:translate(6px,-6px);}
 
 #pcmp{position:relative;max-width:1120px;margin:0 auto;padding:0 0 56px;}
-#pcmp .guides{position:absolute;left:0;right:0;top:0;height:760px;pointer-events:none;z-index:0;
-  background-image:repeating-linear-gradient(90deg,transparent 0 119px,rgba(27,26,23,.045) 119px 120px);
-  -webkit-mask-image:linear-gradient(180deg,transparent,#000 12%,#000 82%,transparent);
-  mask-image:linear-gradient(180deg,transparent,#000 12%,#000 82%,transparent);}
 
 #pcmp .hero{display:grid;grid-template-columns:1.05fr .95fr;gap:56px;align-items:start;
   padding:48px 0 0;position:relative;z-index:1;}
@@ -1170,7 +1166,6 @@ details.fold .foldbody{padding:10px 14px;margin-top:8px;border-left:2px solid va
   #pcmp h1{font-size:32px;}
   #pcmp .facts{gap:24px;flex-wrap:wrap;}
   #pcmp .steps{grid-template-columns:1fr;gap:22px;}
-  #pcmp .guides{display:none;}
 }
 
 /* 步骤标题：说明收进悬停框 */
@@ -1187,8 +1182,14 @@ details.fold .foldbody{padding:10px 14px;margin-top:8px;border-left:2px solid va
 #pdoc .doc-cols{display:grid;grid-template-columns:186px minmax(0,1fr);gap:54px;
   margin-top:40px;padding-top:28px;border-top:1px solid var(--line);}
 #pdoc .doc-nav{position:sticky;top:76px;align-self:start;}
-#pdoc .doc-nav a{display:block;font-size:13px;color:var(--tx3);text-decoration:none;padding:6px 0;}
+#pdoc .doc-nav a{display:block;position:relative;font-size:13px;color:var(--tx3);
+  text-decoration:none;padding:6px 0;}
 #pdoc .doc-nav a:hover{color:var(--tx);}
+/* 当前读到哪一节：左侧立一道短竖线，不单靠变色 */
+#pdoc .doc-nav a.on{color:var(--tx);}
+#pdoc .doc-nav a.on::before{content:"";position:absolute;left:-14px;top:9px;bottom:9px;
+  width:2px;background:var(--wn);}
+#pdoc .doc-nav a.on span{color:var(--wn);}
 /* 侧栏分区标题：把 8 节归为简介/使用手册/算法说明/案例/参考五段 */
 #pdoc .doc-nav .dn-g{font-size:11px;letter-spacing:.12em;color:var(--tx3);
   padding:14px 0 3px;border-top:1px solid var(--line2);margin-top:8px;}
@@ -1342,6 +1343,7 @@ main .stbox .hd{background:transparent;border-bottom:1px solid var(--line);}
       </svg>
     </button>
     <div class="menu" id="moreMenu" role="menu">
+      <button role="menuitem" onclick="closeMenu();openHelp()">一分钟上手</button>
       <button role="menuitem" onclick="closeMenu();openPres()">演示模式</button>
       <button role="menuitem" onclick="closeMenu();backToCmp()">回到概览</button>
       <button role="menuitem" onclick="closeMenu();saveCfg()">保存配置</button>
@@ -1357,8 +1359,6 @@ main .stbox .hd{background:transparent;border-bottom:1px solid var(--line);}
 
 <!-- ============ 概览：文献式首页 ============ -->
 <section class="pane on" id="pcmp">
-  <div class="guides"></div>
-
   <section class="hero">
     <div>
       <div class="kicker">FIG.00　CROSS-IMPACT BALANCE</div>
@@ -1396,7 +1396,7 @@ main .stbox .hd{background:transparent;border-bottom:1px solid var(--line);}
   <div class="steps">
     <div><b>01</b><h3 class="tip" tabindex="0" data-tip="描述符是政策要设定的量；每个描述符分若干状态并挂区间，作为两两判定的对象。">界定描述符与状态</h3><p>文本 → 变量 → 档位</p></div>
     <div><b>02</b><h3 class="tip" tabindex="0" data-tip="取 −3 至 +3，表示一行状态对一列状态的抑制或促进作用；19 个描述符共 342 对。">两两判定影响方向</h3><p>−3 … +3，342 对判断</p></div>
-    <div><b>03</b><h3 class="tip" tabindex="0" data-tip="每个状态受其余状态影响之和即其影响平衡值；主动和最大、且无冲突的组合，才判为自洽情景。">求取自洽情景</h3><p>主动和排序 → 留存十余组</p></div>
+    <div><b>03</b><h3 class="tip" tabindex="0" data-tip="每个状态受其余状态影响之和即其影响平衡值；影响平衡值最大、且无冲突的组合，才判为自洽情景。">求取自洽情景</h3><p>影响平衡值排序 → 留存十余组</p></div>
   </div>
 
   <div class="foot">
@@ -1407,12 +1407,12 @@ main .stbox .hd{background:transparent;border-bottom:1px solid var(--line);}
 
 <!-- ============ 步骤 2 ============ -->
 <section class="pane" id="p0">
-  <h2 class="pt tip wide" tabindex="0" data-tip="国家级是给定层，取值来自国家政策目标，不参与组合枚举；区域、省、市三层才是待探索变量。">选择分析尺度</h2>
+  <h2 class="pt tip wide" tabindex="0" data-tip="区域、省、市三层是待探索变量，可以任意组合；勾了哪几层，跨层核对就在哪几层之间做。">选择分析尺度</h2>
 
   <div class="grid2">
     <div class="opt sel" data-scale="nation" onclick="tglScale(this)">
-      <div class="t">国家级 <span class="tag" style="font-size:11px;">给定</span> <span class="chk on"><span class="tick"></span></span></div>
-      <div class="d">全国总量与目标，作为分解的起点；不参与枚举</div>
+      <div class="t">国家级 <span class="chk on"><span class="tick"></span></span></div>
+      <div class="d">全国总量与目标，作为分解的起点</div>
     </div>
     <div class="opt sel" data-scale="region" onclick="tglScale(this)">
       <div class="t">区域级（京津冀） <span class="chk on"><span class="tick"></span></span></div>
@@ -1429,24 +1429,9 @@ main .stbox .hd{background:transparent;border-bottom:1px solid var(--line);}
   </div>
 
   <div class="card" style="margin-top:16px;">
-    <h3>各层差异预览 <span class="tag">勾选层级后自动生成</span></h3>
-    
+    <h3 class="tip" tabindex="0" data-tip="同一年的人口与经济口径在四层不一样，跨层核对就是管这件事：上级定了档位，下级只在自己被允许的范围内取档。">各层差异预览</h3>
     <div id="layerTable"></div>
   </div>
-
-  <div class="card">
-    <h3>联动方式</h3>
-    <div class="grid2">
-      <div class="opt sel" onclick="pick(this,'link')">
-        <div class="t">上下联动约束 <span class="chk on"><span class="tick"></span></span></div>
-        <div class="d">下级加总须等于上级；口径须一致；下级目标不得超出上级边界</div>
-      </div>
-      <div class="opt" onclick="pick(this,'link')">
-        <div class="t">各层独立 <span class="chk"></span></div>
-        <div class="d">只在本层内检验，不做跨层核对（等同现有做法）</div>
-      </div>
-    </div>
-</div>
 </section>
 
 <!-- ============ 步骤 2：政策库与映射（v1.1 新增） ============ -->
@@ -1490,14 +1475,6 @@ main .stbox .hd{background:transparent;border-bottom:1px solid var(--line);}
 <section class="pane" id="p2">
   <h2 class="pt tip wide" tabindex="0" data-tip="每个描述符只取一个状态。状态区间的数值把「高速」这类标签落到具体范围，标签因此成为半定量档位。">选择描述符与状态</h2>
 
-  <div class="card" style="display:flex;align-items:center;gap:12px;padding:13px 16px;">
-    <div style="flex:1;">
-      <div style="font-size:13px;font-weight:600;">状态定义可由政策数据库自动预填</div>
-      <div style="font-size:13px;color:var(--tx2);">按工具路径与管辖地自动生成，不必逐条手敲。</div>
-    </div>
-    <button class="btn" id="pullBtn" onclick="pullDB()">从政策数据库拉取预设</button>
-  </div>
-
   <div class="grid2">
     <div>
       <div class="tools">
@@ -1507,7 +1484,7 @@ main .stbox .hd{background:transparent;border-bottom:1px solid var(--line);}
       <div style="font-size:13px;color:var(--tx2);margin-bottom:8px;">
         描述符树　<span id="treeCnt">共 19 个 · 已选 0 项</span></div>
       <div class="tree" id="tree"></div>
-      <div class="note" style="margin-top:10px;"><b>结果型由模型算出，不能勾选。</b></div>
+      <div class="note" style="margin-top:10px;"><b>结果型由模型算出，不能勾选</b>（节点内已标注）。</div>
     </div>
     <div>
       <div style="font-size:13px;color:var(--tx2);margin-bottom:8px;">状态设置 <span class="dim">（含取值区间，可编辑）</span></div>
@@ -1522,9 +1499,9 @@ main .stbox .hd{background:transparent;border-bottom:1px solid var(--line);}
   </div>
 
   <div class="card">
-    <h3>数值锚定 <span class="tag">输入条件 · 先定已知值</span></h3>
+    <h3>数值锚定</h3>
     <details class="fold"><summary>区间怎么参与检算</summary><div class="foldbody">状态区间原本只是说明性标注，这里让它<b>参与检算</b>。给某个描述符填一个已知值或现实区间
-      （比如「经济增速已知在 4.5~5.0」）。它和状态选择是同一层的输入，所以放在这一页，选完状态就能顺手定。，检算时凡是区间与它<b>完全不相交</b>的状态都直接排除——
+      （比如「经济增速已知在 4.5~5.0」）。它和状态选择是同一层的输入，所以放在这一页，选完状态就能顺手定。检算时凡是区间与它<b>完全不相交</b>的状态都直接排除——
       这套假设在数值上就站不住，不必再拿去比对。<br>
       <b>与下面的「情景筛选」不是一回事</b>：锚定是<b>检算前</b>缩小搜索空间（会改变组合数与检验结果），
       筛选是<b>检算后</b>过滤展示（不改变检验结果）。锚定管"数值上行不行"，筛选管"逻辑上剩下哪些"。</div></details>
@@ -1532,7 +1509,7 @@ main .stbox .hd{background:transparent;border-bottom:1px solid var(--line);}
   </div>
 
   <div class="card">
-    <h3>跨层一致性 <span class="tag">输入条件 · 跨层口径</span></h3>
+    <h3>跨层一致性</h3>
     <details class="fold"><summary>跨层怎么比</summary><div class="foldbody">同一套假设摊到国家、省、市三个尺度上，<b>上级定的调子，下级不能反着来</b>。
       每层默认<b>跟随你在上面选的状态</b>，可单独改；平台只比较相邻两层——<b>档位差 ≥2 判为方向相反</b>。改一格立刻重算冲突，点「把下级调到相邻档」可一键修正。
       这是「纵向一致性」，与上面的 CIB「横向自洽」是两回事：横向管这套假设内部打不打架，纵向管它上下说不说得通。</div></details>
@@ -1540,7 +1517,7 @@ main .stbox .hd{background:transparent;border-bottom:1px solid var(--line);}
   </div>
 
   <div class="card">
-    <h3>描述符框架 <span class="tag">算法通用、底料本地</span></h3>
+    <h3>描述符框架</h3>
     <details class="fold"><summary>为什么换一套行业也能跑</summary><div class="foldbody">这套算法不认「京津冀」——它只认一组描述符、每档区间、两两判断。所以描述符集可以整体导出/导入：
       换一套行业或区域，同一套流程照跑。落地靠本地数据，通用性就靠这一层。</div></details>
     <div id="fwBox"></div>
@@ -1549,7 +1526,7 @@ main .stbox .hd{background:transparent;border-bottom:1px solid var(--line);}
 
 <!-- ============ 步骤 4 ============ -->
 <section class="pane" id="p3">
-  <h2 class="pt tip wide" tabindex="0" data-tip="决定由谁来打分：全部人工、全部 AI 预填，或 AI 预填后再人工复核。">设置校验方式</h2>
+  <h2 class="pt tip wide" tabindex="0" data-tip="决定由谁来打分：全部人工、全部 AI 预填，或 AI 预填后再人工复核。AI 预填的开关在下一步「交叉影响打分」。">设置校验方式</h2>
 
   <div class="card">
     <h3>专家校验模式</h3>
@@ -1572,7 +1549,7 @@ main .stbox .hd{background:transparent;border-bottom:1px solid var(--line);}
   </div>
 
   <div class="card">
-    <h3>参数生成方式 <span class="tag">四选一</span></h3>
+    <h3>参数生成方式</h3>
     <div class="grid2">
       <div class="opt sel" data-gen="config" onclick="pick(this,'gen')">
         <div class="t">模型配置文件 <span class="chk on"><span class="tick"></span></span></div>
@@ -1588,15 +1565,15 @@ main .stbox .hd{background:transparent;border-bottom:1px solid var(--line);}
       </div>
       <div class="opt" data-gen="bayes" onclick="pick(this,'gen')">
         <div class="t">贝叶斯概率分布 <span class="chk"></span></div>
-        <div class="d">弱信息先验 + 专家打分更新，给出每条判断的后验均值与 90% 区间</div>
+        <div class="d">给出每条判断的后验均值与 90% 区间，区间宽窄即分歧大小</div>
       </div>
     </div>
 
   </div>
 
   <div class="card">
-    <h3 class="tip wide" tabindex="0" data-tip="不凭空造值：先给一个弱信息先验（±3 上的正态分布），再用专家打分更新。区间宽窄反映专家分歧。">贝叶斯后验 <span class="tag">可复算</span></h3>
-    <p class="hintline"><span class="tip" tabindex="0" data-tip="把每位专家的打分当作对同一条判断的观测：先给潜在影响值一个先验，用观测去更新， 得到后验均值与 90% 区间。开启后，后验均值矩阵会替换原打分参与一致性检验。">贝叶斯怎么更新</span></p>
+    <h3 class="tip wide" tabindex="0" data-tip="不凭空造值：先给一个弱信息先验（±3 上的正态分布），再用专家打分更新。">贝叶斯后验</h3>
+    <p class="hintline"><span class="tip" tabindex="0" data-tip="开启后，后验均值矩阵会替换原打分参与一致性检验。">开启后会改变什么</span></p>
     <div id="bayesBox"></div>
   </div>
 
@@ -1634,7 +1611,7 @@ main .stbox .hd{background:transparent;border-bottom:1px solid var(--line);}
   </div>
 
   <div class="card">
-    <h3>影响平衡预览 <span class="tag">随打分自动重算</span></h3>
+    <h3>影响平衡预览</h3>
     <p class="hintline"><span class="tip" tabindex="0" data-tip="把某个状态下的所有来向影响相加，就得到该描述符的影响平衡值。箭头标出的是当前取值中得分最高的一项—— 如果这一项正好是情景里选定的状态，就说明该假设是自洽的。">影响平衡怎么读</span></p>
     <div id="cimBalance"></div>
   </div>
@@ -1675,12 +1652,12 @@ main .stbox .hd{background:transparent;border-bottom:1px solid var(--line);}
   </div>
 
   <div class="card" data-grp="concl">
-    <h3>检验结果 <span class="tag">点击可展开判断链</span></h3>
+    <h3>检验结果</h3>
     <div id="checkResult"></div>
   </div>
 
   <div class="card" data-grp="concl">
-    <h3>矛盾组合与处理建议 <span class="tag">闭环</span></h3>
+    <h3>矛盾组合与处理建议</h3>
     
     <div id="confList"></div>
   </div>
@@ -1693,7 +1670,7 @@ main .stbox .hd{background:transparent;border-bottom:1px solid var(--line);}
   </div>
 
   <div class="card" data-grp="rel">
-    <h3>逐层求解 <span class="tag">跨层约束进入求解</span></h3>
+    <h3>逐层求解</h3>
     <details class="fold"><summary>逐层求解怎么把约束传下去</summary><div class="foldbody">上面那张是<b>算完再查</b>：先各自求解，再比对档位差。这里是<b>算的时候就带着上级的条件</b>——
       区域级解出的每个情景，其取值转成下级的约束，下级与它<b>区间不相交</b>的状态直接不进枚举。
       上级定「目标节奏（20–30%）」，下级「快速清洁化（30–40%）」根本不会被算到，而不是算出来再判它矛盾。<br>
@@ -1703,7 +1680,7 @@ main .stbox .hd{background:transparent;border-bottom:1px solid var(--line);}
   </div>
 
   <div class="card" data-grp="rel">
-    <h3>稳健性检验 <span class="tag">判断改了结论还站得住吗</span></h3>
+    <h3>稳健性检验</h3>
     <details class="fold"><summary>稳健性在扰动什么</summary><div class="foldbody">一致性检验的输入是人给的 −3 到 +3。这一块把每条判断按置信度随机改动一档，重算几十轮：
       <b>出现率一直高的状态</b>可以当成结论的骨架；<b>单独改一档就让大批结论失效的那条判断</b>，
       就是人审该优先花力气的地方。结果不是概率，只衡量结论对判断的敏感程度。</div></details>
@@ -1711,7 +1688,7 @@ main .stbox .hd{background:transparent;border-bottom:1px solid var(--line);}
   </div>
 
   <div class="card" data-grp="rel">
-    <h3>集成与分歧 <span class="tag">多专家</span></h3>
+    <h3>集成与分歧</h3>
     <p class="hintline"><span class="tip" tabindex="0" data-tip="选 2 人或 3 人独立打分时，这里把各份矩阵摆在一起：一致的条目自动合并，分歧的条目列出来逐条裁定。 裁定结果写回主矩阵，可直接进入一致性检验。">分歧怎么裁定</span></p>
     <div id="ensPanel"></div>
   </div>
@@ -1741,7 +1718,7 @@ main .stbox .hd{background:transparent;border-bottom:1px solid var(--line);}
   <div class="card" data-grp="struct">
     <h3>主被动图</h3>
     <details class="fold"><summary>象限怎么读</summary><div class="foldbody">给每个描述符算两个数：它<b>对外施加</b>的影响总和（主动和）和它<b>承受</b>的影响总和（被动和）。
-      横轴是被动和、纵轴是主动和，四个象限对应四种角色——这张图回答的是「<b>我该动哪个描述符</b>」。</div></details>
+      横轴是被动和、纵轴是主动和，四个象限对应四种角色——这张图回答的是「<b>我该动哪个描述符</b>」。<b>注意</b>：这里的主动和／被动和是描述符级的两个总量，与判定自洽用的「影响平衡值」（状态级）不是同一个数。</div></details>
     <div id="apFig"></div>
   </div>
 
@@ -1767,7 +1744,7 @@ main .stbox .hd{background:transparent;border-bottom:1px solid var(--line);}
   </div>
 
   <div class="card" data-grp="out">
-    <h3>时间轴 <span class="tag">双锚点</span></h3>
+    <h3>时间轴</h3>
     <div id="timeline"></div>
   </div>
 
@@ -1805,7 +1782,7 @@ main .stbox .hd{background:transparent;border-bottom:1px solid var(--line);}
   </div>
 
   <div class="doc-cols">
-    <nav class="doc-nav">
+    <nav class="doc-nav" id="docNav">
       <div class="dn-g">简介</div>
       <a href="#d1"><span>01</span>平台做什么</a>
       <div class="dn-g">使用手册</div>
@@ -1836,7 +1813,7 @@ main .stbox .hd{background:transparent;border-bottom:1px solid var(--line);}
       <div class="dgrp">使用手册</div>
       <h2 id="d2">二　七步流程</h2>
       <h3>第 1 步　选择尺度</h3>
-      <p>勾选本次情景覆盖的层级。<b>国家级是「给定层」</b>，取值来自国家政策目标，属于外部条件，不参与组合枚举；区域、省、市三层才是需要探索的变量。</p>
+      <p>勾选本次情景覆盖的层级。<b>国家级是「给定层」</b>，取值来自国家政策目标，属于外部条件；区域、省、市三层才是需要探索的变量。</p>
       <p>勾选两层以上才会启用跨层核对：相邻层级之间按「档位不反向」检查，上级定的方向，下级不能反着来。只勾一层时，平台等同于在单层内做一致性检验。</p>
 
       <h3>第 2 步　政策库与映射</h3>
@@ -1845,14 +1822,14 @@ main .stbox .hd{background:transparent;border-bottom:1px solid var(--line);}
 
       <h3>第 3 步　描述符与状态</h3>
       <p>描述符按三级组织：输入型（经济增速、人口分布、协同机制）、参数型（产业结构、电力互济、可再生开发、钢铁工艺、CCUS、碳移除、用水）、结果型（一次能源结构、终端电气化率）。共 19 个，合计 55 个状态。</p>
-      <p>每个状态右侧的数值区间是该档位的<b>取值锚点</b>：把「高速 / 中速」这类定性标签落到具体范围上，标签就变成了半定量档位。区间可改，状态可增删——标准不必只有一套，可以换成自己的口径。</p>
-      <p><b>每个描述符只取一个状态（单选）。</b>不同状态属于不同情景；要排除不可行的档位，请用第 7 步的「数值锚定」，那里有区间依据可追溯。结果型描述符由模型算出，不能勾选。</p>
+      <p>每个状态右侧的数值区间是该档位的<b>取值锚点</b>：把「高速 / 中速」这类定性标签落到具体范围上，标签就变成了半定量档位。区间可改，状态可增删——标准不必只有一套，可以换成自己的口径。状态定义的来源说明可以回<b>第 2 步</b>用「按政策库预填来源」一次性写好，不必逐条手敲。</p>
+      <p><b>每个描述符只取一个状态（单选）。</b>不同状态属于不同情景；要排除不可行的档位，请用本页的「数值锚定」，那里有区间依据可追溯。结果型描述符由模型算出，不能勾选。</p>
 
       <h3>第 4 步　校验方式</h3>
       <p>决定 342 对判断由谁来打：全部人工、全部 AI 预填，或 AI 预填后人工复核。三条路走的是同一套评分口径，区别只在效率与可追溯性。</p>
 
       <h3>第 5 步　交叉影响打分</h3>
-      <p>逐个判断「一个描述符取某状态」会怎样影响「另一个描述符的状态」，取 −3 至 +3：正值表示促进，负值表示抑制，<b>0 表示两者之间没有直接关系</b>。19 个描述符两两组合共 342 对。</p>
+      <p>逐个判断「一个描述符取某状态」会怎样影响「另一个描述符的状态」，取 −3 至 +3：正值表示促进，负值表示抑制，<b>0 表示两者之间没有直接关系</b>。19 个描述符两两组合共 342 对——方向有意义（甲影响乙与乙影响甲是两条），所以按<b>有序对</b>计。</p>
       <p><b>0 是一个判断，不是「没把握」。</b>「两者无直接关系」可以判得很有把握，也可能只是暂时看不清——影响分与置信度是两条独立的轴，分开填。真正没做判断的格子留空，与填 0 不是一回事。</p>
       <p>建议先用 AI 预填一版——它只写自己确实找出直接影响的那几条，其余留空交给人判。留空的格子是「还没有判断」，不是「判为 0」；预填过的格子带 <b>AI·</b> 标记，人工改过分数或置信度后标记自动消失。复核时优先看低置信度的格子——那些格子通常缺少原文依据或专家意见不一致，是结论最脆弱的地方。</p>
 
@@ -1867,7 +1844,7 @@ main .stbox .hd{background:transparent;border-bottom:1px solid var(--line);}
       <p class="dnote">这里说明的是<b>平台怎么算</b>。描述符之间的关系<b>依据什么</b>判定（须来自同行评议文献或真实历史数据，不以政策文本为据）、高低分段的文献共识从哪来、由谁验证——属评分规则工作，待其定稿后另立一节。</p>
       <h2 id="d3">三　判定与算法</h2>
       <h3>打分与自洽</h3>
-      <p>每一对判断是有方向的：行状态对列状态的影响，不等于列对行。给定一组情景（每个描述符选一个状态），某个状态受到的其余状态影响之和即其<b>主动和</b>。主动和最大、且不与其他判断矛盾的组合，判为<b>自洽</b>。</p>
+      <p>每一对判断是有方向的：行状态对列状态的影响，不等于列对行。给定一组情景（每个描述符选一个状态），某个状态受到的其余状态影响之和即其<b>影响平衡值</b>。影响平衡值最大、且不与其他判断矛盾的组合，判为<b>自洽</b>。</p>
       <p>自洽不等于「好」。一组政策可以全部促进增长，却依然互相排斥——判的是内部是否打架，不是优劣。</p>
 
       <h3>贝叶斯后验</h3>
@@ -1882,7 +1859,7 @@ main .stbox .hd{background:transparent;border-bottom:1px solid var(--line);}
 
       <h2 id="d4">四　跨层与锚定</h2>
       <h3>三层关系</h3>
-      <p>国家级给方向、区域级做加总、省市级做分解。三类约束分别是：分解汇总（各省加总等于全国）、口径一致（同名指标定义相同）、边界（下级加总不超上级）。相邻层级之间按「档位不反向」核对。</p>
+      <p>国家级给方向、区域级做加总、省市级做分解。跨层核对目前只做<b>档位方向</b>：相邻层级之间按「档位不反向」检查，上级定的方向，下级不能反着来。数值加总（各省加总等于全国、下级加总不超上级）暂不自动校验——层级树的成员尚不完整（京津下级缺位），要先把每层成员补齐。</p>
 
       <h3>数值锚定</h3>
       <p>给某个描述符填一个已知值或现实区间（例如「经济增速已知在 4.5–5.0」），凡区间与它<b>完全不相交</b>的状态直接排除——这套假设在数值上就站不住，不必再拿去比对。</p>
@@ -1940,8 +1917,9 @@ main .stbox .hd{background:transparent;border-bottom:1px solid var(--line);}
         <tr><td>描述符</td><td>政策要设定的量，是模型里的一个变量入口</td></tr>
         <tr><td>状态</td><td>描述符的档位，带数值区间</td></tr>
         <tr><td>有序对</td><td>一行状态对一列状态的影响判断，取 −3 至 +3</td></tr>
-        <tr><td>主动和 / 被动和</td><td>某状态对其他状态施加的影响总和 / 承受的影响总和</td></tr>
-        <tr><td>自洽</td><td>主动和最大且与其他判断不冲突的组合</td></tr>
+        <tr><td>影响平衡值</td><td>某状态受到的其余状态影响之和，平台据此判定自洽（取最大者）</td></tr>
+        <tr><td>主动和 / 被动和</td><td>主被动图的两根轴：某描述符对外施加的影响总和 / 承受的影响总和</td></tr>
+        <tr><td>自洽</td><td>影响平衡值最大且与其他判断不冲突的组合</td></tr>
         <tr><td>情景簇</td><td>若干彼此接近的自洽情景的集合</td></tr>
         <tr><td>给定层</td><td>国家级：取值来自外部政策目标，不参与枚举</td></tr>
         <tr><td>档位不反向</td><td>下级层级的方向不能与上级相反</td></tr>
@@ -2272,7 +2250,7 @@ const sel={desc:{}};
 const collapsed=new Set();
 const expanded=new Set();
 let inCmp=true, cur=0, curModel='gcam', expertN=1, useBayes=false, pulled=false;
-let searchQ='', openScen=null, openConf=null, applied=new Set();
+let searchQ='', openScen=null, openConf=null;
 
 /* 参数生成方式四选一（v1.5 第 4 步）。useBayes 只管「后验要不要参与检算」，
    genMode 管「导出成什么形态」；贝叶斯这一档同时打开 useBayes。
@@ -2297,21 +2275,14 @@ function fmtNum(n){
 }
 function homeStatData(){
   const all=PALLC();
-  let maps=0, mid=0, low=0;
-  const cov=new Set();
-  all.forEach(p=>(p.m||[]).forEach(x=>{
-    maps++; cov.add(x[0]);
-    if(x[1]==='中') mid++; else if(x[1]==='低') low++;
-  }));
+  let maps=0;
+  all.forEach(p=>(p.m||[]).forEach(x=>{ maps++; }));
   let descs=0, states=0, combos=1;
   TREE.forEach(g=>g.c.forEach(c=>c.d.forEach(d=>{
     descs++; states+=d.s.length; combos*=d.s.length;
   })));
-  const vk=Object.keys(POLICY_VERIF);
-  const up=vk.filter(k=>POLICY_VERIF[k]&&POLICY_VERIF[k].st==='升高').length;
-  return {paths:all.length, maps:maps, mid:mid, low:low,
-          descs:descs, states:states, combos:combos, covered:cov.size,
-          verif:vk.length, up:up};
+  return {paths:all.length, maps:maps,
+          descs:descs, states:states, combos:combos};
 }
 const HM_P=[
   [0,0,0, 0,0,0, 0,0,0],
@@ -2366,18 +2337,7 @@ function renderCmp(){
     [fmtNum(d.combos), '种组合', '枚举后逐组检验，保留自洽的']
   ].map(x=>'<div title="'+x[2]+'"><b>'+x[0]+'</b><span>'+x[1]+'</span></div>').join('');
 
-  const rows=[
-    ['政策 → 参数','各层分别给系数，说不清依据','每条路径挂到变量上，带文号、置信度与区间，能追到原文'],
-    ['参数 → 情景','没有机制检查假设之间互不互斥','两两打分后逐组检验，自相矛盾的在事前就筛掉'],
-    ['情景 → 模型','手改配置文件，换模型要重配一遍','按区间取档，一键出装配清单与参数表']
-  ];
   renderHomeGrid();
-  const cb=document.getElementById('cmpBox');
-  if(cb) cb.innerHTML=
-    '<div class="crow hd"><div class="clbl">环节</div>'
-    +'<div class="cell">直接给模型填数</div><div class="cell">本平台</div></div>'
-    +rows.map(r=>'<div class="crow"><div class="clbl">'+r[0]+'</div>'
-      +'<div class="cell">'+r[1]+'</div><div class="cell pk">'+r[2]+'</div></div>').join('');
 }
 
 /* ================= 步骤 1 ================= */
@@ -2391,14 +2351,17 @@ function layerTable(){
     <div class="cell" style="border-right:none;">口径</div></div>`;
   LAYERS.forEach(L=>{
     const active=on.indexOf(L.k)>=0;
-    h+=`<div class="crow" style="grid-template-columns:96px 1fr 1fr 1fr;${active?'':'opacity:.4;'}">
-      <div class="clbl">${L.n}</div>
+    // 未勾选的层不整行压暗（那样读者不知道是不是坏了），只把层名标灰并加一个「未启用」标记
+    h+=`<div class="crow" style="grid-template-columns:96px 1fr 1fr 1fr;">
+      <div class="clbl"${active?'':' style="color:var(--tx3);"'}>${L.n}${active?'':'<span class="dim" style="font-size:11px;"> （未启用）</span>'}</div>
       <div class="cell">${L.pop}</div><div class="cell">${L.eco}</div>
       <div class="cell" style="border-right:none;">${L.fmt}</div></div>`;
   });
+  const onNames=LAYERS.filter(L=>on.indexOf(L.k)>=0).map(L=>L.n);
   h+=`<div class="dim" style="padding:10px 14px 0;font-size:13px;">
-    ${on.length>1?'国家级为给定层，不参与枚举；相邻层级按「档位不反向」核对。':'只勾了一个层级，不做跨层核对。'}</div>`;
-document.getElementById('layerTable').innerHTML=h;
+    ${on.length>1?('本次参与跨层核对：'+onNames.join(' → ')+'。国家级为给定层，不参与枚举；相邻层级按「档位不反向」核对。')
+      :'只勾了一个层级，不做跨层核对。'}</div>`;
+  document.getElementById('layerTable').innerHTML=h;
 }
 
 /* ================= 步骤 2 ================= */
@@ -2760,37 +2723,11 @@ function renderStates(){
   const outs=allDescs().filter(d=>d.t==='结果型');
   document.getElementById('outPanel').innerHTML=
     `<div class="stbox" style="margin-top:12px;">
-      <div class="hd">模型输出预期 <span class="tag" style="font-size:11px;">结果型</span></div>
+      <div class="hd">模型输出预期</div>
       <div style="padding:10px 12px;font-size:13px;color:var(--tx2);line-height:1.7;">
         ${outs.map(d=>`· <b style="color:var(--tx)">${d.n}</b>——${d.tr}`).join('<br>')}
       </div></div>`;
 }
-function pullDB(){
-  const PRESET={
-    '经济增长速度':'统计年鉴 · 分省 GDP 序列',
-    '人口空间分布与收缩态势':'统计年鉴 · 分省常住人口',
-    '产业结构':'政策数据集 · 路径「产业转型治理」',
-    '区域电力互济强度':'政策数据集 · 路径「绿电消费奖励」（地方补充）',
-    '本地可再生能源开发规模':'政策数据集 · 路径「可再生能源项目建设补贴」',
-    '钢铁工艺路线':'政策数据集 · 路径「产能置换」',
-    '碳捕集利用与封存部署规模':'政策数据集 · 路径「碳捕集示范与专项」',
-    '碳移除规模':'政策数据集 · 路径「生态系统服务付费」',
-    '单位产品能耗限额强度':'政策数据集 · 路径「单位产品能源消耗限额」',
-    '工业节能改造强度':'政策数据集 · 路径「节能技术改造补贴」',
-    '建筑能效标准强度':'政策数据集 · 路径「建筑最低能源绩效标准」',
-    '清洁取暖替代强度':'政策数据集 · 路径「清洁取暖补贴」',
-    '新能源汽车渗透强度':'政策数据集 · 路径「低碳车辆购置补贴」',
-    '研发与示范投入强度':'政策数据集 · 路径「政府资助研发与示范计划」',
-    '碳价水平与碳市场覆盖':'政策数据集 · 路径「排放交易体系」',
-    '京津冀协同机制强度':'政策数据集 · 路径「目标责任制度」'
-  };
-  Object.keys(sel.desc).forEach(nm=>{ if(PRESET[nm]) sel.desc[nm].src=PRESET[nm]; });
-  pulled=true; render();
-  document.getElementById('pullBtn').textContent='已拉取预设 ✓';
-  document.getElementById('pullBtn').disabled=true;
-  toast('已按政策数据库路径预填状态定义');
-}
-
 /* ================= 步骤 3 ================= */
 function expDetail(){
   const el=document.getElementById('expDetail');
@@ -2805,35 +2742,34 @@ function expDetail(){
 }
 function scaleSum(){
   const n=nSel(), items=n>1?n*(n-1):0;
+  const on=[...document.querySelectorAll('[data-scale].sel')].map(x=>x.dataset.scale);
   document.getElementById('scaleSum').innerHTML=
-   `<div class="kv"><span>已选描述符</span><span>${n} 个</span></div>
-    <div class="kv"><span>交叉影响矩阵规模</span><span>${n} × ${n} = ${n*n} 格</span></div>
-    <div class="kv"><span>待打分项（双向分别判断）</span><span>${items} 项</span></div>
-    <div class="kv"><span>专家人数</span><span>${expertN} 人${ens?'（已建立 '+ens.people.length+' 份独立矩阵）':''}</span></div>
-    <div class="kv"><span>参数生成方式</span><span>${genName()}${genOf()==='bayes'&&BAYES?(' · '+BAYES.n+' 条判断'):''}</span></div>
-    <div class="kv"><span>校验层级</span><span>${(()=>{
-      const on=[...document.querySelectorAll('[data-scale].sel')].map(x=>x.dataset.scale);
-      return on.length+' 层'+(on.indexOf('nation')>=0?'（国家级为给定层，不参与枚举）':'');
-    })()}</span></div>`;
+   kv('已选描述符', n+' 个')
+   +kv('交叉影响矩阵规模', n+' × '+n+' = '+(n*n)+' 格')
+   +kv('待打分项（双向分别判断）', items+' 项')
+   +kv('专家人数', expertN+' 人'+(ens?'（已建立 '+ens.people.length+' 份独立矩阵）':''))
+   +kv('参数生成方式', genName()+(genOf()==='bayes'&&BAYES?(' · '+BAYES.n+' 条判断'):''))
+   +kv('校验层级', on.length+' 层'+(on.indexOf('nation')>=0?'（国家级为给定层，不参与枚举）':''));
 }
 
 /* ================= 步骤 4 ================= */
 function modelDetail(){
   const n=nSel(), el=document.getElementById('modelDetail');
+  if(!el) return;
   if(curModel==='gcam'){
-    el.innerHTML=`<h3>GCAM-China 需要的文件</h3>
-      <div class="kv"><span>配置格式</span><span>XML，写入 configuration.xml 的 ScenarioComponents</span></div>
-      <div class="kv"><span>需写入的参数项</span><span>${n||'—'} 项</span></div>
-      <div class="kv"><span>文件路径基准</span><span>exe/configuration.xml → ../input/</span></div>
-      <div class="kv"><span>改动层级</span><span>情景配置层（最外层）</span></div>
-      <div class="note ok">产出落在最外层，无需重新编译，替换后即可运行。</div>`;
+    el.innerHTML='<h3>GCAM-China 需要的文件</h3>'
+      +kv('配置格式','XML，写入 configuration.xml 的 ScenarioComponents')
+      +kv('需写入的参数项',(n||'—')+' 项')
+      +kv('文件路径基准','exe/configuration.xml → ../input/')
+      +kv('改动层级','情景配置层（最外层）')
+      +'<div class="note ok">产出落在最外层，无需重新编译，替换后即可运行。</div>';
   }else{
-    el.innerHTML=`<h3>CHEER-CGE 需要的文件</h3>
-      <div class="kv"><span>配置格式</span><span>CSV，之后由 GDXXRW.EXE 转为 GDX</span></div>
-      <div class="kv"><span>需写入的参数项</span><span>${n||'—'} 项</span></div>
-      <div class="kv"><span>对应接口</span><span>run.gms 开头的路径变量与开关</span></div>
-      <div class="kv"><span>改动层级</span><span>数据层（需重新转换）</span></div>
-      <div class="note">该模型中间层为二进制 GDX，无法直接写入，所以先导出 CSV。这一步比 GCAM 多一道转换。</div>`;
+    el.innerHTML='<h3>CHEER-CGE 需要的文件</h3>'
+      +kv('配置格式','CSV，之后由 GDXXRW.EXE 转为 GDX')
+      +kv('需写入的参数项',(n||'—')+' 项')
+      +kv('对应接口','run.gms 开头的路径变量与开关')
+      +kv('改动层级','数据层（需重新转换）')
+      +'<div class="note">该模型中间层为二进制 GDX，无法直接写入，所以先导出 CSV。这一步比 GCAM 多一道转换。</div>';
   }
 }
 
@@ -3041,9 +2977,8 @@ function enumCore(ds, force, capN, keepAll){
 function runCIM(){
   if(useBayes && !BAYES) computeBayes();
   const ds=Object.keys(sel.desc);
-  if(ds.length<2){ toast('至少选两个描述符'); return; }
-  const filled=cimKeys().filter(k=>cim[k]);
-  if(!filled.length){ toast('还没有打分，先到「交叉影响打分」做判断'); return; }
+  const pe=prepErr(ds);
+  if(pe){ toast(pe); return; }
   const r=enumCore(ds,null);
   if(r.bad){ toast('有描述符缺少状态定义'); return; }
   if(r.dead>=0){ toast('「'+ds[r.dead]+'」在锚定下没有任何可用状态，请放宽锚定或改区间'); return; }
@@ -3060,8 +2995,6 @@ function runCIM(){
    与「跨层一致性」的区别：那个是算完之后再查档位差；这个是在求解时就用上级的取值
    裁掉下级不相容的状态——上级定了「目标节奏（21–28%）」，下级「快速清洁化（30–40%）」
    根本不会进入枚举，而不是等算出来再判它矛盾。 */
-let layScope='region';
-
 function rangeOf(nm,scope){
   const base=baseOf(nm);
   if(scope==='region') return base;
@@ -3164,9 +3097,8 @@ function runLayered(){
   const order=xlayers().filter(s=>s!=='nation');     // 国家级是给定层，不参与枚举
   if(!order.length){ toast('第 1 步至少要勾一个参与求解的层级（区域 / 省 / 市）'); return; }
   const ds=Object.keys(sel.desc);
-  if(ds.length<2){ toast('至少选两个描述符'); return; }
-  const filled=cimKeys().filter(k=>cim[k]);
-  if(!filled.length){ toast('还没有打分，先到「交叉影响打分」做判断'); return; }
+  const pe=prepErr(ds);
+  if(pe){ toast(pe); return; }
   const layers=[]; let parents=null;
   layeredResult=null;
   const host=document.getElementById('layBox');
@@ -3227,9 +3159,8 @@ function renderLay(){
       +'小空间层仍为精确枚举）。19 个描述符全开时全空间约 11.6 亿种，逐层判一遍而非每组判一遍，'
       +'才能在这个规模跑完。</div>';
   }
-  h+='<div class="kv" style="margin-top:4px;"><span>最终跨层相容组合</span>'
-    +'<span style="color:var(--pri);font-weight:600;">'+R.combos.toLocaleString()
-    +(R.layers.some(x=>x.truncated)?'+':'')+' 条</span></div>';
+  h+=kv('最终跨层相容组合', '<span style="color:var(--pri);font-weight:600;">'+R.combos.toLocaleString()
+    +(R.layers.some(x=>x.truncated)?'+':'')+' 条</span>', 'margin-top:4px');
   if(R.layers.some(x=>x.truncated)){
     h+='<div class="dim" style="font-size:13px;margin:6px 0 10px;">'
       +'带 + 号的层已达展示上限（600 组），实际数量可能更多。缩小描述符范围可得到完整结果。</div>';
@@ -3300,20 +3231,16 @@ function checkResult(){
     return;
   }
   const r=cimResult;
-  let h='<div class="kv"><span>参与检验的描述符</span><span>'+r.ds.length+' 个</span></div>'
-   +'<div class="kv"><span>状态总数</span><span>'+r.sizes.reduce((a,b)=>a+b,0)+' 个</span></div>'
-   +'<div class="kv"><span>组合空间</span><span>'+r.total.toLocaleString()+' 种'
-   +(r.anchored?(' <span style="color:var(--pri);">→ 锚定后 '+(r.space||r.total).toLocaleString()+' 种</span>'):'')
-   +'</span></div>'
-   +(r.anchored?('<div class="kv"><span>数值锚定排除</span><span style="color:var(--pri);">'
-     +(r.total-(r.space||r.total)).toLocaleString()+' 种组合（'+r.anchored+' 个描述符已锚定）</span></div>'):'')
-   +'<div class="kv"><span>实际检查</span><span>'
-   +(r.sampled?('随机抽样 '+r.checked.toLocaleString()+' 种'):(r.checked.toLocaleString()+' 种（全枚举）'))
-   +'</span></div>'
-   +'<div class="kv"><span>自洽情景</span><span style="color:var(--ok);font-weight:600;">'
-   +r.consistent.length+(r.consistent.length>=200?'+':'')+' 组</span></div>'
-   +'<div class="kv"><span>不自洽组合</span><span style="color:var(--rd);">'
-   +r.inconsistent.toLocaleString()+' 组</span></div>'
+  let h=kv('参与检验的描述符', r.ds.length+' 个')
+   +kv('状态总数', r.sizes.reduce((a,b)=>a+b,0)+' 个')
+   +kv('组合空间', r.total.toLocaleString()+' 种'
+   +(r.anchored?(' <span style="color:var(--pri);">→ 锚定后 '+(r.space||r.total).toLocaleString()+' 种</span>'):''))
+   +(r.anchored?kv('数值锚定排除','<span style="color:var(--pri);">'
+     +(r.total-(r.space||r.total)).toLocaleString()+' 种组合（'+r.anchored+' 个描述符已锚定）</span>'):'')
+   +kv('实际检查', (r.sampled?('随机抽样 '+r.checked.toLocaleString()+' 种'):(r.checked.toLocaleString()+' 种（全枚举）')))
+   +kv('自洽情景', '<span style="color:var(--ok);font-weight:600;">'
+     +r.consistent.length+(r.consistent.length>=200?'+':'')+' 组</span>')
+   +kv('不自洽组合', '<span style="color:var(--rd);">'+r.inconsistent.toLocaleString()+' 组</span>')
    +'<div style="margin-top:12px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;">'
    +'<button class="btn sm" onclick="runCIM()">重新检验</button>'
    +'<span class="dim" style="font-size:13px;">计算时间 '+r.ts+'</span></div>';
@@ -3493,6 +3420,13 @@ function timeline(){
     }).join(''));
 }
 function el(id,h){ document.getElementById(id).innerHTML=h; }
+/* 「标签 ＼ 值」那一行。全项目手拼过 30 多遍，改一次样式要改几十处，故收成一个函数。
+   st 是可选的额外内联样式，只给少数需要微调的场合；值里若含 HTML 由调用方自己保证。
+   注意：统计条里的 <span class="kv">（.cimstat / .ensstat）是另一种紧凑芯片样式，
+   与这里的整行不同，别混用。 */
+function kv(l,v,st){
+  return '<div class="kv"'+(st?' style="'+st+'"':'')+'><span>'+l+'</span><span>'+v+'</span></div>';
+}
 
 /* ================= 导出 ================= */
 /* v1.3：参数值不再写「待定」。从状态定义（含省口径）取区间，按取档方式给点值；
@@ -3607,15 +3541,43 @@ function bayesCSV(){
   });
   return s;
 }
-/* 结构化参数表：只留参数名与数值，去掉依据、叙述、状态名等给人看的列。 */
+/* 结构化参数表：只留参数名与数值，去掉依据、叙述、状态名等给人看的列。
+   但 CIB 求出的是一组「联动自洽」的组合——同一个描述符取哪一档，取决于其他描述符取什么。
+   把参数拆成一行行独立数值，等于把耦合又拆散，下游按行取用会得到互相矛盾的一组值。
+   所以每行都带上它所属的情景标识，并在表头写明「同一 scenario 内才自洽、跨 scenario 混用会破坏一致性」。 */
+function curScenInfo(){
+  const ds=Object.keys(sel.desc);
+  if(ds.length<2) return null;
+  const sc=checkSelected(ds);
+  if(sc.missing) return null;
+  let idx=-1;
+  if(cimResult&&cimResult.consistent){
+    const key=sc.cb.join(',');
+    idx=cimResult.consistent.findIndex(cb=>cb.join(',')===key);
+  }
+  return {id:'CUR'+(idx>=0?('-S'+(idx+1)):''), idx:idx, ok:sc.ok, n:ds.length};
+}
 function tableCSV(){
   const rows=expRows();
+  const info=curScenInfo();
   let s='# 结构化参数表 · 平台自动生成\n';
   s+='# 取档方式：'+expLabel()+'；值只覆盖 2035 锚点\n';
-  s+='param,value\n';
+  s+='# 同一 scenario 内的参数构成一组自洽组合；跨 scenario 混用会破坏一致性。\n';
+  if(info){
+    s+='# 本表全部行同属 '+info.id+'（'+info.n+' 个描述符的当前选择）';
+    s+=info.idx>=0?('，已与一致性检验的第 '+(info.idx+1)+' 组自洽情景对上'):'，未出现在自洽情景清单中';
+    s+='。\n';
+    if(!info.ok){
+      s+='# 注意：这组选择本身不自洽——至少有一个描述符的选定状态不是它的最高分。\n';
+      s+='# 取用前请回到平台「检验与导出」核对，或改用清单里的某一组自洽情景。\n';
+    }
+  }else{
+    s+='# 尚未选出足够的描述符，无法判定这组参数是否自洽。\n';
+  }
+  s+='scenario,param,value\n';
   rows.forEach(r=>{
     if(r.value==null) return;                  // 没数值的不进参数表，另行列出
-    s+=[csvCell(r.param),r.value].join(',')+'\n';
+    s+=[(info?info.id:'CUR'),csvCell(r.param),r.value].join(',')+'\n';
   });
   return s;
 }
@@ -3720,7 +3682,6 @@ function xmlFile(d,i){
   if(n.indexOf('水')>=0) return '../input/gcamdata/xml/water_demand_industry.xml';
   return '';                          // 空字符串=平台不知道该挂哪个文件，导出时单独标出
 }
-function csvParam(d){ return d.v.split(/[；;]/)[0].trim().slice(0,32).replace(/\s/g,'_'); }
 function download(){ dl(preview().replace(/<[^>]+>/g,''), curModel==='gcam'?'xml':'csv','JJJ-CIB-情景1'); }
 function downloadParamsBtn(){ downloadParams(); }
 function downloadAll(){
@@ -3750,15 +3711,11 @@ function finalSum(){
   const sc=[...document.querySelectorAll('[data-scale].sel')].map(x=>map[x.dataset.scale]);
   const st=ensStat();
   el('finalSum',
-   `<div class="kv"><span>层级</span><span>${sc.join(' · ')||'—'}</span></div>
-    <div class="kv"><span>描述符</span><span>${nSel()} 个（三级结构）</span></div>
-    <div class="kv"><span>校验方式</span><span>${expertN} 位专家 · 输出为${genName()}</span></div>
-    ${st?'<div class="kv"><span>多专家集成</span><span>'+st.n+' 份矩阵 · 一致 '+st.agree+' / 分歧 '+st.diff.length
-      +'（一致率 '+st.rate+'%）</span></div>':''}
-    <div class="kv"><span>目标模型</span><span>${curModel==='gcam'?'GCAM-China':'CHEER-CGE'}</span></div>
-    <div class="kv"><span>状态定义来源</span><span>${pulled?'政策数据库自动预填':'手工设定'}</span></div>
-    <div class="kv"><span>已采纳的调整建议</span><span>${applied.size} 条</span></div>
-    <div class="kv"><span>输出格式</span><span>${fmtTag()}</span></div>`);
+   kv('层级', sc.join(' · ')||'—')
+   +(st?kv('多专家集成', st.n+' 份矩阵 · 一致 '+st.agree+' / 分歧 '+st.diff.length
+      +'（一致率 '+st.rate+'%）'):'')
+   +kv('目标模型', curModel==='gcam'?'GCAM-China':'CHEER-CGE')
+   +kv('状态定义来源', pulled?'政策数据库自动预填':'手工设定'));
 }
 
 /* ================= 交互 ================= */
@@ -3838,6 +3795,54 @@ function backToCmp(){ docOpen=false; inCmp=true; render(); window.scrollTo({top:
 let docOpen=false;
 function openDoc(){ docOpen=true; inCmp=true; cur=0; render(); window.scrollTo({top:0}); }
 function closeDoc(){ docOpen=false; inCmp=true; render(); window.scrollTo({top:0}); }
+/* 使用说明页：读到哪一节，侧栏对应项亮起来。
+   做法：进入说明页时缓存八个标题的文档绝对位置，滚动时只比「谁越过了判定线」，
+   算出目标项与当前一致就直接返回，绝不在滚动里读布局。离开文档页即摘掉监听。
+
+   为什么不逐帧 rAF：这里根本不需要每帧重算——位置已缓存、比较只有 8 次，
+   而结果只在跨节那一刻才变。改成「变了才动 DOM」后，滚动全程不碰布局也不碰样式，
+   比 rAF 更省，还省掉一个活动部件。
+   为什么不用 IntersectionObserver：观察带靠 rootMargin 拼，`-88%` 这种百分比下边距
+   ＝视口高×(1−百分比)−76px，视口不足 633px 时算成负高度、一条都不触发；
+   改像素算后在无头 Chrome 里投递时机仍不稳（同构建换个窗口高就时灵时不灵）。 */
+const DOC_LINE=96;                  /* 判定线：标题顶越过这条线，就算「读到这里」 */
+let docSpyOn=false, docSpyCur=null, docSpySecs=[];
+function docSpyOff(){
+  if(docSpyOn){ window.removeEventListener('scroll',docSpyPaint); docSpyOn=false; }
+  /* 顺手把高亮摘掉：页面虽然已经隐藏，留着亮项会在下次进入时闪一下。 */
+  for(let i=0;i<docSpySecs.length;i++) docSpySecs[i].a.classList.remove('on');
+  docSpySecs=[]; docSpyCur=null;
+}
+function docSpyPaint(){
+  if(!docSpySecs.length) return;
+  const y=(window.scrollY||0)+DOC_LINE;
+  let hit=docSpySecs[0].a;          /* 还没滚过任何一节时，停在第一节 */
+  for(let i=0;i<docSpySecs.length;i++){
+    if(docSpySecs[i].top<=y) hit=docSpySecs[i].a; else break;
+  }
+  if(hit===docSpyCur) return;       /* 没跨节就不动 DOM */
+  docSpyCur=hit;
+  for(let i=0;i<docSpySecs.length;i++) docSpySecs[i].a.classList.toggle('on', docSpySecs[i].a===hit);
+}
+function docSpy(){
+  const nav=document.getElementById('docNav');
+  if(!nav||typeof nav.querySelectorAll!=='function'){ docSpyOff(); return; }
+  if(!docOpen){ docSpyOff(); return; }
+  const links=nav.querySelectorAll('a[href^="#d"]');
+  if(!links||!links.length){ docSpyOff(); return; }
+  const sy=window.scrollY||0, secs=[];
+  for(let i=0;i<links.length;i++){
+    const t=document.getElementById((links[i].getAttribute('href')||'').slice(1));
+    if(t&&typeof t.getBoundingClientRect==='function') secs.push({a:links[i],top:t.getBoundingClientRect().top+sy});
+  }
+  if(!secs.length){ docSpyOff(); return; }
+  docSpySecs=secs;                  /* render 后各节高度可能变，每次进来重算位置 */
+  docSpyCur=null;                   /* 位置变了，逼下一笔画一次 */
+  if(!docSpyOn){ window.addEventListener('scroll',docSpyPaint,{passive:true}); docSpyOn=true; }
+  docSpyPaint();
+}
+/* 视口变了要重算各节位置；只作用于说明页，向导里不挂。 */
+window.addEventListener('resize',()=>{ if(docOpen) docSpy(); });
 let tt;
 function toast(m){
   const t=document.getElementById('toast'); t.textContent=m; t.classList.add('on');
@@ -3847,7 +3852,6 @@ function toast(m){
 function snapshot(){
   return {desc:sel.desc, model:curModel, exp:expertN, bayes:useBayes, gen:genMode, pulled,
     scales:[...document.querySelectorAll('[data-scale].sel')].map(x=>x.dataset.scale),
-    applied:[...applied],
     xlSel: xlSel,
     anchors: anchors,
     rngScope: rngScope,
@@ -3873,7 +3877,7 @@ function loadCfg(){
     curModel=d.model||'gcam'; expertN=d.exp||1; useBayes=!!d.bayes;
     // 旧存档没有 gen 字段：按 bayes 布尔回推成四选一里的一档
     genMode=d.gen||(d.bayes?'bayes':'config');
-    pulled=!!d.pulled; applied=new Set(d.applied||[]);
+    pulled=!!d.pulled;
     document.querySelectorAll('[data-scale]').forEach(x=>{
       const on=(d.scales||[]).indexOf(x.dataset.scale)>=0;
       x.classList.toggle('sel',on);
@@ -3930,7 +3934,7 @@ function renderPolicy(){
   document.getElementById('polStat').innerHTML=
     '<span class="kv"><span>政策路径</span><span>'+all.length+' 条</span></span>'+
     '<span class="kv"><span>有对应描述符</span><span style="color:var(--ok)">'+hit+' 条</span></span>'+
-    '<span class="kv"><span class="tip quiet" tabindex="0" data-tip="标灰的 0 表示该工具不落在当前模型的变量口径内；这类记录本身就是结论。">无对应</span><span style="color:var(--tx2)">'+(all.length-hit)+' 条</span></span>'+
+    '<span class="kv"><span>无对应</span><span style="color:var(--tx2)">'+(all.length-hit)+' 条</span></span>'+
     '<span class="kv"><span>覆盖描述符</span><span>'+Object.keys(covered).length+' / '+allDescs().length+' 个</span></span>'+
     '<span class="kv"><span>有工具级记录</span><span>'+evN+' 条</span></span>'+
     '<span class="kv"><span>含定量口径</span><span>'+qN+' 条</span></span>'+
@@ -4120,6 +4124,16 @@ function cimKeys(){
   a.forEach(s=>a.forEach(t=>{ if(s!==t) r.push(s+'>'+t); }));
   return r;
 }
+/* 两条前置校验几乎每个「要算一版」的入口都要过一遍：描述符够不够两个、有没有打过分。
+   原先在 5 个函数里各抄一份文案，措辞会各自漂移。抽出来只留一处。
+   needScored=false 用于只想确认描述符、允许「一条都没判」也能算的场景。
+   返回 null 表示通过，否则返回要显示给用户的提示语。 */
+function prepErr(ds, needScored){
+  ds = ds || Object.keys(sel.desc);
+  if(ds.length<2) return '至少选两个描述符';
+  if(needScored===false) return null;
+  return cimKeys().some(k=>cim[k]) ? null : '还没有打分，先到「交叉影响打分」做判断';
+}
 // 清空矩阵内容但保留对象本身——多人模式下 cim 是「当前专家那一份」的引用，
 // 直接 cim={} 会切断引用，导致改动落到一个游离对象上。
 function clearCim(){ Object.keys(cim).forEach(k=>delete cim[k]); cimResult=null; BAYES=null; }
@@ -4127,7 +4141,7 @@ corrResult=null;
 profResult=null;
 layeredResult=null;
 function aiFill(){
-  if(nSel()<2){ toast('先回到第 2 步，至少勾选两个描述符'); return; }
+  if(nSel()<2){ toast('先回到第 3 步，至少勾选两个描述符'); return; }
   const keys=cimKeys();
   clearCim();
   /* 只写 AI 真有判断的那几条，其余留空。
@@ -4185,13 +4199,13 @@ function renderCim(){
   const stat=document.getElementById('cimStat');
   if(ds.length<2){
     g.innerHTML='';
-    stat.innerHTML='<span class="dim">尚未选择足够的描述符。请回到第 2 步勾选（至少两个）后再来打分。</span>';
+    stat.innerHTML='<span class="dim">尚未选择足够的描述符。请回到第 3 步勾选（至少两个）后再来打分。</span>';
     document.getElementById('cimBalance').innerHTML='<div class="empty">等待描述符选择</div>';
     cimSidePanel(); return;
   }
   const f=(document.getElementById('confFilter')||{}).value||'all';
   let h='<thead><tr><th class="cnr">来源 ＼ 目标</th>';
-  ds.forEach(t=>{ h+='<th class="cth" title="'+t+'　当前状态：'+((sel.desc[t].states||[]).join(' / ')||'未定')+'">'+(DSHORT[t]||t)+'</th>'; });
+  ds.forEach(t=>{ h+='<th title="'+t+'　当前状态：'+((sel.desc[t].states||[]).join(' / ')||'未定')+'">'+(DSHORT[t]||t)+'</th>'; });
   h+='</tr></thead><tbody>';
   ds.forEach(s=>{
     h+='<tr><th class="crh" title="'+s+'　当前状态：'+((sel.desc[s].states||[]).join(' / ')||'未定')+'">'+(DSHORT[s]||s)+'</th>';
@@ -4233,7 +4247,7 @@ function renderCim(){
     +'「没把握」由置信度表达；两者是否经第三个描述符间接相连，见「影响路径分析」。</div>'+
     '<span class="kv"><span>待审核</span><span style="color:var(--wn)">'+need+' 条</span></span>'+
     '<span class="kv"><span>状态级精判</span><span>'+stK+' 条 / '+stC+' 格</span></span>'+
-    '<div class="dim" style="margin-top:8px;font-size:13px;">整体为<b>描述符级</b>（19×19）；'
+    '<div class="dim" style="margin-top:8px;font-size:13px;">整体为<b>描述符级</b>（'+ds.length+'×'+ds.length+'）；'
     +'点开任一格可展开到<b>状态级逐对精判</b>，精判值优先进入一致性检验，未精判的按整体倾向自动展开。'
     +'每格都带依据与置信度，审核后留痕。</div>';
   cimBalance(ds);
@@ -4247,7 +4261,7 @@ function cimSidePanel(){
   const p=cimSelKey.split('>'), s=p[0], t=p[1], r=cim[cimSelKey];
   const vs=[-3,-2,-1,0,1,2,3];
   const vbtn=v=>'<button class="vb'+(r&&r.v===v?' on':'')+'" onclick="setV('+v+')"'
-    +' title="'+(v===0?'两者之间没有直接关系（这是一个判断，不代表没把握）':VWORD[String(v)])+'">'
+    +' title="'+(v===0?'两者之间没有直接关系':VWORD[String(v)])+'">'
     +(v>0?'+':'')+v+'</button>';
   const head='<div class="shead">这一格的判断</div>'
    +'<div class="spair">'+(DSHORT[s]||s)+' <span class="ar">→</span> '+(DSHORT[t]||t)+'</div>'
@@ -4259,9 +4273,8 @@ function cimSidePanel(){
      +'<div class="slabel">影响强度</div>'
      +'<div class="vrow">'+vs.map(vbtn).join('')+'</div>'
      +'<div class="dim" style="font-size:13px;line-height:1.75;margin-top:10px;">'
-     +'<b>这一格还没有判断。</b>选一个分值即算「已判」，之后可再填置信度与依据。<br>'
-     +'<b>0 ＝ 两者之间没有直接关系</b>——它是一个判断，可以判得很有把握；「没把握」请用置信度表达。'
-     +'若两者可能经第三个描述符间接相连，到「影响路径分析」看间接传导链。</div>';
+     +'<b>这一格还没有判断。</b>选一个分值即算「已判」，之后可再填置信度与依据。'
+     +'「0」的含义见上方图例。</div>';
     return;
   }
 
@@ -4345,8 +4358,7 @@ function cimBalance(ds){
         '<td class="'+(r.inSum===maxIn?'top':'')+'">'+(r.inSum>0?'+':'')+r.inSum+(r.inSum===maxIn?' ▲':'')+'</td>'+
         '<td>'+(r.outSum>0?'+':'')+r.outSum+'</td><td class="dim">'+role+'</td></tr>';
     }).join('')+'</tbody></table>'+
-    '<div class="dim" style="font-size:13px;margin-top:8px;">▲ 标出的是该项在当前取值下得分最高者。'
-    +'这是描述符级的简化预览，完整的影响平衡值需在状态级打分后给出。</div>';
+    '<div class="dim" style="font-size:13px;margin-top:8px;">▲ 标出的是该项在当前取值下得分最高者。</div>';
 }
 
 /* ================= 影响关系图（v1.1 新增） ================= */
@@ -4584,10 +4596,13 @@ function saveFile(name, content, mime){
   setTimeout(()=>URL.revokeObjectURL(a.href),3000);
   toast('已下载 '+name);
 }
-function downloadReport(){
-  const d=reportData();
-  const css='body{font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;'
-   +'max-width:820px;margin:40px auto;padding:0 24px;font-size:15px;line-height:1.8;color:#101828;}'
+/* 导出文件的屏幕样式：情景报告（HTML）与多专家集成工作簿共用同一份，
+   原先两处各抄一遍，改一处必漏另一处。两处只有两点不同，都由入参给出：
+   maxw＝正文最大宽度；ext＝追加在末尾、用于覆盖个别规则的差异片段。
+   下载文档（.doc）用的是 Word 打印口径，与屏幕不是一套，故不并入。 */
+function screenCSS(maxw,ext){
+  return 'body{font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;'
+   +'max-width:'+maxw+';margin:40px auto;padding:0 24px;font-size:15px;line-height:1.8;color:#101828;}'
    +'h1{font-size:21px;}h2{font-size:16px;margin:28px 0 10px;padding-bottom:5px;border-bottom:1px solid #2F4858;}'
    +'h3{font-size:15px;margin:16px 0 6px;color:#55504A;}table{border-collapse:collapse;width:100%;margin:10px 0 16px;font-size:13px;}'
    +'th{background:#FAFBFC;font-weight:600;padding:7px 10px;text-align:left;border:1px solid #E4E7EC;}'
@@ -4598,7 +4613,11 @@ function downloadReport(){
    +'.rok{background:#ECF0F2;border-left:3px solid #2F4858;color:#2F4858;padding:9px 14px;font-size:13px;margin:12px 0;}'
    +'.rrng{color:#55504A;font-size:13px;background:#F2F4F7;border-radius:4px;padding:1px 6px;margin-left:4px;white-space:nowrap;}'
    +'.rrng.none{color:#B54708;background:#FFFAEB;}'
-   +'.rsub{font-size:13px;color:#98A2B3;}';
+   +'.rsub{font-size:13px;color:#98A2B3;}'+(ext||'');
+}
+function downloadReport(){
+  const d=reportData();
+  const css=screenCSS('820px');
   const html='<!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8">'
    +'<title>京津冀政策情景快速评估报告</title><style>'+css+'</style></head><body>'
    +buildReportHTML(d)+'</body></html>';
@@ -4641,7 +4660,7 @@ function renderAP(){
   if(ds.length<2){
     el.innerHTML='<div style="padding:34px;text-align:center;color:var(--tx3);font-size:13px;line-height:1.9;">'
       +'先在第 3 步勾选至少两个描述符，并在「交叉影响打分」完成判断，'
-      +'这里会算出每个描述符的主动和与被动和。</div>';
+      +'这里会算出每个描述符的主动和与被动和（主被动图的两根轴）。</div>';
     return;
   }
   const rows=ds.map(d=>{
@@ -4971,16 +4990,8 @@ function exportEns(){
       +'<td>'+(r.why||'')+'</td></tr>';
   });
   h+='</table>';
-  const css='body{font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;max-width:900px;'
-   +'margin:40px auto;padding:0 24px;font-size:15px;line-height:1.8;color:#101828;}'
-   +'h1{font-size:21px;}h2{font-size:16px;margin:28px 0 10px;padding-bottom:5px;border-bottom:1px solid #2F4858;}'
-   +'table{border-collapse:collapse;width:100%;margin:10px 0 16px;font-size:13px;}'
-   +'th{background:#FAFBFC;font-weight:600;padding:7px 10px;text-align:left;border:1px solid #E4E7EC;}'
-   +'td{padding:6px 10px;border:1px solid #E4E7EC;vertical-align:top;}'
-   +'.rmeta{background:#FAFBFC;border-radius:10px;padding:12px 16px;margin-bottom:18px;font-size:13px;}'
-   +'.rmeta div{display:flex;gap:10px;padding:3px 0;}.rmeta span:first-child{color:#667085;min-width:104px;}'
-   +'.rok{background:#ECF0F2;border-left:3px solid #2F4858;color:#2F4858;padding:9px 14px;font-size:13px;margin:12px 0;}'
-   +'.rrng{color:#55504A;font-size:13px;}.rsub{font-size:13px;color:#98A2B3;}';
+  // 工作簿的 .rrng 里放的是整段依据文字，不能用报告里那种 nowrap 药丸样式，否则会把单元格撑爆
+  const css=screenCSS('900px','.rrng{white-space:normal;margin-left:0;background:none;padding:0;border-radius:0;}');
   const html='<!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8">'
    +'<title>多专家打分集成工作簿</title><style>'+css+'</style></head><body>'+h+'</body></html>';
   saveFile('集成工作簿_'+nowStr().replace(/[: ]/g,'-')+'.html', html, 'text/html');
@@ -5052,7 +5063,7 @@ function xlAlign(){
 function renderXl(){
   const el=document.getElementById('xlBox'); if(!el) return;
   const L=xlayers();
-  if(!nSel()){ el.innerHTML='<div class="empty">先在第 2 步勾选描述符。</div>'; return; }
+  if(!nSel()){ el.innerHTML='<div class="empty">先在第 3 步勾选描述符。</div>'; return; }
   if(L.length<2){
     el.innerHTML='<div class="empty">当前只选了一个层级（'+(L.map(l=>XL_NAME[l]).join('')||'未选')
       +'），没有跨层关系可查。回到第 1 步多勾一层。</div>';
@@ -5407,11 +5418,8 @@ function renderPath(){
   const direct=cim[pathFrom+'>'+pathTo];
   const ps=pathRanked(pathFrom,pathTo);
 
-  h+='<div class="kv"><span>直接判断</span><span>'
-    +(direct? ('<b>'+VWORD[String(direct.v)]+'</b>（'+(direct.v>0?'+':'')+direct.v+'）'):'<span style="color:var(--tx3);">未判断</span>')
-    +'</span></div>';
-  h+='<div class="kv"><span>间接传导链</span><span>'+ps.length+' 条'
-    +(ps.length?'（最长 '+pathMaxSeg+' 段）':'')+'</span></div>';
+  h+=kv('直接判断', direct? ('<b>'+VWORD[String(direct.v)]+'</b>（'+(direct.v>0?'+':'')+direct.v+'）'):'<span style="color:var(--tx3);">未判断</span>');
+  h+=kv('间接传导链', ps.length+' 条'+(ps.length?'（最长 '+pathMaxSeg+' 段）':''));
 
   if(direct&&direct.v===0 && ps.length){
     h+='<div class="note" style="margin:10px 0;">直接判断填的是 <b>0</b>，但存在 '+ps.length
@@ -5471,8 +5479,7 @@ function renderPath(){
 /* 计算与渲染分开：runProfile 只负责「先让界面刷新一下再算」，computeProfile 可被测试直接调用 */
 function computeProfile(){
   const ds=Object.keys(sel.desc);
-  if(ds.length<2) return {err:'至少选两个描述符'};
-  if(!cimKeys().filter(k=>cim[k]).length) return {err:'还没有打分，先到「交叉影响打分」做判断'};
+  const pe=prepErr(ds); if(pe) return {err:pe};
   const base=enumCore(ds,null,60000);
   if(base.bad || base.dead>=0 || !base.consistent.length){
     profResult=null;
@@ -5538,9 +5545,9 @@ function renderProf(){
   const empties=R.rows.filter(x=>x.empty).length;
   const acted=R.rows.filter(x=>!x.empty && (x.add.length||x.lose.length)).length;
 
-  let h='<div class="kv"><span>基准情景集</span><span><b>'+R.baseCount+'</b> 组自洽，覆盖 '+R.basePres+' 个状态</span></div>';
-  h+='<div class="kv"><span>强制效应</span><span>'+acted+' / '+R.rows.length+' 个状态会改变情景集'
-    +(empties?('，其中 <b style="color:var(--rd)">'+empties+'</b> 个状态下无任何自洽情景'):'')+'</span></div>';
+  let h=kv('基准情景集', '<b>'+R.baseCount+'</b> 组自洽，覆盖 '+R.basePres+' 个状态');
+  h+=kv('强制效应', acted+' / '+R.rows.length+' 个状态会改变情景集'
+    +(empties?('，其中 <b style="color:var(--rd)">'+empties+'</b> 个状态下无任何自洽情景'):''));
   if(R.sampled) h+='<div class="dim" style="font-size:13px;margin:6px 0;">状态较多，每次强制抽样约 '+R.per.toLocaleString()+' 个组合——方向可靠，具体条数会略有浮动。</div>';
 
   h+='<div class="proftabwrap"><table class="proftab"><thead><tr><th class="pfr">强制为</th><th class="pfc">自洽</th>';
@@ -5562,7 +5569,7 @@ function renderProf(){
       const a=row.add.filter(x=>x.e===e).length;
       const l=row.lose.filter(x=>x.e===e).length;
       if(!a&&!l){ h+='<td></td>'; return; }
-      h+='<td class="pc">'+(a?'<i class="pmark p">+'+a+'</i>':'')+(l?'<i class="pmark n">−'+l+'</i>':'')+'</td>';
+      h+='<td>'+(a?'<i class="pmark p">+'+a+'</i>':'')+(l?'<i class="pmark n">−'+l+'</i>':'')+'</td>';
     });
     h+='</tr>';
   });
@@ -5582,7 +5589,7 @@ function renderProf(){
       h+='<div class="note" style="margin-top:8px;">没有任何自洽情景。<b>在当前打分下，这件事无法与其他条件并存。</b>'
         +'如果它确实必须发生，那说明矩阵里有判断需要修正。</div>';
     }else{
-      h+='<div class="kv"><span>自洽情景数</span><span>'+row.n.toLocaleString()+' 组（基准 '+R.baseCount+' 组）</span></div>';
+      h+=kv('自洽情景数', row.n.toLocaleString()+' 组（基准 '+R.baseCount+' 组）');
       const list=(arr,cls2,label)=>{
         if(!arr.length) return '<div class="pdrow"><span class="'+cls2+'">'+label+'</span><span class="dim">无</span></div>';
         return '<div class="pdrow"><span class="'+cls2+'">'+label+'</span><span>'
@@ -5604,8 +5611,7 @@ function renderProf(){
 
 function computeCorr(){
   const ds=Object.keys(sel.desc);
-  if(ds.length<2) return {err:'至少选两个描述符'};
-  if(!cimKeys().filter(k=>cim[k]).length) return {err:'还没有打分，先到「交叉影响打分」做判断'};
+  const pe=prepErr(ds); if(pe) return {err:pe};
   /* 相关性要基于完整情景集，不能用展示用的前 200 条 */
   const r=enumCore(ds,null,20000,8000);
   if(r.bad || r.dead>=0) return {err:'基准情景集为空，无法计算相关'};
@@ -5671,10 +5677,9 @@ function renderCorr(){
   }
   const R=corrResult;
   const strong=R.pairs.filter(p=>Math.abs(p.phi)>=0.8);
-  let h='<div class="kv"><span>情景集</span><span>'+R.S+' 组自洽情景'
-    +(R.truncated?'（超出上限，仅取前 8000 组）':'')+'</span></div>';
-  h+='<div class="kv"><span>可计算的状态对</span><span>'+R.pairs.length+' 对，其中 <b>'
-    +strong.length+'</b> 对强关联（|φ| ≥ 80%）</span></div>';
+  let h=kv('情景集', R.S+' 组自洽情景'+(R.truncated?'（超出上限，仅取前 8000 组）':''));
+  h+=kv('可计算的状态对', R.pairs.length+' 对，其中 <b>'
+    +strong.length+'</b> 对强关联（|φ| ≥ 80%）');
   if(R.weak) h+='<div class="note" style="margin:10px 0;">情景只有 '+R.S
     +' 组，<b>系数可能不稳定</b>——增加描述符或放宽锚定后再看，结论会更可靠。</div>';
 
@@ -6100,10 +6105,7 @@ const CONF_P={'低':0.5, '中':0.25, '高':0.08};
 
 function computeRobust(R, seed){
   const ds=Object.keys(sel.desc);
-  if(ds.length<2) return {err:'至少选两个描述符'};
-  let scored=0;
-  ds.forEach(a=>ds.forEach(b=>{ if(a!==b&&cim[a+'>'+b]) scored++; }));
-  if(!scored) return {err:'还没有打分，先到「交叉影响打分」做判断'};
+  const pe=prepErr(ds); if(pe) return {err:pe};
   const sizes=ds.map(d=>ST(d).length);
   const S=comboSample(ds, 2000, 7);
   if(S.bad) return {err:'有描述符在锚定下没有可用状态，先放宽锚定'};
@@ -6185,7 +6187,7 @@ function setRobR(n){ robR=n; renderRobust(); }
 function renderRobust(){
   const host=document.getElementById('robBox'); if(!host) return;
   const ds=Object.keys(sel.desc);
-  if(ds.length<2){ host.innerHTML='<div class="empty">先在第 2 步勾选描述符</div>'; return; }
+  if(ds.length<2){ host.innerHTML='<div class="empty">先在第 3 步勾选描述符</div>'; return; }
   const btns='<div class="robbar"><span class="rbl">扰动轮次</span>'
     +[10,30,60].map(n=>'<button class="rbtn'+(robR===n?' on':'')+'" onclick="setRobR('+n+')">'+n+' 轮</button>').join('')
     +'<button class="btn pri sm" style="margin-left:10px" onclick="runRobust()">跑稳健性检验</button></div>';
@@ -6536,19 +6538,24 @@ function renderBayes(){
    已有情景需要重新检验；省略 = 不动结果（只改界面、措辞、性能或新增旁路分析）。
    与 git 提交对应；此处只列入对外可讲、能被核对的事项。 */
 const CHANGELOG=[
+ {d:'2026-10-24',k:'口径',x:'判自洽的量统一叫「影响平衡值」',y:'同一个量原先有两个名字、指向还相反：一处把它叫「主动和」（术语表又定义「主动和 = 施加」），而判定实际取的是「这个状态从其余状态承受到的总量」。现在全部改叫「影响平衡值」——每个描述符的选定状态都是它自身影响平衡值中得分最高的那一项，这样自洽的判据才读得通。「主动和／被动和」只保留给主被动图的两根横纵轴，两者不再混用。这条会影响报告与 PPT 措辞。'},
+ {d:'2026-10-24',k:'功能',x:'结构化参数表增列「情景号」，保住 CIB 求出的联动关系',y:'CIB 求出的是一组互相咬合的自洽组合，原先导出成一行一个参数，等于把耦合又拆回独立参数，下游按行取值会读出彼此矛盾的组合。现在表头为 scenario,param,value：同属一组自洽情景的参数归到同一号，注释头写明「跨 scenario 混用会破坏一致性」。param,value 两列保持原样，下游模型仍可直接读。'},
+ {d:'2026-10-24',k:'可用性',x:'五批 30 处「less is more」整改',y:'按 10-21 老师「界面主次不清、凌乱、堆了很多功能」的意见分五批清理：① 6 处会让人照做做错的自相矛盾（如 4 处写「到第 2 步勾选描述符」，实际第 3 步才是描述符与状态；一处写「用第 7 步的数值锚定」，但数值锚定已移到第 3 步）；② 死代码与死界面 9 处（含「已采纳的调整建议 N 条」——全项目没有一处写入点，永远显示 0；页面上的「联动方式」两个选项点了不起作用）；③ 「0 是一个判断，不是没把握」原本讲了 5 遍，保留一处权威位，其余改为指引；④ 合并重复入口与重复摘要，导出与报告的样式表三份副本合并成一份，「描述符级（19×19）」的死数字改为按实际框架算；⑤ 两条前置校验在 5 个函数里各写一遍，抽成一处。'},
+ {d:'2026-10-23',k:'视觉',x:'去掉功能模块标题旁的灰色小标签',y:'卡片标题右边原有 15 个灰色小标签（「四选一」「多专家」「双锚点」「闭环」这类），每个只重复标题或说一句不看也懂的话，堆在标题行里反而拖慢扫读。除「生成结果与导出」那个动态显示当前格式（XML/CSV/TXT）的标签外全部删除；正文里同样用法的说明标签（模型输出预期的「结果型」、国家级选项的「给定」）一并去掉。标题本身已经把话说清了。'},
+ {d:'2026-10-23',k:'可用性',x:'使用说明页侧栏标出「当前读到哪一节」',y:'侧栏八节目录原先只是跳转入口，不反映阅读位置——长页滚到中段就不知道自己在哪一节。现在进入说明页时先记下八个标题的位置，滚动时只比「哪一节越过了判定线」，滚到哪节侧栏对应项就亮起（左侧竖线＋加深文字）。位置算一次、比较只有八次，而且没跨节就直接返回，所以滚动全程既不读布局也不改样式。只在说明页打开时监听，离开即摘掉。'},
  {d:'2026-10-23',k:'术语',x:'使用说明页第三区由「方法学」改名为「算法说明」',y:'那一区原本只讲平台怎么算（判定与自洽、贝叶斯后验、跨层约束、导出格式），叫「方法学」名不副实——真正的方法学要回答的是「描述符之间的关系依据什么判定、高低分段的文献共识从哪来、由谁验证」，这三条页内一个字都没有。现改名为「算法说明」，并补一句说明本区只讲平台怎么算、依据来源与验证待评分规则定稿后另立一节。'},
   {d:'2026-10-23',k:'口径',x:'0 的意义改为「两者之间没有直接关系」，不再与低置信度绑在一起',y:'原先点一个空格子，平台自动填成「0 / 低置信度」，AI 预填也把 342 对里没找到直接影响的全部写成 0 加低置信。这等于把「判为无关系」和「还没判」合成了一件事，也把置信度与分值两条轴绑死了——10-21 老师当场纠正：「不是置信度低，他俩之间没关系」。现在 0 只说「两者之间没有直接关系」，是一条正式判断，可以判得很有把握；置信度单独填；没做判断的格子留空（显示「·」），统计里「已判 / 未判 / 判为 0 / 低置信度」四项分开计数。另加「清空这一格」按钮，可把某格退回未判。',im:1},
  {d:'2026-10-23',k:'可用性',x:'更新日志从弹窗改为使用说明页第八节，每条补「影响面」',y:'原来点顶栏图标弹出模态，看完即走，内容留不下来。现改为使用说明页的独立一节，与新加的导航一并可见。每条末尾补一句影响面，直接说明「改动会不会动到已有结果、要不要重新检验」，替代原先只能自己判断的裸变量路径。'},
- {d:'2026-10-23',k:'可用性',x:'使用说明页按「简介 / 使用手册 / 方法学 / 案例 / 参考」分区',y:'原来七节平铺，读者不知道该从哪读。现按用途分五区，侧栏与正文同步标出；方法学三节加了切分说明——按「一段能独立讲清、也能独立验证的计算」切，不按界面步骤切。'},
- {d:'2026-10-23',k:'术语',x:'删去「输入参数名」这一层未实现的概念',y:'使用说明页原写「区分输入参数名与报告变量名，判断落点看前者」，但平台只记录模型变量名，前者在代码里不存在——方法学页教了一个平台自己没有的概念。现按实际能力改写：平台记录的是模型变量名，它同时是输出口径与情景能对上的名字。'},
+ {d:'2026-10-23',k:'可用性',x:'使用说明页按「简介 / 使用手册 / 算法说明 / 案例 / 参考」分区',y:'原来七节平铺，读者不知道该从哪读。现按用途分五区，侧栏与正文同步标出；算法说明三节加了切分说明——按「一段能独立讲清、也能独立验证的计算」切，不按界面步骤切。'},
+ {d:'2026-10-23',k:'术语',x:'删去「输入参数名」这一层未实现的概念',y:'使用说明页原写「区分输入参数名与报告变量名，判断落点看前者」，但平台只记录模型变量名，前者在代码里不存在——算法说明页教了一个平台自己没有的概念。现按实际能力改写：平台记录的是模型变量名，它同时是输出口径与情景能对上的名字。'},
  {d:'2026-10-23',k:'视觉',x:'向导内页去卡片：7 个步骤统一为栏目名＋细线＋留白',y:'原来每块内容都套白底、灰边、圆角，一屏里七八个方框。现在卡片外框全部去掉，改用横线分节；左轨和表格头改成纸白，选中态用左侧赭条表示。'},
- {d:'2026-10-23',k:'可用性',x:'页面上的说明文字改为标题悬停，新增独立的使用说明页',y:'七个步骤标题下原有 676 字常驻说明，占掉半屏。现在压进标题悬停框，详细内容集中到「使用说明」页；该页此后按用途分五区（简介 / 使用手册 / 方法学 / 案例 / 参考），共八节。'},
+ {d:'2026-10-23',k:'可用性',x:'页面上的说明文字改为标题悬停，新增独立的使用说明页',y:'七个步骤标题下原有 676 字常驻说明，占掉半屏。现在压进标题悬停框，详细内容集中到「使用说明」页。'},
  {d:'2026-10-23',k:'视觉',x:'品牌名改为「京津冀 · CIB」',y:'原名两截并排像两个名词。加间隔号后成为一个整体，副标 SCENARIO 用小字排在后面。'},
  {d:'2026-10-23',k:'视觉',x:'首页改为文献式：CIB 提到标题，矩阵成为唯一视觉焦点',y:'原来首页是四宫格统计加对比表，每屏五六个元素同时抢注意力。现在是一句话、四个数字、一张矩阵图。'},
  {d:'2026-10-23',k:'功能',x:'进入向导改为圆形扩散转场',y:'点击「开始配置情景」时，纸色圆从按钮位置扩散铺满，切到向导后再收回，替代原来直接换页。'},
  {d:'2026-10-23',k:'可用性',x:'左轨七步归为三段：立情景 / CIB 判定 / 看结果',y:'七步平铺看不出阶段。现在按阶段分组，组间用细线分隔，当前阶段单独标出。'},
  {d:'2026-10-23',k:'视觉',x:'品牌绿换成「纸墨」配色，矩阵改双极色阶',y:'原来的 #166534 是 Tailwind 默认绿，与大量 AI 生成页面同款；更麻烦的是绿色同时承担品牌色与「促进」语义。现在纸白打底、靛青做结构、赭石做强调，打分用「靛—纸灰—赭」单调明度色阶，灰度与色盲下都能分清正负。'},
- {d:'2026-10-23',k:'视觉',x:'字号从 12 种收到 6 档，正文 11.5px 提到 15px',y:'原先 182 处字号挤在 10.5–12.5px，层级几乎不存在，这是「界面凌乱」的主要来源。现在只保留 30/21/16/15/13/11 六档，衬线只用于 21px 以上的标题。'},
+ {d:'2026-10-23',k:'视觉',x:'向导界面字号从 12 种收到 6 档，正文 11.5px 提到 15px',y:'原先 182 处字号挤在 10.5–12.5px，层级几乎不存在，这是「界面凌乱」的主要来源。向导界面现在只用 11/13/15/16/21/30 六档，衬线只用于 21px 以上的标题；首页与使用说明页是文献式版面，另有 26–50px 的展示级字号，不在这六档内。'},
  {d:'2026-10-23',k:'可用性',x:'横向七步改为左侧步骤轨，顶栏六个按钮收进图标入口',y:'七步横排时每格只有一百多像素，只能退化成小圆点。改为左侧竖轨后可显示序号、名称与完成状态，并在底部放「保存进度」。顶栏只留日志、帮助、更多三个入口。'},
  {d:'2026-10-23',k:'可用性',x:'常驻小字改为悬停或折叠',y:'原来界面上常驻约 2500 字说明（20 段，平均每段 111 字），读者会训练自己忽略所有小字，连警告一起忽略。现在一屏常驻说明为 0：短的悬停显示，长的折成一行标题；警告与冲突提示仍然常驻，不进悬停。'},
  {d:'2026-10-23',k:'功能',x:'新增「怎么用」帮助入口，首页对比表压到 3 行',y:'帮助页用大白话讲清这个工具不做什么、七步怎么走。首页的七行对比表按「政策→参数 / 参数→情景 / 情景→模型」压成三行，只讲做法差异。'},
@@ -6567,7 +6574,9 @@ const CHANGELOG=[
  {d:'2026-10-17',k:'功能',x:'描述符框架导入导出',y:'19 个描述符抽成 JSON（名称、类型、状态、区间），带五类校验；换一套行业或区域可整套替换，原框架自动存底。'},
  {d:'2026-10-17',k:'功能',x:'情景报告导出 Word',y:'A4、宋体正文、黑体标题、实线表格，双击即改，不依赖服务端。'},
  {d:'2026-10-17',k:'功能',x:'映射补证',y:'联网核实 15 条政策原文（含文号与关键条款），8 条中置信度凭原文升高、7 条维持并写明理由，挂入政策侧栏。',im:1},
- {d:'2026-10-16',k:'功能',x:'接入 CIB 一致性检验',y:'枚举状态组合、逐条计算影响平衡、按「选中状态是否为最大主动和」判自洽。这是平台第一次真的会算。',im:1},
+ // 「影响平衡值」= 该状态受到的其余状态影响之和，与 evalCombo 取 IMP[k][i] 同口径（app.js:4121）。
+ // 「主动和 / 被动和」只用于主被动图的两根轴（见 renderAP），不要与影响平衡值混用。
+ {d:'2026-10-16',k:'功能',x:'接入 CIB 一致性检验',y:'枚举状态组合、逐条计算影响平衡、按「选中状态是否为最大影响平衡值」判自洽。这是平台第一次真的会算。',im:1},
  {d:'2026-10-16',k:'功能',x:'政策库与交叉影响打分',y:'内置 106 条政策路径及其与描述符的映射；n×n 可编辑矩阵、AI 预填、逐格置信度与依据。'}
 ];
 const CHGKIND={缺陷:'rd',功能:'ok',口径:'wn',视觉:'ok',术语:'gray',顺序:'gray',可用性:'gray'};
@@ -6657,6 +6666,9 @@ function render(){
     if(p.id==='pdoc'){ p.classList.toggle('on', docOpen); return; }
     p.classList.toggle('on', !inCmp && !docOpen && p.id==='p'+cur);
   });
+  /* docSpy 必须排在 pdoc 显隐之后：它要量各节位置，量的是隐藏元素就只能得到 0，
+     于是所有 top 都是 0、最后一节永远胜出（实测高亮卡在 #d8）。 */
+  docSpy();
   document.body.classList.toggle('wizard', !inCmp);
   document.getElementById('steps').style.display='';
   document.getElementById('ctxNow').textContent = docOpen ? '使用说明' : (inCmp ? '概览' : `第 ${cur+1} 步 · ${STEP_NM[cur]}`);
