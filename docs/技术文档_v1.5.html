@@ -783,7 +783,7 @@ phi = (nAB·n00 − n10·n01) / sqrt(nA·(S−nA)·nB·(S−nB))</pre>
 cd platform\v1.5\tests
 pwsh -File run_tests.ps1            # 源码级 30 套（成品冒烟自动跳过并计入 skipped）
 pwsh -File run_tests.ps1 -Repo      # 改验仓库里的归档副本，而不是工作区源码
-pwsh -File run_tests.ps1 -Prod      # 另含成品冒烟（第 31 套，test_gen_smoke.js）
+pwsh -File run_tests.ps1 -Prod      # 另含成品冒烟（test_gen_smoke.js，唯一覆盖成品的一套）
 pwsh -File run_tests.ps1 -Quiet     # 只输出汇总</pre>
 <p>三个约定：脚本本身是 <b>ASCII-only</b>（Windows PowerShell 5.1 会把无 BOM 的 .ps1 按 ANSI 读，中文会解析失败，所以任何中文都不要加进去）；<code>-Repo</code> 与缺省是<b>二选一</b>，分别指归档副本与工作区源码，不是叠加；<code>-Prod</code> 缺省时成品冒烟会被<b>明确报成 skipped</b>（不跑就是不跑，不会混进「全部通过」）。脚本里没有基线、白名单或豁免名单，30 套源码级自检当前全部零 <code>✗</code>。历史版本的测试不复制到各版本目录，统一挂在归档的 <code>platform/v1.5/tests/</code>（工作区另有同一份 <code>_src/</code> 副本，不在仓库内）。</p>
 
