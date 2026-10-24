@@ -113,6 +113,33 @@ def slice_card_by_heading(lines, heading):
     return i, slice_tag(lines, i, 'div')
 
 
+_BLOCK_TAGS = ('section', 'div', 'details')
+
+
+def enclosing_block(elem_id):
+    """返回带该 id 的块元素的行号区间（含首尾）。"""
+    k = find_line(HTML_L, 'id="%s"' % elem_id)
+    while k >= 0:
+        for t in _BLOCK_TAGS:
+            if re.search(r'<%s\b' % t, HTML_L[k]):
+                return k, slice_tag(HTML_L, k, t)
+        k -= 1
+    raise SystemExit('找不到 id="%s" 所在元素' % elem_id)
+
+
+def line_ranges(seq):
+    """把行号序列压成「328–330、335–338」这样的区间串（1 起）。"""
+    out, start, prev = [], seq[0], seq[0]
+    for n in seq[1:]:
+        if n == prev + 1:
+            prev = n
+            continue
+        out.append((start, prev))
+        start = prev = n
+    out.append((start, prev))
+    return '、'.join('%d–%d' % (a + 1, b + 1) for a, b in out)
+
+
 def html_block(spec):
     kind = spec['kind']
     if kind == 'section':
@@ -120,15 +147,26 @@ def html_block(spec):
     elif kind == 'card':
         i, j = slice_card_by_heading(HTML_L, spec['heading'])
     elif kind == 'details':
-        i = find_line(HTML_L, 'id="%s"' % spec['id'])
-        while i >= 0 and '<details' not in HTML_L[i]:
-            i -= 1
-        if i < 0:
-            raise SystemExit('找不到 <details id="%s">' % spec['id'])
-        j = slice_tag(HTML_L, i, 'details')
+        i, j = enclosing_block(spec['id'])
     else:
         raise SystemExit('未知的切片方式：%s' % kind)
-    return i, j, '\n'.join(HTML_L[i:j + 1])
+
+    # 一个卡片里嵌着别的模块的折叠段时，两个模块会重复展示同一块内容；
+    # 而且外层模块通常没有渲染它的 JS，切出来是一段点不开的死块
+    # （H5「检验结果」卡片里裹着 H7 的逐层求解折叠段，正是这种）。
+    # 所以按 id 把不属于本模块的嵌套块整段剔掉，并记下真正用到的行号。
+    drop = []
+    for eid in spec.get('exclude', []):
+        k, e = enclosing_block(eid)
+        if not (i <= k and e <= j):
+            raise SystemExit('要剔除的 %s 不落在 %s 的区间内' % (eid, spec['no']))
+        drop.append((k, e))
+    seq, cur = [], i
+    for k, e in sorted(drop):
+        seq.extend(range(cur, k))
+        cur = e + 1
+    seq.extend(range(cur, j + 1))
+    return i, j, '\n'.join(HTML_L[n] for n in seq), seq
 
 
 # ---------------------------------------------------------------- JS 切片
@@ -435,7 +473,7 @@ SPEC = [
             '且组合内无冲突，才判自洽。展开任一情景能看到它由哪些档位组成、逐条影响各'
             '打了几分、以及为什么判自洽。',
         need='不能只给一个「自洽 12 组」的数字，得能一路点到某条判断为什么这么打。',
-        kind='card', heading='检验结果',
+        kind='card', heading='检验结果', exclude=['layFold'],
         js=['TICK', 'mulberry', 'cimSig', 'comboSample', 'buildIMP', 'evalCombo',
             'cloneCim', 'enumCore', 'runCIM', 'selectedCombo', 'checkSelected',
             'checkResult', 'rangeStat', 'toggleAllScen', 'coFn', 'aliveTable', 'freqOf',
@@ -507,10 +545,10 @@ SPEC = [
 def gen_module(spec):
     files = {}
 
-    h0, h1, html = html_block(spec)
+    h0, h1, html, seq = html_block(spec)
     files['fragment.html'] = (
-        '<!-- %s ｜ %s ｜ 摘自 _src/v15/index.html 第 %d-%d 行 -->\n%s\n'
-        % (spec['no'], spec['title'], h0 + 1, h1 + 1, html))
+        '<!-- %s ｜ %s ｜ 摘自 _src/v15/index.html 第 %s 行 -->\n%s\n'
+        % (spec['no'], spec['title'], line_ranges(seq), html))
 
     parts = []
     locs = []
@@ -534,7 +572,7 @@ def gen_module(spec):
         '# %s ｜ %s\n\n'
         '## 解决什么问题\n\n%s\n\n'
         '## 代码位置（v1.5 工作副本）\n\n'
-        '- HTML：`_src/v15/index.html` 第 %d–%d 行\n'
+        '- HTML：`_src/v15/index.html` 第 %s 行\n'
         '- 逻辑：`_src/v15/src/app.js`\n\n'
         '| 函数／常量 | 行号 |\n|---|---|\n%s\n\n'
         '- 样式：本目录 `style.css`（摘录）；完整样式表见 `../_shared/base.css`\n\n'
@@ -551,7 +589,7 @@ def gen_module(spec):
         '2. 把 `fragment.html` 粘进页面结构；\n'
         '3. 引入 `logic.js`，在数据准备好之后调用其渲染入口。\n\n'
         '> 本目录由 `build_highlights.py` 从源码切出，请勿手改——改平台源码后重新生成。\n'
-        % (spec['no'], spec['title'], spec['why'], h0 + 1, h1 + 1, rows,
+        % (spec['no'], spec['title'], spec['why'], line_ranges(seq), rows,
            '、'.join('`%s`' % g for g in spec['globals'])))
     return files
 
@@ -559,20 +597,20 @@ def gen_module(spec):
 def gen_index():
     items = []
     for s in SPEC:
-        h0, h1, _ = html_block(s)
-        items.append((s, h0 + 1, h1 + 1))
+        h0, h1, _h, seq = html_block(s)
+        items.append((s, line_ranges(seq), h1 - h0 + 1))
     blocks = []
-    for s, a, b in items:
+    for s, loc, _n in items:
         blocks.append(
             '  <div class="item">\n'
             '    <div class="hd"><span class="no">%s</span><span class="nm">%s</span></div>\n'
             '    <p class="need">%s</p>\n'
             '    <p class="why">%s</p>\n'
-            '    <div class="loc">_src/v15/index.html 第 %d–%d 行　·　app.js 里 %d 个声明</div>\n'
+            '    <div class="loc">_src/v15/index.html 第 %s 行　·　app.js 里 %d 个声明</div>\n'
             '    <div class="files"><span>fragment.html</span><span>logic.js</span>'
             '<span>style.css</span><span>README.md</span></div>\n'
             '  </div>'
-            % (s['no'], s['title'], s['need'], s['why'], a, b, len(s['js'])))
+            % (s['no'], s['title'], s['need'], s['why'], loc, len(s['js'])))
     return (
         '<!DOCTYPE html>\n<html lang="zh-CN">\n<head>\n<meta charset="UTF-8">\n'
         '<meta name="viewport" content="width=device-width,initial-scale=1">\n'
@@ -702,8 +740,8 @@ if __name__ == '__main__':
     gone = write_all()
     print('已生成 %d 个亮点模块（%d 个文件）' % (len(SPEC), len(all_outputs())))
     for s in SPEC:
-        h0, h1, _ = html_block(s)
-        print('  %-4s %-30s index.html %4d-%4d 行，%2d 个声明'
-              % (s['no'], s['title'], h0 + 1, h1 + 1, len(s['js'])))
+        h0, h1, _h, seq = html_block(s)
+        print('  %-4s %-30s index.html %s 行，%2d 个声明'
+              % (s['no'], s['title'], line_ranges(seq), len(s['js'])))
     if gone:
         print('  已删除过期目录：%s' % '、'.join(gone))
