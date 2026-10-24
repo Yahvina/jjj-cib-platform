@@ -1,0 +1,126 @@
+/* H8 ｜ 四种形态的导出（配置／参数表／叙事／后验） ｜ 相关样式摘录
+   设计令牌（:root）永远带上；完整样式表见 ../_shared/base.css。 */
+
+:root{
+  /* 纸墨：暖白纸面 + 墨黑字 + 靛青结构色 + 赭石强调 */
+  --bg:#FBFAF7; --panel:#FFFFFF; --panel2:#F5F2EC;
+  --line:#E3DCD0; --line2:#EFEAE1;
+  --tx:#1B1A17; --tx2:#55504A; --tx3:#6E675D;
+  --pri:#2F4858; --pri-d:#22363F; --pri-s:#ECF0F2; --pri-b:#C3D0D6;
+  --ok:#2F4858; --ok-s:#ECF0F2; --ok-b:#C3D0D6;
+  --wn:#8C5A3C; --wn-s:#F7F0E8; --wn-b:#E2CDB9;
+  --rd:#9B3B2E; --rd-s:#F6EAE7; --rd-b:#DDB7AE;
+  /* CIB 双极色阶：靛（抑制）— 纸灰（无）— 赭（促进） */
+  --s-3:#1F5C7A; --s-2:#4C86A3; --s-1:#8FB3C7;
+  --s0:#EDEAE3;
+  --s1:#E2B79C; --s2:#CE8A62; --s3:#B0623A;
+  --r:4px; --r2:6px;
+  --sh:0 1px 1px rgba(27,26,23,.04);
+  --sh2:0 2px 6px rgba(27,26,23,.06);
+  --sh3:0 10px 30px rgba(27,26,23,.12);
+  --ease:cubic-bezier(.2,.7,.3,1);
+}
+
+.btn{height:32px;padding:0 13px;border-radius:4px;font-size:13px;
+  border:1px solid var(--line);background:var(--panel);color:var(--tx);
+  display:inline-flex;align-items:center;gap:6px;transition:all .16s var(--ease);white-space:nowrap;}
+
+.btn:hover{border-color:var(--tx2);}
+
+.btn:active{transform:translateY(1px);box-shadow:none;}
+
+.btn:focus-visible{outline:none;box-shadow:0 0 0 3px var(--pri-s),0 0 0 1.5px var(--pri);}
+
+.btn.pri{background:var(--pri);border-color:var(--pri);color:#fff;font-weight:500;}
+
+.btn.pri:hover{background:var(--pri-d);border-color:var(--pri-d);}
+
+.btn.sm{height:27px;padding:0 10px;font-size:13px;}
+
+.btn:disabled{opacity:.45;cursor:not-allowed;}
+
+.rail-foot .btn{width:100%;justify-content:center;}
+
+.card h3 .tag{font-size:11px;font-weight:400;padding:2px 0;
+  background:none;border:none;color:var(--tx3);letter-spacing:.5px;}
+
+.opt{border:1px solid var(--line);border-radius:var(--r);padding:13px 14px;
+  cursor:pointer;background:var(--panel);transition:.15s;}
+
+.opt:hover{border-color:var(--tx3);}
+
+.opt.sel{border-color:var(--pri);background:var(--pri-s);box-shadow:0 0 0 1px var(--pri) inset;}
+
+.opt .t{font-weight:600;font-size:15px;margin-bottom:3px;display:flex;
+  align-items:center;justify-content:space-between;gap:8px;}
+
+.opt .d{font-size:13px;color:var(--tx2);line-height:1.55;}
+
+.chk{width:15px;height:15px;border-radius:4px;border:1.5px solid var(--line);
+  flex:none;display:flex;align-items:center;justify-content:center;background:#fff;cursor:pointer;}
+
+.on .chk,.chk.on{background:var(--pri);border-color:var(--pri);}
+
+.cta .btn{height:40px;padding:0 22px;font-size:15px;}
+
+.pill.out{color:var(--wn);border-color:var(--wn-b);background:var(--wn-s);}
+
+.btn.danger{color:var(--rd);border-color:var(--rd-b);}
+
+.btn.danger:hover{background:var(--rd-s);}
+
+pre.out{background:#24221F;color:#E8E2D8;border:1px solid #33302B;border-radius:var(--r);padding:14px 16px;
+  font-family:ui-monospace,Consolas,monospace;font-size:13px;line-height:1.75;
+  overflow:auto;max-height:340px;}
+
+table.enstab td.enact .btn{margin:2px 3px 2px 0;height:24px;padding:0 8px;}
+
+.robrow.out .rdn,.robrow.out .rst{color:var(--tx3);}
+
+/* ================= v1.3 UI 升级层：滚动条 / 选中态 / 交互反馈 ================= */
+/* 细滚动条：所有内滚区域统一，避免默认粗滚动条破坏面板质感 */
+.tree::-webkit-scrollbar,.cimscroll::-webkit-scrollbar,.pollist::-webkit-scrollbar,
+.tabwrap::-webkit-scrollbar,.robtbl::-webkit-scrollbar,pre.out::-webkit-scrollbar,
+.mbody::-webkit-scrollbar{width:8px;height:8px;}
+
+.tree::-webkit-scrollbar-thumb,.cimscroll::-webkit-scrollbar-thumb,.pollist::-webkit-scrollbar-thumb,
+.tabwrap::-webkit-scrollbar-thumb,.robtbl::-webkit-scrollbar-thumb,pre.out::-webkit-scrollbar-thumb,
+.mbody::-webkit-scrollbar-thumb{background:#CBD3CF;border-radius:99px;border:2px solid transparent;
+  background-clip:content-box;}
+
+/* 选项卡选中：加对勾浮起 */
+.opt{position:relative;}
+
+.opt.sel{box-shadow:0 0 0 1px var(--pri) inset;}
+
+.opt .chk{transition:background .15s var(--ease),border-color .15s var(--ease);}
+
+/* 数据表：表头加重一点底边，斑马纹不引入（保持克制），只加 hover 已够 */
+
+/* 代码块内滚动条 */
+pre.out::-webkit-scrollbar-thumb{background:#4A4640;border:2px solid transparent;background-clip:content-box;}
+
+/* 状态选择是单选：用圆形勾选标记，和可多选的复选框区分开 */
+.chk.rad{border-radius:50%;}
+
+.fmtnote{font-size:13px;color:var(--tx2);line-height:1.75;margin:0 0 10px;max-width:76ch;}
+
+.hm-act .btn.pri{font-size:15px;padding:11px 22px;border-radius:2px;}
+
+main .card > h3 .tag{font-weight:400;color:var(--tx3);}
+
+.rail-foot .btn{background:transparent;border:0;border-bottom:1px solid var(--line);
+  border-radius:0;height:auto;padding:0 0 6px;justify-content:flex-start;
+  font-size:13px;color:var(--tx3);}
+
+.rail-foot .btn:hover{color:var(--tx);border-bottom-color:var(--tx);}
+
+/* 选项卡：白底，选中用左侧赭条 */
+.opt{background:transparent;border-radius:2px;}
+
+.opt.sel{border-color:var(--tx);background:transparent;
+  box-shadow:inset 3px 0 0 var(--wn);}
+
+.on .chk,.chk.on{background:var(--wn);border-color:var(--wn);}
+
+.chk{border-radius:2px;}

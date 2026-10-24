@@ -1,0 +1,122 @@
+/* H7 ｜ 逐层求解（下沉为折叠段） ｜ 相关样式摘录
+   设计令牌（:root）永远带上；完整样式表见 ../_shared/base.css。 */
+
+:root{
+  /* 纸墨：暖白纸面 + 墨黑字 + 靛青结构色 + 赭石强调 */
+  --bg:#FBFAF7; --panel:#FFFFFF; --panel2:#F5F2EC;
+  --line:#E3DCD0; --line2:#EFEAE1;
+  --tx:#1B1A17; --tx2:#55504A; --tx3:#6E675D;
+  --pri:#2F4858; --pri-d:#22363F; --pri-s:#ECF0F2; --pri-b:#C3D0D6;
+  --ok:#2F4858; --ok-s:#ECF0F2; --ok-b:#C3D0D6;
+  --wn:#8C5A3C; --wn-s:#F7F0E8; --wn-b:#E2CDB9;
+  --rd:#9B3B2E; --rd-s:#F6EAE7; --rd-b:#DDB7AE;
+  /* CIB 双极色阶：靛（抑制）— 纸灰（无）— 赭（促进） */
+  --s-3:#1F5C7A; --s-2:#4C86A3; --s-1:#8FB3C7;
+  --s0:#EDEAE3;
+  --s1:#E2B79C; --s2:#CE8A62; --s3:#B0623A;
+  --r:4px; --r2:6px;
+  --sh:0 1px 1px rgba(27,26,23,.04);
+  --sh2:0 2px 6px rgba(27,26,23,.06);
+  --sh3:0 10px 30px rgba(27,26,23,.12);
+  --ease:cubic-bezier(.2,.7,.3,1);
+}
+
+.btn{height:32px;padding:0 13px;border-radius:4px;font-size:13px;
+  border:1px solid var(--line);background:var(--panel);color:var(--tx);
+  display:inline-flex;align-items:center;gap:6px;transition:all .16s var(--ease);white-space:nowrap;}
+
+.btn:hover{border-color:var(--tx2);}
+
+.btn:active{transform:translateY(1px);box-shadow:none;}
+
+.btn:focus-visible{outline:none;box-shadow:0 0 0 3px var(--pri-s),0 0 0 1.5px var(--pri);}
+
+.btn.pri{background:var(--pri);border-color:var(--pri);color:#fff;font-weight:500;}
+
+.btn.pri:hover{background:var(--pri-d);border-color:var(--pri-d);}
+
+.btn.sm{height:27px;padding:0 10px;font-size:13px;}
+
+.btn:disabled{opacity:.45;cursor:not-allowed;}
+
+.rail-foot .btn{width:100%;justify-content:center;}
+
+.cta .btn{height:40px;padding:0 22px;font-size:15px;}
+
+.btn.danger{color:var(--rd);border-color:var(--rd-b);}
+
+.btn.danger:hover{background:var(--rd-s);}
+
+table.enstab td.enact .btn{margin:2px 3px 2px 0;height:24px;padding:0 8px;}
+
+/* 逐层求解 */
+.layflow{display:flex;align-items:stretch;flex-wrap:wrap;margin-bottom:10px;}
+
+.laynode{flex:1 1 118px;background:var(--panel2);border-radius:4px;padding:10px 12px;text-align:center;}
+
+.laynode .ln{font-size:13px;color:var(--tx2);}
+
+.laynode .lv{font-size:16px;font-weight:600;color:var(--pri);margin:3px 0;line-height:1.3;}
+
+.laynode .lv i{font-style:normal;font-size:13px;}
+
+.laynode .ls{font-size:11px;color:var(--tx3);line-height:1.6;}
+
+.layarrow{display:flex;align-items:center;padding:0 9px;color:var(--tx3);font-size:16px;}
+
+.laywarn{color:var(--wn);}
+
+.layrow{font-size:13px;line-height:1.85;padding:8px 10px;border-bottom:1px dashed var(--line);
+  border-radius:4px;}
+
+.layrow:hover{background:var(--panel2);}
+
+.layrow:last-child{border-bottom:none;}
+
+.layidx{display:inline-block;min-width:27px;color:var(--tx3);font-size:13px;}
+
+.laysep{color:var(--tx3);margin:0 7px;}
+
+.laydir{margin-top:14px;border-top:1px solid var(--line);padding-top:13px;}
+
+.laydirhd{display:flex;align-items:baseline;gap:9px;flex-wrap:wrap;font-size:14px;margin-bottom:8px;}
+
+.laybads{margin-top:9px;}
+
+.laybad{font-size:13px;line-height:1.8;padding:6px 10px;background:var(--wn-s);
+  border-radius:4px;margin-bottom:5px;}
+
+.laybad b{color:var(--tx1);}
+
+/* 长说明：默认折起，点开才占版面 */
+details.fold{margin:4px 0 14px;}
+
+details.fold>summary{font-size:13px;color:var(--tx2);cursor:pointer;list-style:none;
+  display:inline-flex;align-items:center;gap:6px;border-bottom:1px dashed var(--tx3);}
+
+details.fold>summary::-webkit-details-marker{display:none;}
+
+details.fold>summary::before{content:"＋";font-size:11px;color:var(--tx3);}
+
+details.fold[open]>summary::before{content:"－";}
+
+details.fold .foldbody{padding:10px 14px;margin-top:8px;border-left:2px solid var(--line);
+  color:var(--tx2);font-size:15px;line-height:1.85;background:var(--panel2);}
+
+details.fold .foldbody{display:block!important;}
+
+details.fold>summary{display:none;}
+
+.hm-act .btn.pri{font-size:15px;padding:11px 22px;border-radius:2px;}
+
+.polhelp .fold{margin:0;}
+
+.polhelp details.fold>summary{font-size:13px;color:var(--tx3);}
+
+.polhelp details.fold .foldbody{margin-top:10px;}
+
+.rail-foot .btn{background:transparent;border:0;border-bottom:1px solid var(--line);
+  border-radius:0;height:auto;padding:0 0 6px;justify-content:flex-start;
+  font-size:13px;color:var(--tx3);}
+
+.rail-foot .btn:hover{color:var(--tx);border-bottom-color:var(--tx);}

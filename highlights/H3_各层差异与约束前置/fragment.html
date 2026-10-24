@@ -1,0 +1,28 @@
+<!-- H3 ｜ 各层差异预览与跨层约束前置 ｜ 摘自 _src/v15/index.html 第 102-128 行 -->
+<section class="pane" id="p0">
+  <h2 class="pt tip wide" tabindex="0" data-tip="区域、省、市三层是待探索变量，可以任意组合；勾了哪几层，跨层核对就在哪几层之间做。">选择分析尺度</h2>
+
+  <div class="grid2">
+    <div class="opt sel" data-scale="nation" onclick="tglScale(this)">
+      <div class="t">国家级 <span class="chk on"><span class="tick"></span></span></div>
+      <div class="d">全国总量与目标，作为分解的起点</div>
+    </div>
+    <div class="opt sel" data-scale="region" onclick="tglScale(this)">
+      <div class="t">区域级（京津冀） <span class="chk on"><span class="tick"></span></span></div>
+      <div class="d">三地合计口径，是省级加总的落点</div>
+    </div>
+    <div class="opt sel" data-scale="prov" onclick="tglScale(this)">
+      <div class="t">省级 <span class="chk on"><span class="tick"></span></span></div>
+      <div class="d">北京市、天津市、河北省</div>
+    </div>
+    <div class="opt" data-scale="city" onclick="tglScale(this)">
+      <div class="t">市级 <span class="chk"></span></div>
+      <div class="d">河北 11 个地级市及省直管县级市</div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:16px;">
+    <h3 class="tip" tabindex="0" data-tip="同一年的人口与经济口径在四层不一样，跨层核对就是管这件事：上级定了档位，下级只在自己被允许的范围内取档。">各层差异预览</h3>
+    <div id="layerTable"></div>
+  </div>
+</section>

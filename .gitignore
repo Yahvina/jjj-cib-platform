@@ -4,3 +4,7 @@
 .DS_Store
 Thumbs.db
 _notes/
+
+# Python 缓存（highlights/build_highlights.py 被 import 时会产生）
+__pycache__/
+*.pyc

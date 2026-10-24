@@ -1,0 +1,173 @@
+/* H1 ｜ 首页：一屏讲清定位 ｜ 相关样式摘录
+   设计令牌（:root）永远带上；完整样式表见 ../_shared/base.css。 */
+
+:root{
+  /* 纸墨：暖白纸面 + 墨黑字 + 靛青结构色 + 赭石强调 */
+  --bg:#FBFAF7; --panel:#FFFFFF; --panel2:#F5F2EC;
+  --line:#E3DCD0; --line2:#EFEAE1;
+  --tx:#1B1A17; --tx2:#55504A; --tx3:#6E675D;
+  --pri:#2F4858; --pri-d:#22363F; --pri-s:#ECF0F2; --pri-b:#C3D0D6;
+  --ok:#2F4858; --ok-s:#ECF0F2; --ok-b:#C3D0D6;
+  --wn:#8C5A3C; --wn-s:#F7F0E8; --wn-b:#E2CDB9;
+  --rd:#9B3B2E; --rd-s:#F6EAE7; --rd-b:#DDB7AE;
+  /* CIB 双极色阶：靛（抑制）— 纸灰（无）— 赭（促进） */
+  --s-3:#1F5C7A; --s-2:#4C86A3; --s-1:#8FB3C7;
+  --s0:#EDEAE3;
+  --s1:#E2B79C; --s2:#CE8A62; --s3:#B0623A;
+  --r:4px; --r2:6px;
+  --sh:0 1px 1px rgba(27,26,23,.04);
+  --sh2:0 2px 6px rgba(27,26,23,.06);
+  --sh3:0 10px 30px rgba(27,26,23,.12);
+  --ease:cubic-bezier(.2,.7,.3,1);
+}
+
+.topbar .sp{flex:1;}
+
+/* 左侧步骤轨：只在向导模式下出现 */
+.steps{display:none;}
+
+body.wizard .steps{display:block;position:fixed;left:0;top:56px;bottom:0;width:212px;
+  background:var(--panel2);border-right:1px solid var(--line);
+  padding:18px 12px 26px;overflow-y:auto;z-index:15;}
+
+body.wizard .footbar{left:212px;}
+
+body.wizard .footbar{left:0;}
+
+body.wizard .steps{display:none;}
+
+/* ================= 首页（概览入口） ================= */
+.hero{padding:8px 0 0;}
+
+.hero-k{font-size:13px;letter-spacing:1.4px;color:var(--pri);margin-bottom:12px;}
+
+.hero-t{font-size:30px;line-height:1.38;font-weight:700;letter-spacing:.4px;
+  margin:0 0 9px;max-width:100%;}
+
+.hero-t .hl{color:var(--pri);}
+
+.hero-sub{font-size:16px;font-weight:400;color:var(--tx2);line-height:1.6;
+  margin:0 0 13px;letter-spacing:.3px;}
+
+.hero-d{font-size:15px;line-height:1.95;color:var(--tx2);max-width:76ch;margin:0;}
+
+.hero-d b{color:var(--tx);font-weight:600;}
+
+.hero-t{font-size:21px;}
+
+.footbar{position:fixed;left:0;right:0;bottom:0;background:var(--panel);
+  border-top:1px solid var(--line);padding:12px 26px;display:flex;align-items:center;
+  gap:12px;z-index:20;box-shadow:0 -2px 12px rgba(27,26,23,.04);}
+
+.footbar .sp{flex:1;}
+
+.footbar .cnt{font-size:13px;color:var(--tx2);}
+
+.cimbar .sp{flex:1;}
+
+.cimside .spair{font-size:15px;font-weight:600;margin-bottom:4px;}
+
+.cimside .spair .ar{color:var(--pri);margin:0 6px;font-weight:400;}
+
+.mhead .sp{flex:1;}
+
+.ensbar .sp{flex:1;}
+
+.filtbar .sp{flex:1;}
+
+.p6nav .sp{flex:1;}
+
+#pcmp .hero{display:grid;grid-template-columns:1.05fr .95fr;gap:56px;align-items:start;
+  padding:48px 0 0;position:relative;z-index:1;}
+
+#pcmp .kicker{font-family:ui-monospace,Consolas,monospace;font-size:12px;letter-spacing:.18em;
+  color:var(--tx3);margin-bottom:26px;}
+
+#pcmp h1 .cib{letter-spacing:.04em;}
+
+#pcmp .lead{font-size:17px;line-height:1.95;color:var(--tx2);margin-top:24px;max-width:26em;}
+
+#pcmp .go{margin-top:40px;display:flex;align-items:baseline;gap:26px;}
+
+#pcmp .go a{font-size:16px;color:var(--tx);text-decoration:none;
+  border-bottom:2px solid var(--wn);padding-bottom:6px;
+  display:inline-flex;align-items:center;gap:9px;transition:color .16s ease;}
+
+#pcmp .go a .ar{transition:transform .16s ease;display:inline-block;}
+
+#pcmp .go a:hover{color:var(--wn);}
+
+#pcmp .go a:hover .ar{transform:translateX(4px);}
+
+#pcmp .go span{font-size:13.5px;color:var(--tx3);}
+
+#pcmp .fig{position:relative;padding:0 0 34px;margin:0;}
+
+#pcmp .mwrap{border:1px solid var(--line);background:#fff;padding:18px 18px 14px;}
+
+#pcmp .mrow{display:flex;align-items:center;gap:10px;}
+
+#pcmp .ylab{font-family:ui-monospace,Consolas,monospace;font-size:10px;color:var(--tx3);
+  writing-mode:vertical-rl;letter-spacing:.14em;flex:none;}
+
+#pcmp .xlab{display:flex;justify-content:space-between;margin-top:8px;padding-left:22px;
+  font-family:ui-monospace,Consolas,monospace;font-size:10px;color:var(--tx3);letter-spacing:.1em;}
+
+#pcmp .mfoot{display:flex;justify-content:space-between;margin-top:14px;padding-top:10px;
+  border-top:1px solid var(--line2);font-family:ui-monospace,Consolas,monospace;
+  font-size:11px;line-height:1.4;color:var(--tx3);letter-spacing:.04em;}
+
+#pcmp .mfoot b{color:var(--tx);font-weight:400;}
+
+#pcmp .cap{position:absolute;left:0;bottom:0;font-family:ui-monospace,Consolas,monospace;
+  font-size:11px;color:var(--tx3);letter-spacing:.1em;}
+
+#pcmp .facts{display:flex;gap:44px;margin-top:64px;padding-top:22px;
+  border-top:1px solid var(--line);position:relative;z-index:1;}
+
+#pcmp .facts b{display:block;font-size:30px;line-height:1.1;font-weight:400;letter-spacing:.01em;}
+
+#pcmp .facts span{display:block;font-size:13px;line-height:1.6;color:var(--tx3);margin-top:7px;}
+
+#pcmp .quote{margin:84px 0 0;padding:0 0 0 24px;border-left:1px solid var(--line);
+  max-width:640px;position:relative;z-index:1;}
+
+#pcmp .quote p{font-family:"Kaiti SC","STKaiti",KaiTi,"楷体",serif;font-weight:400;
+  font-size:19px;line-height:2;color:var(--tx2);}
+
+#pcmp .quote cite{display:block;font-family:inherit;font-size:13px;color:var(--tx3);
+  font-style:normal;margin-top:14px;}
+
+#pcmp .steps{display:grid;grid-template-columns:repeat(3,1fr);gap:0 44px;
+  margin:92px 0 0;padding:30px 0 0;border-top:1px solid var(--line);
+  position:static;height:auto;width:auto;left:auto;top:auto;bottom:auto;background:none;
+  overflow:visible;z-index:auto;}
+
+#pcmp .steps b{display:block;font-family:ui-monospace,Consolas,monospace;font-size:11px;
+  line-height:1;color:var(--tx3);letter-spacing:.14em;margin-bottom:12px;}
+
+#pcmp .steps h3{font-family:inherit;font-size:16px;font-weight:600;line-height:1.6;
+  margin-bottom:5px;display:inline-block;}
+
+#pcmp .steps p{font-size:13.5px;line-height:1.8;color:var(--tx3);}
+
+#pcmp .foot{display:flex;gap:20px;margin:88px 0 0;padding-top:16px;
+  border-top:1px solid var(--line2);font-size:12px;line-height:1.6;color:var(--tx3);}
+
+#pcmp .foot .sp{flex:1;}
+
+#pcmp .foot .mono{font-family:ui-monospace,Consolas,monospace;letter-spacing:.06em;}
+
+#pcmp .facts{gap:24px;flex-wrap:wrap;}
+
+#pcmp .hero{grid-template-columns:1fr;gap:36px;padding-top:28px;}
+
+#pcmp .steps{grid-template-columns:1fr;gap:22px;}
+
+/* 首页次要入口 */
+#pcmp .go a.go2{font-size:13.5px;color:var(--tx3);border-bottom:1px solid var(--line);}
+
+#pcmp .go a.go2:hover{color:var(--tx);border-bottom-color:var(--tx);}
+
+/* 左轨与表格头：统一到纸白 */
+body.wizard .steps{background:var(--bg);}

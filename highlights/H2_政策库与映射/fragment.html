@@ -1,0 +1,36 @@
+<!-- H2 ｜ 政策库与映射（含政策依据补证） ｜ 摘自 _src/v15/index.html 第 131-165 行 -->
+<section class="pane" id="p1">
+  <h2 class="pt tip wide" tabindex="0" data-tip="内置 106 条路径（89 条国家库 + 17 条地方补充）。点开任一条，右侧显示它挂在哪些描述符上。">政策库与映射</h2>
+
+  <div class="card">
+    <div class="cimbar">
+      <button class="btn pri" onclick="applyPolicy()">按政策库预填来源</button>
+      <button class="btn" onclick="uploadPolicy()">上传政策清单</button>
+      <div class="sp"></div>
+      <span class="cimf">类别
+        <select class="txt" id="polCat" onchange="renderPolicy()">
+          <option value="all">全部</option>
+          <option>经济工具</option><option>规制工具</option><option>政府投资与消费</option>
+          <option>信息工具</option><option>自愿措施</option>
+        </select></span>
+      <span class="cimf">只看
+        <select class="txt" id="polOnly" onchange="renderPolicy()">
+          <option value="all">全部路径</option>
+          <option value="hit">有对应的</option>
+          <option value="miss">无对应的</option>
+        </select></span>
+    </div>
+    <div class="cimstat" id="polStat"></div>
+  </div>
+
+  <div class="polhelp"><details class="fold"><summary>三个标记什么意思</summary><div class="foldbody">列表每行右侧三个标记：<b>代码</b>＝工具类型的英文缩写（如 REC 指可交易可再生能源证书/配额），用来和数据集里的工具条目对上号；
+    <b>数字</b>＝已对应到的描述符条数；<b>证</b>＝数据集里有工具级记录，点开可查文件名与条款。
+    地方补充的路径不显示代码，直接标“地方”。</div></details></div>
+
+  <div class="polwrap">
+    <div class="pollist" id="polList"></div>
+    <div class="polside" id="polSide">
+      <div class="empty">点左侧任一条政策路径，查看它对应到哪些描述符</div>
+    </div>
+  </div>
+</section>

@@ -1,0 +1,175 @@
+/* H3 ｜ 各层差异预览与跨层约束前置 ｜ 相关样式摘录
+   设计令牌（:root）永远带上；完整样式表见 ../_shared/base.css。 */
+
+:root{
+  /* 纸墨：暖白纸面 + 墨黑字 + 靛青结构色 + 赭石强调 */
+  --bg:#FBFAF7; --panel:#FFFFFF; --panel2:#F5F2EC;
+  --line:#E3DCD0; --line2:#EFEAE1;
+  --tx:#1B1A17; --tx2:#55504A; --tx3:#6E675D;
+  --pri:#2F4858; --pri-d:#22363F; --pri-s:#ECF0F2; --pri-b:#C3D0D6;
+  --ok:#2F4858; --ok-s:#ECF0F2; --ok-b:#C3D0D6;
+  --wn:#8C5A3C; --wn-s:#F7F0E8; --wn-b:#E2CDB9;
+  --rd:#9B3B2E; --rd-s:#F6EAE7; --rd-b:#DDB7AE;
+  /* CIB 双极色阶：靛（抑制）— 纸灰（无）— 赭（促进） */
+  --s-3:#1F5C7A; --s-2:#4C86A3; --s-1:#8FB3C7;
+  --s0:#EDEAE3;
+  --s1:#E2B79C; --s2:#CE8A62; --s3:#B0623A;
+  --r:4px; --r2:6px;
+  --sh:0 1px 1px rgba(27,26,23,.04);
+  --sh2:0 2px 6px rgba(27,26,23,.06);
+  --sh3:0 10px 30px rgba(27,26,23,.12);
+  --ease:cubic-bezier(.2,.7,.3,1);
+}
+
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r2);
+  padding:20px 22px;margin-bottom:18px;}
+
+.card h3{font-size:16px;font-weight:600;margin-bottom:12px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+
+.card h3 .tag{font-size:11px;font-weight:400;padding:2px 0;
+  background:none;border:none;color:var(--tx3);letter-spacing:.5px;}
+
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+
+.opt{border:1px solid var(--line);border-radius:var(--r);padding:13px 14px;
+  cursor:pointer;background:var(--panel);transition:.15s;}
+
+.opt:hover{border-color:var(--tx3);}
+
+.opt.sel{border-color:var(--pri);background:var(--pri-s);box-shadow:0 0 0 1px var(--pri) inset;}
+
+.opt .t{font-weight:600;font-size:15px;margin-bottom:3px;display:flex;
+  align-items:center;justify-content:space-between;gap:8px;}
+
+.opt .d{font-size:13px;color:var(--tx2);line-height:1.55;}
+
+.chk{width:15px;height:15px;border-radius:4px;border:1.5px solid var(--line);
+  flex:none;display:flex;align-items:center;justify-content:center;background:#fff;cursor:pointer;}
+
+.on .chk,.chk.on{background:var(--pri);border-color:var(--pri);}
+
+.crow{display:grid;grid-template-columns:104px 1fr 1fr;border-bottom:1px solid var(--line2);}
+
+.crow:last-child{border-bottom:none;}
+
+.crow.hd{background:var(--panel2);}
+
+.clbl{padding:12px 14px;font-size:13px;font-weight:600;color:var(--tx2);
+  border-right:1px solid var(--line2);}
+
+.cell{padding:12px 16px;font-size:13px;line-height:1.75;color:var(--tx2);
+  border-right:1px solid var(--line2);}
+
+.cell:last-child{border-right:none;}
+
+.cell.pk{color:var(--tx);}
+
+.crow.hd .cell{font-size:13px;font-weight:600;color:var(--tx2);}
+
+.crow.hd .cell:last-child{color:var(--pri);}
+
+.dim{color:var(--tx3);font-size:13px;}
+
+.clbl,.cell{padding:10px 11px;font-size:13px;}
+
+.crow{grid-template-columns:80px 1fr 1fr;}
+
+.crow{grid-template-columns:92px 1fr 1fr;}
+
+.grid2,.grid3,.verdict{grid-template-columns:1fr;}
+
+table.cim td.cc.dimout{opacity:.16;}
+
+.cimside .crow{display:flex;gap:6px;}
+
+.robintro .dim{color:var(--tx3);font-size:13px;}
+
+.robt2 td .dim{color:var(--tx3);font-size:11px;}
+
+/* 选项卡选中：加对勾浮起 */
+.opt{position:relative;}
+
+.opt.sel{box-shadow:0 0 0 1px var(--pri) inset;}
+
+.opt .chk{transition:background .15s var(--ease),border-color .15s var(--ease);}
+
+/* 状态选择是单选：用圆形勾选标记，和可多选的复选框区分开 */
+.chk.rad{border-radius:50%;}
+
+#p6 .card[data-grp]{display:none;}
+
+#p6[data-g="concl"] .card[data-grp="concl"],
+#p6[data-g="rel"] .card[data-grp="rel"],
+#p6[data-g="out"] .card[data-grp="out"]{display:block;}
+
+#p6.p6-all .card[data-grp]{display:block;}
+
+/* 分析工具箱：默认收起，外层也是 .card 但不受分组开关管辖 */
+#toolBox{display:block;}
+
+.toolboxbody .card{margin:0;background:var(--panel2);}
+
+/* 分层档位（决策一②）：只在勾了 ≥2 个求解层时出现在状态卡里 */
+.xlrow{display:flex;align-items:center;gap:8px;margin-top:7px;}
+
+.xlrow .xllb{font-size:12px;color:var(--tx3);width:52px;flex:none;}
+
+.xlrow .xlsel{flex:1;min-width:0;}
+
+.xlrow select option:disabled{color:var(--tx3);}
+
+#pcmp .crow{border-bottom:1px solid var(--line2);}
+
+#pcmp .crow.hd{background:transparent;border-bottom:1px solid var(--line);}
+
+#pcmp .clbl,#pcmp .cell{border-right:0;}
+
+#pcmp .clbl{padding-left:0;font-weight:400;color:var(--tx3);}
+
+#pcmp .cell{padding-left:22px;}
+
+.topbar .cellmark{transform-box:fill-box;transition:transform .32s var(--ease);}
+
+.topbar .mark:hover .cellmark{transform:translate(6px,-6px);}
+
+#pcmp .cell{aspect-ratio:1;background:var(--bg);border:1px solid var(--line2);
+  transition:transform .18s var(--ease),box-shadow .18s ease;}
+
+#pcmp .cell.p2{background:var(--s2);border-color:var(--s2);}
+
+#pcmp .cell.p1{background:var(--s1);border-color:var(--s1);}
+
+#pcmp .cell.n1{background:var(--s-1);border-color:var(--s-1);}
+
+#pcmp .cell.n2{background:var(--s-2);border-color:var(--s-2);}
+
+#pcmp .cell.dg{background:var(--line);border-color:var(--line);}
+
+#pcmp .cell.hl{box-shadow:inset 0 0 0 1px rgba(140,90,60,.32);}
+
+#pcmp .cell.on{transform:scale(1.16);position:relative;z-index:2;
+  box-shadow:0 2px 7px rgba(27,26,23,.13),0 0 0 1px var(--tx);}
+
+#pcmp .xlab{display:flex;justify-content:space-between;margin-top:8px;padding-left:22px;
+  font-family:ui-monospace,Consolas,monospace;font-size:10px;color:var(--tx3);letter-spacing:.1em;}
+
+/* ================= v1.5 内页：去卡片，只留线与留白 ================= */
+main .card{background:transparent;border:0;border-radius:0;box-shadow:none;
+  padding:0;margin:40px 0 0;}
+
+main .card > h3{font-size:16px;font-weight:600;margin:0 0 14px;padding-bottom:9px;
+  border-bottom:1px solid var(--line);}
+
+main .card > h3 .tag{font-weight:400;color:var(--tx3);}
+
+main .crow.hd{background:transparent;border-bottom:1px solid var(--line);}
+
+/* 选项卡：白底，选中用左侧赭条 */
+.opt{background:transparent;border-radius:2px;}
+
+.opt.sel{border-color:var(--tx);background:transparent;
+  box-shadow:inset 3px 0 0 var(--wn);}
+
+.on .chk,.chk.on{background:var(--wn);border-color:var(--wn);}
+
+.chk{border-radius:2px;}
