@@ -91,9 +91,13 @@ const stale = TERM + 'X';   // 负控用的篡改形，防它被顺手提交
 ck('没有被篡改的变体', app.indexOf(stale) < 0 && html.indexOf(stale) < 0);
 
 console.log();
-console.log('=== 5. 「主动和／被动和」只许出现在主被动图与更新日志里 ===');
+console.log('=== 5. 「主动和／被动和」只许出现在主被动图与三份记录里 ===');
 // 旧毛病就是把判定用的量也写成主动和。所以这里把这两个词在 app.js 的每一处
-// 出现都定位出来，要求它落在 renderAP 的函数体内或 CHANGELOG 数组内。
+// 出现都定位出来，要求它落在 renderAP 的函数体内，或落在会原样展示给人看的
+// 三份记录数据里：CHANGELOG（逐条变更）、VERSIONS（版本日志）、DISCUSS（讨论日志）。
+// 后两者讲的是历史——「这个量原先被叫作主动和」正是要记录下来的事实，
+// 把它们排除在外会让日志不敢提旧名，反而讲不清改动。真正要防的是
+// 「界面/报告里拿这两个词当判定量的名字」，那由第 4 组守着。
 function span(src, startMarker, endMarker) {
   const s = src.indexOf(startMarker);
   if (s < 0) return null;
@@ -102,9 +106,13 @@ function span(src, startMarker, endMarker) {
 }
 const apSpan = span(app, 'function renderAP', '\nfunction ');
 const chgSpan = span(app, 'const CHANGELOG', '\n];');
+const verSpan = span(app, 'const VERSIONS', '\n];');
+const disSpan = span(app, 'const DISCUSS=[', '\n];');
 const allowed = [];
 if (apSpan) allowed.push(apSpan);
 if (chgSpan) allowed.push(chgSpan);
+if (verSpan) allowed.push(verSpan);
+if (disSpan) allowed.push(disSpan);
 
 const lines = app.split('\n');
 let outside = [];
@@ -118,8 +126,9 @@ lines.forEach((l, i) => {
 });
 ck('renderAP 函数定位成功', !!apSpan);
 ck('CHANGELOG 数组定位成功', !!chgSpan);
-ck('两词未泄漏到图表与日志之外', outside.length === 0,
-  outside.length ? '\n      ' + outside.join('\n      ') : '（0 处越界）');
+ck('VERSIONS 数组定位成功', !!verSpan);
+ck('DISCUSS 数组定位成功', !!disSpan);
+ck('两词未泄漏到图表与三份记录之外', outside.length === 0, outside.join(' | '));
 
 console.log();
 console.log('=== 6. 图表确实用这两个词标注两根轴 ===');

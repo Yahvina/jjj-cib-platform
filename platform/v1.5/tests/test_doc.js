@@ -34,13 +34,13 @@ chk(JSON.stringify(navGroups) === JSON.stringify(['简介', '使用手册', '算
   '分区名称与顺序固定');
 
 const navLinks = [...nav.matchAll(/href="#(d\d+)"/g)].map(m => m[1]);
-chk(navLinks.length === 8, '侧栏八个锚点', navLinks.join(','));
-chk(JSON.stringify(navLinks) === JSON.stringify(['d1','d2','d3','d4','d5','d6','d7','d8']),
-  '锚点顺序为 d1…d8');
+chk(navLinks.length === 7, '侧栏七个锚点', navLinks.join(','));
+chk(JSON.stringify(navLinks) === JSON.stringify(['d1','d2','d3','d4','d5','d6','d7']),
+  '锚点顺序为 d1…d7');
 
-console.log('=== 2. 正文八节与分区标签 ===');
+console.log('=== 2. 正文七节与分区标签 ===');
 const heads = [...doc.matchAll(/<h2 id="(d\d)">([^<]+)</g)].map(m => ({ id: m[1], t: m[2].trim() }));
-chk(heads.length === 8, '正文八个 h2', heads.map(h => h.id).join(','));
+chk(heads.length === 7, '正文七个 h2', heads.map(h => h.id).join(','));
 chk(JSON.stringify(heads.map(h => h.id)) === JSON.stringify(navLinks), '正文节次与侧栏锚点一一对应');
 const bodyGroups = [...doc.matchAll(/class="dgrp"[^>]*>([^<]+)</g)].map(m => m[1]);
 chk(JSON.stringify(bodyGroups) === JSON.stringify(navGroups), '正文分区标签与侧栏一致');
@@ -63,17 +63,26 @@ console.log('=== 4. 未实现的概念已删除 ===');
 });
 chk(doc.indexOf('模型变量名') >= 0, '改为平台实际记录的「模型变量名」');
 
-console.log('=== 5. 更新日志：模态已换成页面内一节 ===');
+console.log('=== 5. 日志已从使用说明页拆出，各开一页 ===');
 chk(html.indexOf('id="chgModal"') < 0, '模态 chgModal 已移除');
-chk(doc.indexOf('id="d8"') >= 0, '第八节存在');
-chk(doc.indexOf('id="chgBody"') >= 0, 'chgBody 挂在页面内（不再是模态体）');
-chk(doc.indexOf('影响面') >= 0, '正文说明了「影响面」的含义');
+chk(doc.indexOf('id="d8"') < 0, '使用说明页不再有第八节（日志已迁出）');
+chk(doc.indexOf('id="chgBody"') < 0, 'chgBody 不再挂在使用说明页');
+chk(html.indexOf('id="pdis"') >= 0, '讨论日志页存在');
+chk(html.indexOf('id="pver"') >= 0, '版本更新日志页存在');
+chk(html.indexOf('id="disBody"') >= 0 && html.indexOf('id="verBody"') >= 0, '两页各有正文容器');
+chk(html.indexOf('id="disNav"') >= 0 && html.indexOf('id="verNav"') >= 0, '两页各有侧栏容器');
 chk(app.indexOf('function closeChangelog') < 0, 'closeChangelog 已删除');
 chk(/function openChangelog\(\)/.test(app), 'openChangelog 保留');
-chk(/openChangelog[\s\S]{0,400}?getElementById\('d8'\)/.test(app), 'openChangelog 跳到 d8');
-chk(html.indexOf('onclick="openChangelog()"') >= 0, '顶栏图标仍指向 openChangelog');
-chk(/render\(\);[\s\S]{0,80}?renderChangelog\(\)/.test(app) || app.indexOf('  renderChangelog();') >= 0,
-  'render 中刷新日志内容');
+chk(/function openDiscuss\(\)/.test(app), 'openDiscuss 存在');
+chk(/openPage\('ver'\)/.test(app) && /openPage\('dis'\)/.test(app), '两个入口各自落到自己那页');
+chk(/openPage\('doc'\)/.test(app), 'openDoc 落到使用说明页');
+chk(/function renderDiscuss\(\)/.test(app), '讨论日志渲染函数存在');
+chk(/function renderVersions\(\)/.test(app), '版本日志渲染函数存在');
+chk(/const DOCPG_ID=\{doc:'pdoc',dis:'pdis',ver:'pver'\}/.test(app), '三个页面 id 集中一处映射');
+chk(html.indexOf('onclick="openChangelog()"') >= 0, '顶栏「更新日志」图标指向 openChangelog');
+chk(/onclick="closeMenu\(\);openDiscuss\(\)"/.test(html), '「讨论日志」有入口（更多菜单）');
+chk(/onclick="closeMenu\(\);openChangelog\(\)"/.test(html), '「版本更新日志」有入口（更多菜单）');
+chk(/renderChangelog\(\)/.test(app), 'render 中刷新两页内容');
 
 console.log('=== 6. 影响面标记 ===');
 chk(/e\.im\s*\?/.test(app), '渲染时按 im 标记取文案');
@@ -86,17 +95,18 @@ chk(app.indexOf("'影响面：不动结果——重跑一遍结论一样'") >= 0
 
 console.log('=== 7. 样式与旧样式残留 ===');
 const css = fs.readFileSync(pathMod.join(dir, 'src', 'styles.css'), 'utf8');
-chk(/#pdoc \.doc-nav \.dn-g\{/.test(css), '侧栏分区标题样式存在');
-chk(/#pdoc \.doc-body \.dgrp\{/.test(css), '正文分区标签样式存在');
+// 三个文档页共用一套 .docpg 版式，所以选择器是 .docpg 前缀而不是 #pdoc。
+chk(/\.docpg \.doc-nav \.dn-g\{/.test(css), '侧栏分区标题样式存在');
+chk(/\.docpg \.doc-body \.dgrp\{/.test(css), '正文分区标签样式存在');
 chk(/\.chgb \.chgi\{/.test(css), '影响面样式存在');
 chk(/\.chgb \.chgi\.h\{/.test(css), '影响面「影响结果」有区分样式');
-chk(/#pdoc \.doc-nav \.dn-g\{display:none;\}/.test(css), '窄屏隐藏侧栏分区标题');
+chk(/\.docpg \.doc-nav \.dn-g\{display:none;\}/.test(css), '窄屏隐藏侧栏分区标题');
 chk(css.indexOf('.chgintro') < 0, '旧模态引导文案样式已清理');
 
 console.log('=== 8. 侧栏「当前读到哪一节」高亮 ===');
 chk(html.indexOf('id="docNav"') >= 0, '侧栏挂了 id="docNav"（脚本要能拿到它）');
-chk(/#pdoc \.doc-nav a\.on\{/.test(css), '高亮态样式存在');
-chk(/#pdoc \.doc-nav a\.on::before\{/.test(css), '高亮不只靠变色：另有竖线标记');
+chk(/\.docpg \.doc-nav a\.on\{/.test(css), '高亮态样式存在');
+chk(/\.docpg \.doc-nav a\.on::before\{/.test(css), '高亮不只靠变色：另有竖线标记');
 chk(/function docSpy\(/.test(app), 'docSpy 函数存在');
 chk(/const DOC_LINE=96;/.test(app), '判定线是常量');
 chk(app.indexOf('new IntersectionObserver') < 0, '不用 IntersectionObserver（rootMargin 百分比在矮视口算成负带、像素版在无头下投递不稳）');
@@ -104,9 +114,10 @@ chk(/addEventListener\('scroll',docSpyPaint,\{passive:true\}\)/.test(app), '滚�
 chk(/if\(hit===docSpyCur\) return;/.test(app), '没跨节就不动 DOM（滚动里不重排）');
 chk(/a\.classList\.toggle\('on',/.test(app), '只切 class，不重建节点');
 chk(app.indexOf('requestAnimationFrame') < 0 || /docSpyRaf/.test(app) === false, '滚动路径不依赖 rAF（无头下 rAF 只触发一次，验不了）');
-chk(/if\(!docOpen\)\{ docSpyOff\(\); return; \}/.test(app), '离开文档页就断监听');
+// 三页共用高亮：不再有「仅文档页」的布尔开关，改成判当前开的是哪一页。
+chk(/if\(docPg!=='doc'\)\{ docSpyOff\(\); return; \}/.test(app), '不在使用说明页就断监听');
 chk(/function docSpyOff\(\)/.test(app) && /removeEventListener\('scroll',docSpyPaint\)/.test(app), '断开时真的移除监听');
-chk(/window\.addEventListener\('resize',\(\)=>\{ if\(docOpen\) docSpy\(\); \}\)/.test(app), '视口变化时重算各节位置');
+chk(/window\.addEventListener\('resize',\(\)=>\{ if\(docPg\) docSpy\(\); \}\)/.test(app), '视口变化时重算各节位置');
 chk(/docSpy\(\);\s*$/m.test(app), 'render 末尾调用 docSpy');
 
 console.log('');

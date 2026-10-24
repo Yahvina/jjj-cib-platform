@@ -550,6 +550,14 @@ table.stmat select.sts{width:100%;height:26px;border:1px solid var(--line);borde
   background:#fff;font-size:11px;color:var(--tx2);padding:0 2px;text-align:center;}
 table.stmat select.sts.on{border-color:var(--pri);color:var(--pri);font-weight:600;background:var(--pri-s);}
 
+/* 已勾范围（v1.5 B 方案：勾选＝划定可信范围，不再是标签） */
+.selrow{display:flex;align-items:center;gap:9px;margin-top:9px;padding-top:9px;
+  border-top:1px dashed var(--line);font-size:13px;color:var(--tx3);}
+.selrow .slab{flex:0 0 auto;}
+.selrow .sval{flex:1 1 auto;min-width:0;}
+.selrow.on{color:var(--tx2);}
+.selrow.on .sval b{color:var(--pri);}
+
 /* 已知值（原「数值锚定」卡片，现长在状态面板里） */
 .ancrow{display:flex;align-items:center;gap:9px;margin-top:9px;padding-top:9px;
   border-top:1px dashed var(--line);font-size:13px;}
@@ -912,7 +920,10 @@ table.cim td.cc .cfw.h{font-weight:600;}
 .tip.flip::after{left:auto;right:0;}
 @media (hover:none){
   .tip::after{display:none;}
-  .tip.open::after{display:block;position:static;width:auto;margin-top:6px;box-shadow:none;}
+  /* opacity/visibility 必须在 .open 里显式重置：基态是 opacity:0;visibility:hidden，
+     只改 display 会让气泡"占位但看不见"——触屏点开等于点什么都没有。 */
+  .tip.open::after{display:block;position:static;width:auto;margin-top:6px;box-shadow:none;
+    opacity:1;visibility:visible;}
 }
 @media print{
   .tip{border:none;}
@@ -1101,60 +1112,77 @@ details.fold .foldbody{padding:10px 14px;margin-top:8px;border-left:2px solid va
 .tip.wide::after{width:420px;max-width:78vw;font-size:13px;line-height:1.9;}
 
 /* ================= 使用说明页 ================= */
-#pdoc{max-width:1040px;margin:0 auto;padding-bottom:64px;}
-#pdoc .doc-k{font-family:ui-monospace,Consolas,monospace;font-size:11px;
+.docpg{max-width:1040px;margin:0 auto;padding-bottom:64px;}
+.docpg .doc-k{font-family:ui-monospace,Consolas,monospace;font-size:11px;
   letter-spacing:.16em;color:var(--tx3);padding-top:34px;}
-#pdoc .doc-h h1{font-size:34px;font-weight:400;letter-spacing:.01em;margin-top:14px;}
-#pdoc .doc-h p{font-size:15px;line-height:1.95;color:var(--tx2);margin-top:14px;max-width:40em;}
-#pdoc .doc-cols{display:grid;grid-template-columns:186px minmax(0,1fr);gap:54px;
+.docpg .doc-h h1{font-size:34px;font-weight:400;letter-spacing:.01em;margin-top:14px;}
+.docpg .doc-h p{font-size:15px;line-height:1.95;color:var(--tx2);margin-top:14px;max-width:40em;}
+.docpg .doc-cols{display:grid;grid-template-columns:186px minmax(0,1fr);gap:54px;
   margin-top:40px;padding-top:28px;border-top:1px solid var(--line);}
-#pdoc .doc-nav{position:sticky;top:76px;align-self:start;}
-#pdoc .doc-nav a{display:block;position:relative;font-size:13px;color:var(--tx3);
+.docpg .doc-nav{position:sticky;top:76px;align-self:start;}
+.docpg .doc-nav a{display:block;position:relative;font-size:13px;color:var(--tx3);
   text-decoration:none;padding:6px 0;}
-#pdoc .doc-nav a:hover{color:var(--tx);}
+.docpg .doc-nav a:hover{color:var(--tx);}
 /* 当前读到哪一节：左侧立一道短竖线，不单靠变色 */
-#pdoc .doc-nav a.on{color:var(--tx);}
-#pdoc .doc-nav a.on::before{content:"";position:absolute;left:-14px;top:9px;bottom:9px;
+.docpg .doc-nav a.on{color:var(--tx);}
+.docpg .doc-nav a.on::before{content:"";position:absolute;left:-14px;top:9px;bottom:9px;
   width:2px;background:var(--wn);}
-#pdoc .doc-nav a.on span{color:var(--wn);}
+.docpg .doc-nav a.on span{color:var(--wn);}
 /* 侧栏分区标题：把 8 节归为简介/使用手册/算法说明/案例/参考五段 */
-#pdoc .doc-nav .dn-g{font-size:11px;letter-spacing:.12em;color:var(--tx3);
+.docpg .doc-nav .dn-g{font-size:11px;letter-spacing:.12em;color:var(--tx3);
   padding:14px 0 3px;border-top:1px solid var(--line2);margin-top:8px;}
-#pdoc .doc-nav .dn-g:first-child{border-top:0;margin-top:0;padding-top:0;}
+.docpg .doc-nav .dn-g:first-child{border-top:0;margin-top:0;padding-top:0;}
 /* 正文分区标签 */
-#pdoc .doc-body .dgrp{font-size:11px;letter-spacing:.14em;color:var(--tx3);
+.docpg .doc-body .dgrp{font-size:11px;letter-spacing:.14em;color:var(--tx3);
   margin:40px 0 -28px;}
-#pdoc .doc-body .dgrp + h2{margin-top:34px;padding-top:0;}
-#pdoc .doc-body .dnote{font-size:13.5px;line-height:1.9;color:var(--tx3);
+.docpg .doc-body .dgrp + h2{margin-top:34px;padding-top:0;}
+.docpg .doc-body .dnote{font-size:13.5px;line-height:1.9;color:var(--tx3);
   border-left:2px solid var(--line);padding-left:14px;margin:14px 0 4px;}
-#pdoc .doc-body h2{font-size:21px;font-weight:400;margin:44px 0 12px;padding-top:8px;}
-#pdoc .doc-body h2:first-child{margin-top:0;}
-#pdoc .doc-body h3{font-size:15px;font-weight:600;margin:22px 0 6px;font-family:inherit;}
-#pdoc .doc-body p{font-size:15px;line-height:1.95;color:var(--tx2);margin-bottom:12px;}
-#pdoc .doc-body b{color:var(--tx);font-weight:600;}
-#pdoc .doc-body code{font-family:ui-monospace,Consolas,monospace;font-size:13px;
+.docpg .doc-body h2{font-size:21px;font-weight:400;margin:44px 0 12px;padding-top:8px;}
+.docpg .doc-body h2:first-child{margin-top:0;}
+.docpg .doc-body h3{font-size:15px;font-weight:600;margin:22px 0 6px;font-family:inherit;}
+.docpg .doc-body p{font-size:15px;line-height:1.95;color:var(--tx2);margin-bottom:12px;}
+.docpg .doc-body b{color:var(--tx);font-weight:600;}
+.docpg .doc-body code{font-family:ui-monospace,Consolas,monospace;font-size:13px;
   background:var(--panel2);padding:1px 5px;border-radius:2px;}
-#pdoc .doc-body table{width:100%;border-collapse:collapse;margin:10px 0 18px;font-size:14px;}
-#pdoc .doc-body th{text-align:left;font-weight:600;color:var(--tx3);
+.docpg .doc-body table{width:100%;border-collapse:collapse;margin:10px 0 18px;font-size:14px;}
+.docpg .doc-body th{text-align:left;font-weight:600;color:var(--tx3);
   padding:8px 12px 8px 0;border-bottom:1px solid var(--line);}
-#pdoc .doc-body td{padding:8px 12px 8px 0;border-bottom:1px solid var(--line2);
+.docpg .doc-body td{padding:8px 12px 8px 0;border-bottom:1px solid var(--line2);
   color:var(--tx2);line-height:1.8;vertical-align:top;}
 @media (max-width:900px){
-  #pdoc .doc-cols{grid-template-columns:1fr;gap:24px;}
-  #pdoc .doc-nav{position:static;display:flex;flex-wrap:wrap;gap:14px;}
-  #pdoc .doc-nav .dn-g{display:none;}
-  #pdoc .doc-h h1{font-size:26px;}
+  .docpg .doc-cols{grid-template-columns:1fr;gap:24px;}
+  .docpg .doc-nav{position:static;display:flex;flex-wrap:wrap;gap:14px;}
+  .docpg .doc-nav .dn-g{display:none;}
+  .docpg .doc-h h1{font-size:26px;}
 }
 
 /* 首页次要入口 */
 #pcmp .go a.go2{font-size:13.5px;color:var(--tx3);border-bottom:1px solid var(--line);}
 #pcmp .go a.go2:hover{color:var(--tx);border-bottom-color:var(--tx);}
-#pdoc .doc-nav a span{display:inline-block;width:24px;font-family:ui-monospace,Consolas,monospace;
+.docpg .doc-nav a span{display:inline-block;width:24px;font-family:ui-monospace,Consolas,monospace;
   font-size:11px;color:var(--line);letter-spacing:.06em;}
-#pdoc .doc-nav a:hover span{color:var(--tx3);}
-#pdoc .doc-back{margin-top:18px;}
-#pdoc .doc-back a{font-size:13.5px;color:var(--tx3);text-decoration:none;border-bottom:1px solid var(--line);}
-#pdoc .doc-back a:hover{color:var(--tx);border-bottom-color:var(--tx);}
+.docpg .doc-nav a:hover span{color:var(--tx3);}
+.docpg .doc-back{margin-top:18px;}
+.docpg .doc-back a{font-size:13.5px;color:var(--tx3);text-decoration:none;border-bottom:1px solid var(--line);}
+.docpg .doc-back a:hover{color:var(--tx);border-bottom-color:var(--tx);}
+/* ---- 讨论日志 / 版本更新日志：两页与使用说明共用版式，只加条目样式 ----
+   条目用「无序列表 + 左侧细线」，比再加一层卡片轻：这两页动辄上百条，
+   每条套一个方框就又把版面堆回去了（导师点名的「凌乱」正是这么来的）。 */
+.docpg .dli{list-style:none;margin:8px 0 18px;padding:0 0 0 16px;
+  border-left:1px solid var(--line2);}
+.docpg .dli li{position:relative;font-size:14.5px;line-height:1.9;color:var(--tx2);
+  padding:3px 0;}
+.docpg .dli li::before{content:"";position:absolute;left:-17px;top:14px;
+  width:3px;height:3px;border-radius:50%;background:var(--line);}
+.docpg .dli li b{color:var(--tx);font-weight:600;}
+.docpg .dsrc{font-size:13px;color:var(--tx3);line-height:1.8;margin:-4px 0 10px;}
+.docpg .vsum{font-size:14.5px;color:var(--tx2);margin:-4px 0 8px;}
+.docpg .vtag{display:inline-block;margin-left:10px;font-size:11px;vertical-align:2px;
+  color:var(--wn);background:var(--wn-s);border-radius:4px;padding:1px 6px;}
+/* 侧栏号位列：使用说明是「01」两位数，日志两页是日期与版本号（v1.5.1 更宽），
+   固定 24px 会把版本号挤成两行，改成下限 24px、需要时自己撑开。 */
+.docpg .doc-nav a span{width:auto;min-width:24px;padding-right:8px;}
 /* 统计标签上的解释：不加下划线，鼠标变问号 */
 .tip.quiet{border-bottom:none;cursor:help;}
 /* 状态设置区把解释性文字收进提示里，锚点就是原来的标签本身（不加下划线、不加图标，
@@ -1223,7 +1251,7 @@ main .cimside .empty{padding:32px 0;}
 /* 表头去底色；只有吸顶的矩阵表头需要不透明底 */
 main table th{background:transparent!important;}
 main table.cim thead th{background:var(--bg)!important;}
-#pdoc .doc-body th{background:transparent!important;}
+.docpg .doc-body th{background:transparent!important;}
 
 /* 左轨与表格头：统一到纸白 */
 body.wizard .steps{background:var(--bg);}
@@ -1278,6 +1306,8 @@ main .stbox .hd{background:transparent;border-bottom:1px solid var(--line);}
     </button>
     <div class="menu" id="moreMenu" role="menu">
       <button role="menuitem" onclick="closeMenu();openHelp()">一分钟上手</button>
+      <button role="menuitem" onclick="closeMenu();openDiscuss()">讨论日志</button>
+      <button role="menuitem" onclick="closeMenu();openChangelog()">版本更新日志</button>
       <button role="menuitem" onclick="closeMenu();backToCmp()">回到概览</button>
       <button role="menuitem" onclick="closeMenu();saveCfg()">保存配置</button>
       <button role="menuitem" onclick="closeMenu();loadCfg()">载入配置</button>
@@ -1420,7 +1450,7 @@ main .stbox .hd{background:transparent;border-bottom:1px solid var(--line);}
     </div>
     <div>
       <div style="font-size:13px;color:var(--tx2);margin-bottom:8px;">
-        <span class="tip quiet wide" tabindex="0" data-tip="含取值区间，可编辑。勾选状态只用于定点检验与取档导出，不改变全量检验——一致性检验始终把每个描述符的全部状态都枚举一遍，勾选不缩小搜索范围。要排除数值上站不住的档位，用每个描述符下方的已知值。">状态设置</span></div>
+        <span class="tip quiet wide" tabindex="0" data-tip="含取值区间，可编辑。勾选的档位就是这个描述符的可信范围——一致性检验只在这个范围里找自洽情景，一个都不勾＝不设限（全部档位都参与）。要排除数值上站不住的档位，用每个描述符下方的已知值。">状态设置</span></div>
       <div class="scopebar">
         <span class="slb">区间视角</span>
         <span class="scopebtns" id="scopeBtns"></span>
@@ -1692,7 +1722,6 @@ main .stbox .hd{background:transparent;border-bottom:1px solid var(--line);}
       <a href="#d6"><span>06</span>换一个领域</a>
       <div class="dn-g">参考</div>
       <a href="#d7"><span>07</span>术语对照</a>
-      <a href="#d8"><span>08</span>版本与讨论日志</a>
     </nav>
 
     <div class="doc-body">
@@ -1822,11 +1851,35 @@ main .stbox .hd{background:transparent;border-bottom:1px solid var(--line);}
         <tr><td>后验</td><td>用专家打分更新先验后得到的均值与区间</td></tr>
       </table>
 
-      <h2 id="d8">八　版本与讨论日志</h2>
-      <p>记录每次讨论之后的缺陷修复、口径变更与新增功能，倒序排列，最新的在最上面。每条都能在代码提交里找到对应，只列对外可讲、可核对的事项。</p>
-      <p>每条末尾的「<b>影响面</b>」说明这次改动会不会动到已有结果：标注「<b>不动结果</b>」的，一致性检验的输入与输出都不变，重跑一遍结论一样；标注「<b>影响结果</b>」的，需要重新检验、必要时重出报告。</p>
-      <div id="chgBody"></div>
     </div>
+  </div>
+</section>
+
+<!-- ============ 讨论日志 ============ -->
+<section class="pane" id="pdis">
+  <div class="doc-h">
+    <div class="doc-k">LOG　讨论日志</div>
+    <h1>讨论日志</h1>
+    <p>按面谈顺序记录每次讨论里导师的要求、当场落实的事、以及留下的待办。只收录有录音、纪要或记忆日志可回溯的面谈；依据不足的按「存疑」标明，不替当时的人补话。</p>
+    <p class="doc-back"><a href="#" onclick="closeDoc();return false;">← 返回概览</a></p>
+  </div>
+  <div class="doc-cols">
+    <nav class="doc-nav" id="disNav"></nav>
+    <div class="doc-body" id="disBody"></div>
+  </div>
+</section>
+
+<!-- ============ 版本更新日志 ============ -->
+<section class="pane" id="pver">
+  <div class="doc-h">
+    <div class="doc-k">LOG　版本更新日志</div>
+    <h1>版本更新日志</h1>
+    <p>什么时候更新成了什么版本、每个版本解决了哪些问题。版本号与 git 提交一一对应；<b>v1.5.x 这类小版本号是事后编排的</b>，历史上只发过 v1.0–v1.5 六个大版本号，仓库里没有 tag，详情见页末「证据缺口」。</p>
+    <p class="doc-back"><a href="#" onclick="closeDoc();return false;">← 返回概览</a></p>
+  </div>
+  <div class="doc-cols">
+    <nav class="doc-nav" id="verNav"></nav>
+    <div class="doc-body" id="verBody"></div>
   </div>
 </section>
 
@@ -2316,17 +2369,30 @@ function selDesc(id){
   if(sel.desc[d.n]) delete sel.desc[d.n]; else sel.desc[d.n]={states:[],src:null};
   render();
 }
-/* 单选：一个情景假设 = 每个描述符取一个状态。
-   点已选中的状态＝取消（回到"未定"），点另一个＝替换。
-   "某些档位不可能"不在这里表达——用「数值锚定」，那里有区间依据可追溯。 */
+/* 多选（v1.5 B 方案）：勾选＝给这个描述符**划定一个可信范围**，
+   平台只在这个范围里找自洽情景。一个都不勾＝不设限（全部档位都可能），
+   所以"没勾"不会把搜索空间清零——这是与"排除某些档位"的关键区别，
+   要真排除数值上站不住的档位，用每个描述符下方的已知值（数值锚定）。
+   点已选中的档位＝取消该档；点别的＝加进范围。 */
 function tglState(nm,st){
   const b=sel.desc[nm]; if(!b) return;
-  const cur=(b.states||[])[0];
-  b.states = (cur===st) ? [] : [st];
+  const cur=b.states||[];
+  const i=cur.indexOf(st);
+  b.states = (i>=0) ? cur.filter(x=>x!==st) : cur.concat([st]);
   cimResult=null; BAYES=null; layeredResult=null;
   corrResult=null;
   profResult=null;
   render();
+}
+/* 每个描述符当前勾选的状态索引（可能为空数组＝不设限）。 */
+function selIdxOf(nm){
+  const cur=((sel.desc[nm]||{}).states)||[];
+  const st=ST(nm);
+  return cur.map(s=>st.indexOf(s)).filter(j=>j>=0);
+}
+/* 勾选范围里的组合数：一个都没勾的按全部档位算。 */
+function rangeSize(ds){
+  return ds.reduce((a,d)=>{ const k=selIdxOf(d).length; return a*(k||ST(d).length); }, 1);
 }
 /* ================= 状态半定量化（v1.2 新增） =================
    自然语言标签（高速 / 中速）本身是模糊的。给每个状态挂一个数值区间，
@@ -2604,7 +2670,7 @@ function renderStates(){
       return `<div class="stbox"><div class="hd">${nm}
         ${c.src?`<span class="src">来源：${c.src}</span>`:''}
         <i class="evi tip wide ${ev.k}" tabindex="0" data-tip="${attrEsc(evTip)}">${EVID_WORD[ev.k]||''}</i>${scopeTag}</div>`
-        +rows+addBox+ancRowHTML(nm)+xlPickHTML(nm)+
+        +selRangeHTML(nm)+rows+addBox+ancRowHTML(nm)+xlPickHTML(nm)+
         `<div class="stfoot"><button class="btn sm" onclick="addState('${nm}')">＋ 自定义状态</button>
           ${hasScope&&rngScope!=='region'?`<button class="btn sm" onclick="dropScopeOverride('${nm}')">恢复区域级</button>`:''}</div>`+
         (bad.length?`<div class="stbad">区间衔接提示：${bad.join('；')}</div>`:'')+
@@ -2743,12 +2809,25 @@ function ancConflicts(){
   const out=[];
   Object.keys(sel.desc).forEach(nm=>{
     const a=ancOf(nm); if(!a) return;
-    const sn=((sel.desc[nm]||{}).states||[])[0]; if(!sn) return;
-    const d=defsOf(nm).filter(x=>x.n===sn)[0];
-    if(!d||d.lo===null||d.hi===null||d.lo===undefined||d.hi===undefined) return;
-    if(d.hi<a.lo||d.lo>a.hi) out.push({nm:nm, st:sn, lo:d.lo, hi:d.hi, u:d.u||''});
+    const defs=defsOf(nm);
+    /* 多选后要逐档核对：勾了三档里有一档与已知值不相交，也得报出来，
+       不能只看第一档。 */
+    (((sel.desc[nm]||{}).states)||[]).forEach(sn=>{
+      const d=defs.filter(x=>x.n===sn)[0];
+      if(!d||d.lo===null||d.hi===null||d.lo===undefined||d.hi===undefined) return;
+      if(d.hi<a.lo||d.lo>a.hi) out.push({nm:nm, st:sn, lo:d.lo, hi:d.hi, u:d.u||''});
+    });
   });
   return out;
+}
+/* 状态面板里的「已勾范围」一行：B 方案下勾选＝划定可信范围，必须把
+   「勾了几档」显式写出来，否则用户仍以为只是打了个标签。 */
+function selRangeHTML(nm){
+  const k=selIdxOf(nm).length, tot=ST(nm).length;
+  if(!k) return '<div class="selrow"><span class="slab">已勾范围</span>'
+    +'<span class="sval">不设限（全部 '+tot+' 档都参与检验）</span></div>';
+  return '<div class="selrow on"><span class="slab">已勾范围</span>'
+    +'<span class="sval"><b>'+k+'</b> / '+tot+' 档　·　勾了的档位之外不再参与检验</span></div>';
 }
 /* 状态面板里的「已知值」一行。缩进与 strow 对齐，视觉上属于这个描述符。 */
 function ancRowHTML(nm){
@@ -2794,6 +2873,18 @@ function ancConflictHTML(){
     +'。检验时这些状态不会被考虑——请改选状态、放宽已知值，或确认已知值本身有误。</div>';
 }
 
+/* 档位对索引表：给每一对描述符分配一段连续空间，把「档位 (a,b) 共存过没有」记成 0/1。
+   规模 = Σ_{i<j} sizes[i]×sizes[j]，19 个描述符平均 3 档时约 1.5KB。
+   为什么要在枚举里逐条打点、而不是事后从 consistent 反推：那个数组有 200 组上限，
+   抽样时还会截断，反推出来的"从未共存"会把"没抽到"误判成"不可能"。 */
+function pairIndexTable(n,sizes){
+  const off=new Int32Array(n*n).fill(-1), wid=new Int32Array(n*n);
+  let total=0;
+  for(let i=0;i<n;i++) for(let j=i+1;j<n;j++){
+    off[i*n+j]=total; wid[i*n+j]=sizes[i]*sizes[j]; total+=wid[i*n+j];
+  }
+  return {n:n, off:off, wid:wid, total:total};
+}
 /* 枚举核心：一致性检验与影响谱共用。
    force = {pos, idx} 时把第 pos 个描述符钉死在某个状态上，用于「如果我强行这样，情景集会怎么变」。 */
 function enumCore(ds, force, capN, keepAll){
@@ -2802,9 +2893,18 @@ function enumCore(ds, force, capN, keepAll){
   if(sizes.some(x=>x<1)) return {bad:'状态缺失'};
   /* 数值锚定在枚举之前生效：与锚定值完全不相交的状态直接排除 */
   const allowed=ds.map(d=>ancAllowed(d));
+  /* 勾选＝划定可信范围：勾了的档位才是候选，枚举只在范围内找自洽情景。
+     一个都没勾的描述符不设限（"全部档位都可能"），所以空选不会把空间清零。 */
+  ds.forEach((d,i)=>{
+    const picked=((sel.desc&&sel.desc[d]||{}).states)||[];
+    if(picked.length) allowed[i]=allowed[i].filter(j=>picked.indexOf(ST(d)[j])>=0);
+  });
   if(force) allowed[force.pos]=[force.idx];
   const dead=allowed.findIndex(a=>!a.length);
-  if(dead>=0) return {dead:dead};
+  if(dead>=0){
+    /* 分清是锚定排空的还是勾选排空的——两种情况的补救办法不一样 */
+    return {dead:dead, deadBy:(ancAllowed(ds[dead]).length?'sel':'anc')};
+  }
   const radix=allowed.map(a=>a.length);
   const space=radix.reduce((a,b)=>a*b,1);
   const MAX=capN||200000;
@@ -2827,6 +2927,10 @@ function enumCore(ds, force, capN, keepAll){
   }
   const idxOf=new Array(n).fill(0);
   const consistent=[], seen=new Set(), presence=new Set(), freq={};
+  /* 「全局互斥对」要的数据：每一对描述符的每一组档位对，有没有在任何自洽情景里共存过。
+     按对分片记一个字节，总容量是各对档位数之积的和（19 个描述符约两千字节）。
+     必须在这里逐条累积，不能事后从 consistent 数组反推——那个数组有 200 组上限，会截断。 */
+  const ptab=pairIndexTable(n,sizes), pseen=new Uint8Array(ptab.total);
   let inconsistent=0, count=0;
   for(let c=0;c<N;c++){
     let x = sampled ? Math.floor(Math.random()*space) : c;
@@ -2852,6 +2956,8 @@ function enumCore(ds, force, capN, keepAll){
           const kk=i+'|'+idxOf[i];
           presence.add(kk);
           freq[kk]=(freq[kk]||0)+1;
+          for(let j=i+1;j<n;j++)
+            pseen[ptab.off[i*n+j]+idxOf[i]*ptab.wid[i*n+j]+idxOf[j]]=1;
         }
       }
     } else inconsistent++;
@@ -2859,6 +2965,7 @@ function enumCore(ds, force, capN, keepAll){
   return {n:n, sizes:sizes, space:space, checked:N, sampled:sampled,
     consistent:consistent, count:count, inconsistent:inconsistent,
     presence:presence, freq:freq, dead:-1,
+    ptab:ptab, pseen:pseen,
     truncated: keepAll ? (count>keepAll) : false};
 }
 
@@ -3091,10 +3198,16 @@ function selectedCombo(ds){
     return sn?ST(d).indexOf(sn):-1;
   });
 }
+/* 「你选的情景」站不站得住。
+   多选语义下，只有当每个描述符都恰好勾了一档，才存在"唯一的一套情景"；
+   若有人勾了多档，那划的是范围——这时判"某一条情景自不自洽"没有意义，
+   改为报"范围里有多少种组合最终是自洽的"，这才是 B 方案该给的回答。 */
 function checkSelected(ds){
   const cb=selectedCombo(ds);
   const missing=cb.filter(x=>x<0).length;
   if(missing) return {missing:missing};
+  const multi=ds.filter(d=>selIdxOf(d).length>1);
+  if(multi.length) return {range:true, multi:multi, cb:cb};
   const IMP=buildIMP(ds,cim), sizes=ds.map(d=>ST(d).length), rows=[];
   let ok=true;
   ds.forEach((d,i)=>{
@@ -3109,6 +3222,16 @@ function checkSelected(ds){
     rows.push({d:d, at:cb[i], pick:pick, max:mx, best:mi, gap:mx-pick});
   });
   return {ok:ok, rows:rows, cb:cb};
+}
+/* 范围模式下：勾选范围内一共有多少种组合、其中多少种是自洽的。
+   这是 B 方案的直接回报——"我划的这块范围里，有多少真的成立"。 */
+function rangeStat(){
+  if(!cimResult) return null;
+  const ds=cimResult.ds;
+  const inRange=cimResult.consistent.filter(cb=>
+    ds.every((d,i)=>{ const s=selIdxOf(d); return !s.length||s.indexOf(cb[i])>=0; }));
+  return {n:rangeSize(ds), ok:inRange.length, total:cimResult.consistent.length,
+    anySel:ds.some(d=>selIdxOf(d).length)};
 }
 let allScen=false;   // 是否展开全部自洽情景（默认只列前 6 个，避免几百组把页面拖慢）
 function toggleAllScen(){ allScen=!allScen; render(); }
@@ -3141,8 +3264,22 @@ function checkResult(){
 
   const sc=checkSelected(r.ds);
   if(sc.missing){
-    h+='<div class="note" style="margin-top:12px;">还有 <b>'+sc.missing+'</b> 个描述符没选状态，'
-      +'无法判断“你选的情景”是否自洽。到第 3 步给它们各选一档即可。</div>';
+    h+='<div class="note" style="margin-top:12px;">还有 <b>'+sc.missing+'</b> 个描述符没勾状态。'
+      +'不勾＝不设限（该描述符的全部档位都参与检验），所以检验照跑；'
+      +'但要说清「你主张的那套情景自不自洽」，得先到第 3 步把它勾出来。</div>';
+  }else if(sc.range){
+    /* 多选＝划定范围：这时不存在"唯一那套情景"，改答"你划的这块范围里有多少真的成立" */
+    const rs=rangeStat();
+    h+='<div class="rrange" style="margin-top:12px;">'
+      +'<b>你划定的范围：'+rs.n.toLocaleString()+' 种组合</b>'
+      +'（勾了多档的描述符：'+sc.multi.map(d=>DSHORT[d]||d).join('、')+'）。<br>'
+      +'其中 <b style="color:var(--ok);">'+rs.ok+' 组</b>是自洽的'
+      +'（占本次检出的 '+rs.total+' 组自洽情景的 '
+      +Math.round(rs.ok/Math.max(1,rs.total)*100)+'%）。'
+      +(rs.ok?'':'<br><span style="color:var(--rd);">你划的这块范围里没有任何自洽情景——'
+        +'说明这些档位的组合与当前打分矩阵不相容，需要放宽范围或复核相关判断。</span>')
+      +'<div class="dim" style="margin-top:7px;">范围越小＝你的主张越具体；'
+      +'一个都不勾＝不设限。要表达「某档不可能」，用下方的已知值（数值锚定），那里有区间依据可追溯。</div></div>';
   }else if(sc.ok){
     const idx=r.consistent.findIndex(cb=>cb.join(',')===sc.cb.join(','));
     h+='<div class="rok" style="margin-top:12px;"><b>你选的情景：自洽。</b>'
@@ -3218,6 +3355,94 @@ function scenDetail(r,cb){
   return h;
 }
 function toggleScen(i){ openScen=openScen===i?null:i; render(); }
+/* 共存查询：给一对档位，问「它们一起出现过吗」。
+   优先用枚举时打的 pseen 点阵——精确，且不受 consistent 数组 200 组上限的截断影响；
+   只在拿到旧版结果对象（没有点阵）时才退回 consistent 数组。 */
+function coFn(r){
+  const n=r.ds.length, sz=r.sizes;
+  if(r.ptab&&r.pseen){
+    const t=r.ptab;
+    return {has:function(i,a,j,b){ return !!r.pseen[t.off[i*n+j]+a*sz[j]+b]; }};
+  }
+  const cons=r.consistent;
+  return {has:function(i,a,j,b){ return cons.some(c=>c[i]===a&&c[j]===b); }};
+}
+/* 每个档位在自洽集里出现过没有。没出现过的叫「孤立档位」——
+   它跟「互斥对」是两回事：孤立档位是这档自己站不住，互斥对是两档各自都行、凑一起不行。 */
+function aliveTable(r){
+  const n=r.ds.length, sz=r.sizes, out=[];
+  if(r.presence){
+    for(let i=0;i<n;i++){
+      const a=[]; for(let j=0;j<sz[i];j++) a.push(r.presence.has(i+'|'+j));
+      out.push(a);
+    }
+    return out;
+  }
+  const cf=coFn(r);
+  for(let i=0;i<n;i++){
+    const a=[];
+    for(let j=0;j<sz[i];j++){
+      let any=false;
+      for(let k=0;k<n&&!any;k++){
+        if(k===i) continue;
+        for(let b=0;b<sz[k];b++){
+          const lo=Math.min(i,k), hi=Math.max(i,k);
+          const aa=(i<k)?j:b, bb=(i<k)?b:j;
+          if(cf.has(lo,aa,hi,bb)){ any=true; break; }
+        }
+      }
+      a.push(any);
+    }
+    out.push(a);
+  }
+  return out;
+}
+/* 档位出现次数（用来自排优先级）：出现得越多、却从没凑到一起的，越值得看。 */
+function freqOf(r,i,a){
+  if(r.freq&&r.freq[i+'|'+a]!=null) return r.freq[i+'|'+a];
+  const cf=coFn(r); let c=0;
+  for(let k=0;k<r.ds.length;k++){
+    if(k===i) continue;
+    for(let b=0;b<r.sizes[k];b++){
+      const lo=Math.min(i,k), hi=Math.max(i,k);
+      const aa=(i<k)?a:b, bb=(i<k)?b:a;
+      if(cf.has(lo,aa,hi,bb)) c++;
+    }
+  }
+  return c;
+}
+/* 全局互斥对：不看用户选了什么，把这次检验里所有描述符对的档位组合过一遍，列出
+   「两个档位各自都出现过，却从未一起出现过」的组合——这就是「所有枚举场景的矛盾」
+   的可读形式。枚举出的自洽情景本身没有矛盾，矛盾在被筛掉的那几亿个组合里，
+   逐条开建议不现实；以"档位对"为单位就只有 Σ sizes[i]×sizes[j] 项（约 1500 项），一次算完。 */
+function exclPairs(){
+  if(!cimResult) return {need:'check'};
+  const r=cimResult;
+  if(!r.consistent) return {need:'check'};
+  if(!r.consistent.length) return {need:'empty'};
+  const ds=r.ds, sz=r.sizes, n=ds.length;
+  if(n<2) return {need:'few'};
+  const cf=coFn(r), alive=aliveTable(r);
+  const solo=[];
+  ds.forEach((d,i)=>{ for(let a=0;a<sz[i];a++) if(!alive[i][a]) solo.push({i:i,a:a}); });
+  const maxF=Math.max(1,r.consistent.length), out=[];
+  for(let i=0;i<n;i++) for(let j=i+1;j<n;j++){
+    for(let a=0;a<sz[i];a++){
+      if(!alive[i][a]) continue;                 // 孤立档位不在"互斥对"里重复计入
+      for(let b=0;b<sz[j];b++){
+        if(!alive[j][b]) continue;
+        if(cf.has(i,a,j,b)) continue;           // 共存过，不是矛盾
+        const altA=[], altB=[];
+        for(let k=0;k<sz[i];k++) if(k!==a&&alive[i][k]&&cf.has(i,k,j,b)) altA.push(k);
+        for(let k=0;k<sz[j];k++) if(k!==b&&alive[j][k]&&cf.has(i,a,j,k)) altB.push(k);
+        out.push({i:i, j:j, ai:a, bj:b, altA:altA, altB:altB,
+          w:Math.min(freqOf(r,i,a),freqOf(r,j,b))/maxF});
+      }
+    }
+  }
+  out.sort((x,y)=>y.w-x.w);
+  return {pairs:out, solo:solo, ds:ds, n:n, sampled:r.sampled, nCons:r.consistent.length};
+}
 /* ================= 矛盾组合与处理建议（v1.3：改为真算，不再用写死的表） =================
    判据：在本次检验的自洽情景集里，你所选情景中的某两个状态从未同时出现过，
    就说明这两个要求在现有判断体系下不能并存。
@@ -3244,7 +3469,7 @@ function confPairs(){
   return {pairs:out, ds:ds, sampled:cimResult.sampled, n:cons.length};
 }
 function confList(){
-  const r=confPairs();
+  const r=exclPairs();
   if(r.need==='check'){
     el('confList','<div class="dim" style="line-height:1.9;">矛盾是从<b>检验结果</b>里算出来的，先运行一致性检验。'
       +'<div style="margin-top:10px;"><button class="btn sm pri" onclick="runCIM()">运行一致性检验</button></div></div>');
@@ -3254,25 +3479,37 @@ function confList(){
     el('confList','<div class="dim">当前没有任何自洽情景，无法判断“哪两个状态不能并存”。先复核打分矩阵，或放宽锚定后重跑检验。</div>');
     return;
   }
-  if(r.need==='missing'){
-    el('confList','<div class="dim">还有描述符没选状态，先在第 3 步补齐。</div>');
+  if(r.need==='few'){
+    el('confList','<div class="dim">至少选两个描述符才能判断“哪两档不能并存”。</div>');
     return;
+  }
+  const solo=(r.solo||[]);
+  let head='';
+  if(solo.length){
+    head='<div class="soloBox"><b>孤立档位（'+solo.length+' 个）</b>：'
+      +'这些档位在任何自洽情景里都<b>没出现过</b>——不是和谁冲突，而是它自己就站不住。'
+      +solo.map(x=>'<br>· '+(DSHORT[r.ds[x.i]]||r.ds[x.i])+'：'+ST(r.ds[x.i])[x.a]).join('')
+      +'</div>';
   }
   if(!r.pairs.length){
-    el('confList','<div class="dim" style="line-height:1.9;">按当前检验结果，你所选情景里<b>没有</b>“从未同时出现”的状态对——'
-      +'这套假设在结果集里是站得住的。</div>');
+    el('confList', head+'<div class="dim" style="line-height:1.9;">'
+      +'全部档位对都能共存，<b>没有互斥对</b>——这套判断体系里没有互相矛盾的要求。</div>');
     return;
   }
-  el('confList', r.pairs.map((p,idx)=>{
+  el('confList', head
+    +'<div class="dim" style="line-height:1.9;margin-bottom:10px;">下列是本次检验的<b>全部互斥对</b>（'+r.pairs.length+' 对，'
+    +'按"两档各自出现得越多、却越凑不到一起"排序）。不再限于你手选的那一组——'
+    +'只要跑过检验就给出，与你选没选状态无关。</div>'
+    + r.pairs.slice(0,40).map((p,idx)=>{
     const dA=r.ds[p.i], dB=r.ds[p.j];
     const sA=ST(dA)[p.ai], sB=ST(dB)[p.bj];
     const open=openConf===idx;
     const altA=p.altA.map(k=>'<button class="btn sm" onclick="applyConfFix(\''+dA+'\','+k+')">'+ST(dA)[k]+'</button>').join(' ');
     const altB=p.altB.map(k=>'<button class="btn sm" onclick="applyConfFix(\''+dB+'\','+k+')">'+ST(dB)[k]+'</button>').join(' ');
     return '<div class="conf">'
-      +'<div class="h">矛盾 '+(idx+1)+'：'+dA+'（'+sA+'）与 '+dB+'（'+sB+'）</div>'
-      +'<div>在本次检出的 '+r.n+' 组自洽情景里，这两个状态<b>从未同时出现</b>。'
-      +(r.sampled?'（结果来自抽样，条数为下限，方向可信。）':'')+'</div>'
+      +'<div class="h">互斥 '+(idx+1)+'：'+dA+'（'+sA+'）× '+dB+'（'+sB+'）</div>'
+      +'<div>在本次检出的 '+r.nCons+' 组自洽情景里，这两档<b>各自都出现过，却从未同时出现</b>。'
+      +(r.sampled?'（结果来自抽样：可能把"没抽到"误判成"不可能"，档位对数量多时请以方向为准。）':'')+'</div>'
       +(open?('<div class="sug"><b>可以这样改（点了会真的改状态并重算）：</b><br>'
         +(altA?('把「'+dA+'」改成：'+altA):('「'+dA+'」没有任何一档能与「'+sB+'」共存，需改另一边或复核打分'))
         +'<br>'
@@ -3281,11 +3518,14 @@ function confList(){
       +'<div style="margin-top:8px;font-size:13px;">'
       +'<span style="color:var(--pri);cursor:pointer;" onclick="toggleConf('+idx+')">'
       +(open?'收起':'查看可替换的档位 ▼')+'</span></div></div>';
-  }).join(''));
+  }).join('')
+  +(r.pairs.length>40?('<div class="dim" style="margin-top:9px;">共 '+r.pairs.length+' 对，此处列出最值得看的 40 对。</div>'):''));
 }
 function toggleConf(i){ openConf=openConf===i?null:i; render(); }
 function applyConfFix(nm, idx){
   if(!sel.desc[nm]||idx===undefined||idx===null||idx<0) return;
+  /* 采纳建议＝把这一档设成唯一的可信范围。多选语义下必须覆盖而不是追加，
+     否则原来勾的两档会一起留下来，用户以为是"改成了"，其实范围反而变宽。 */
   sel.desc[nm].states=[ST(nm)[idx]];
   cimResult=null; BAYES=null; layeredResult=null; corrResult=null; profResult=null;
   openConf=null;
@@ -3351,6 +3591,15 @@ function expRows(){
   }).filter(Boolean);
 }
 function expLabel(){ return expMode==='low'?'区间下界（保守）':(expMode==='high'?'区间上界（加码）':'区间中点'); }
+/* 多选＝划定范围时，单情景导出会按"第一档"取，必须明说——
+   这正是 loadCfg 里警告过的「看起来选了三个、实际只用第一个」。 */
+function multiPickNote(){
+  const names=Object.keys(sel.desc).filter(nm=>selIdxOf(nm).length>1);
+  if(!names.length) return '';
+  return '注意：'+names.map(nm=>DSHORT[nm]||nm).join('、')+' 勾了多档（＝划定范围），'
+    +'下面按每档的<b>第一档</b>取值导出。要按整个范围导出，请用「导出全部自洽情景」；'
+    +'要导出某一档，请在该描述符下只勾那一档。';
+}
 function csvCell(v){
   const t=(v==null?'':String(v));
   return /[",\n]/.test(t)?('"'+t.replace(/"/g,'""')+'"'):t;
@@ -3398,6 +3647,11 @@ function paramsCSV(){
         r.value==null?'':r.value,r.lo==null?'':r.lo,r.hi==null?'':r.hi,csvCell(r.unit),
         csvCell(r.state),csvCell(r.ev),csvCell(r.note)].join(',')+'\n';
   });
+  const mp=Object.keys(sel.desc).filter(nm=>selIdxOf(nm).length>1);
+  if(mp.length){
+    s+='# 注意：'+mp.map(nm=>nm).join('、')+' 勾了多档（＝划定范围），本表按每档的第一档取值。\n';
+    s+='# 要按整个范围导出，请用「导出全部自洽情景」。\n';
+  }
   return s;
 }
 function downloadParams(){ dl(paramsCSV(),'csv','JJJ-CIB-参数表'); }
@@ -3408,7 +3662,9 @@ function narrText(){
   const rows=expRows();
   if(!rows.length) return '（还没有选描述符）';
   const sc=Object.keys(sel.desc).map(nm=>(sel.desc[nm].states||[])[0]).filter(Boolean);
+  const note=multiPickNote();
   let s='【情景特征】\n本情景在'+nSel()+'个描述符上取了'+sc.length+'档，构成一组自洽的政策情景假设。\n\n';
+  if(note) s+='【注意】'+note.replace(/<[^>]+>/g,'')+'\n\n';
   s+='【逐项特征】\n';
   rows.forEach(r=>{
     s+='· '+r.desc+'：取「'+r.state+'」档';
@@ -3667,7 +3923,7 @@ function goto(i){ cur=Math.max(0,Math.min(6,i)); render(); window.scrollTo({top:
 function go(d){ goto(cur+d); }
 function nextStep(){ if(cur===6){ inCmp=true; render(); window.scrollTo({top:0,behavior:'smooth'}); } else goto(cur+1); }
 function enterWizard(ev){
-  const go=()=>{ docOpen=false; inCmp=false; cur=0; render(); window.scrollTo({top:0,behavior:'smooth'}); };
+  const go=()=>{ docPg=''; inCmp=false; cur=0; render(); window.scrollTo({top:0,behavior:'smooth'}); };
   if(!ev||!ev.currentTarget||matchMedia('(prefers-reduced-motion:reduce)').matches){ go(); return; }
   const b=ev.currentTarget.getBoundingClientRect();
   const cx=b.left+b.width/2, cy=b.top+b.height/2;
@@ -3685,10 +3941,20 @@ function enterWizard(ev){
     setTimeout(()=>cover.remove(),400);
   },380);
 }
-function backToCmp(){ docOpen=false; inCmp=true; render(); window.scrollTo({top:0,behavior:'smooth'}); }
-let docOpen=false;
-function openDoc(){ docOpen=true; inCmp=true; cur=0; render(); window.scrollTo({top:0}); }
-function closeDoc(){ docOpen=false; inCmp=true; render(); window.scrollTo({top:0}); }
+function backToCmp(){ docPg=''; inCmp=true; render(); window.scrollTo({top:0,behavior:'smooth'}); }
+/* 三个说明类页面共用一套版式：使用说明 / 讨论日志 / 版本更新日志。
+   docPg 记「现在开着哪一页」，''＝没开。原先只有一个 docOpen 布尔，
+   加第二、第三页时再堆布尔就会互相打架（同时开着两页）。 */
+let docPg='';
+const DOCPG_ID={doc:'pdoc',dis:'pdis',ver:'pver'};
+const DOCPG_NM={doc:'使用说明',dis:'讨论日志',ver:'版本更新日志'};
+function openPage(pg){
+  docPg=pg; inCmp=true; cur=0; render(); window.scrollTo({top:0});
+}
+function openDoc(){ openPage('doc'); }
+function openDiscuss(){ openPage('dis'); }
+function openChangelog(){ openPage('ver'); }
+function closeDoc(){ docPg=''; inCmp=true; render(); window.scrollTo({top:0}); }
 /* 使用说明页：读到哪一节，侧栏对应项亮起来。
    做法：进入说明页时缓存八个标题的文档绝对位置，滚动时只比「谁越过了判定线」，
    算出目标项与当前一致就直接返回，绝不在滚动里读布局。离开文档页即摘掉监听。
@@ -3721,7 +3987,7 @@ function docSpyPaint(){
 function docSpy(){
   const nav=document.getElementById('docNav');
   if(!nav||typeof nav.querySelectorAll!=='function'){ docSpyOff(); return; }
-  if(!docOpen){ docSpyOff(); return; }
+  if(docPg!=='doc'){ docSpyOff(); return; }
   const links=nav.querySelectorAll('a[href^="#d"]');
   if(!links||!links.length){ docSpyOff(); return; }
   const sy=window.scrollY||0, secs=[];
@@ -3736,7 +4002,7 @@ function docSpy(){
   docSpyPaint();
 }
 /* 视口变了要重算各节位置；只作用于说明页，向导里不挂。 */
-window.addEventListener('resize',()=>{ if(docOpen) docSpy(); });
+window.addEventListener('resize',()=>{ if(docPg) docSpy(); });
 let tt;
 function toast(m){
   const t=document.getElementById('toast'); t.textContent=m; t.classList.add('on');
@@ -3762,10 +4028,13 @@ function loadCfg(){
     if(!raw){ toast('本机没有已保存的配置'); return; }
     const d=JSON.parse(raw);
     sel.desc=d.desc||{};
-    // 旧存档可能是多选，收敛为第一个，避免"看起来选了三个、实际只用第一个"
+    /* B 方案后多选有真实语义（＝划定可信范围，枚举只在范围内搜），
+       旧存档里的多档勾选要原样保留，不能再收敛成第一档。
+       兼容点只剩「存档里的状态名可能已被改掉」：过滤掉 ST 里找不到的。 */
     Object.keys(sel.desc).forEach(nm=>{
-      const st=sel.desc[nm]&&sel.desc[nm].states;
-      if(Array.isArray(st)&&st.length>1) sel.desc[nm].states=[st[0]];
+      const b=sel.desc[nm]; if(!b) return;
+      const st=b.states;
+      if(Array.isArray(st)) b.states=st.filter(x=>ST(nm).indexOf(x)>=0);
     });
     curModel=d.model||'gcam'; expertN=d.exp||1; useBayes=!!d.bayes;
     // 旧存档没有 gen 字段：按 bayes 布尔回推成四选一里的一档
@@ -4079,12 +4348,12 @@ function clearCell(){
 
 // 某个描述符当前选定的状态及其区间——打分时先看清两端分别落在什么数值范围
 function curStTxt(nm){
-  const c=sel.desc[nm];
-  const sn=c&&c.states&&c.states[0];
-  if(!sn) return '<span style="color:var(--tx3)">状态未定</span>';
-  const x=defsOf(nm).find(y=>y.n===sn);
-  const rg=(!x||x.lo===null||x.hi===null)?'':'　'+x.lo+'–'+x.hi+(x.u?' '+x.u:'');
-  return '<span class="sstatv">'+sn+rg+'</span>';
+  const s=selIdxOf(nm);
+  if(!s.length) return '<span style="color:var(--tx3)">未设限</span>';
+  const defs=defsOf(nm);
+  const one=j=>{ const x=defs[j]; return (x?x.n:'?')+((!x||x.lo===null||x.hi===null)?'':'　'+x.lo+'–'+x.hi+(x.u?' '+x.u:'')); };
+  if(s.length===1) return '<span class="sstatv">'+one(s[0])+'</span>';
+  return '<span class="sstatv">已勾 '+s.length+' 档：'+s.map(j=>ST(nm)[j]).join(' / ')+'</span>';
 }
 function renderCim(){
   const g=document.getElementById('cimGrid'); if(!g) return;
@@ -5400,9 +5669,9 @@ function renderProf(){
       +'<b>这张表回答「如果某件事被强行实现，剩下哪些可能」。</b><br>'
       +'平台会把每一个状态逐个「钉死」，重算一遍自洽情景，再与不钉死时的基准对比：'
       +'<span class="pmark n">−</span> 表示被它<b>挤掉</b>的可能，整行标空表示<b>这条冲击下没有任何自洽情景</b>。'
-      +'<br><span class="dim">注：本版把「强制」实现为硬约束，数学上强制只会缩小情景集，'
+      +'<span class="tip wide" tabindex="0" data-tip="本版把「强制」实现为硬约束，数学上强制只会缩小情景集，'
       +'所以不会出现「新增」；德国软件里的 ＋ 标记，来自它把外部冲击当作会改写矩阵的影响来处理，'
-      +'那是另一种建模方式，本版未采用。</span>'
+      +'那是另一种建模方式，本版未采用。"> ?</span>'
       +'<div style="margin-top:12px;"><button class="btn pri" onclick="runProfile()">运行影响谱</button>'
       +'<span class="dim" style="font-size:13px;margin-left:10px;">需先运行过一致性检验，状态数较多时会自动抽样</span></div></div>';
     return;
@@ -5440,13 +5709,13 @@ function renderProf(){
     h+='</tr>';
   });
   h+='</tbody></table></div>';
-  h+='<div class="dim" style="font-size:13px;margin-top:9px;line-height:1.8;">'
-    +'读法：行是「被强行实现的状态」，列是「受影响的描述符」，格子里是该描述符被打开／挤掉的状态个数。'
-    +'点任一行，下面列出具体是哪些状态。整行自洽数为 0 的，表示这条冲击与当前矩阵不相容——'
-    +'<b>这不是算错，而是一条结论</b>。</div>';
-  h+='<div class="dim" style="font-size:11px;margin-top:6px;line-height:1.75;">'
-    +'注：本版把「强制」实现为硬约束——数学上强制只会缩小情景集，所以只会挤出可能、不会新增。'
-    +'德国软件里的 ＋ 标记来自「把外部冲击当作会改写矩阵的影响」，属另一种建模，本版未采用。</div>';
+  h+='<div class="hintline" style="margin-top:9px;">'
+    +'<span class="tip wide" tabindex="0" data-tip="读法：行是「被强行实现的状态」，列是「受影响的描述符」，'
+    +'格子里是该描述符被打开／挤掉的状态个数。点任一行，下面列出具体是哪些状态。'
+    +'整行自洽数为 0 的，表示这条冲击与当前矩阵不相容——这不是算错，而是一条结论。">影响谱怎么读</span>'
+    +'　<span class="tip wide" tabindex="0" data-tip="本版把「强制」实现为硬约束——数学上强制只会缩小情景集，'
+    +'所以只会挤出可能、不会新增。德国软件里的 ＋ 标记来自「把外部冲击当作会改写矩阵的影响」，'
+    +'属另一种建模，本版未采用。">为什么只有挤掉、没有新增</span></div>';
 
   if(profileSel!=null && R.rows[profileSel]){
     const row=R.rows[profileSel];
@@ -5592,10 +5861,10 @@ function renderCorr(){
   }
   h+='</div>';
 
-  h+='<div class="dim" style="font-size:13px;margin-top:10px;line-height:1.8;">'
-    +'算法：Pearson φ 系数，基于全部自洽情景（未经情景筛选）。'
+  h+='<div class="hintline" style="margin-top:10px;">'
+    +'<span class="tip wide" tabindex="0" data-tip="算法：Pearson φ 系数，基于全部自洽情景（未经情景筛选）。'
     +'从不出现、或每组都出现的状态没有区分度，按手册做法不计系数。'
-    +'<b>φ 只说明「是否同进同出」，不说明谁导致谁</b>——因果要看交叉影响矩阵和传导链。</div>';
+    +'φ 只说明「是否同进同出」，不说明谁导致谁——因果要看交叉影响矩阵和传导链。">相关性怎么算</span></div>';
   host.innerHTML=h;
 }
 
@@ -5813,7 +6082,9 @@ function renderRobust(){
       +(robResult.sampled?'（抽样）':'（全枚举）')+'</b></div>'
     +'</div>';
 
-  h+='<div class="robsec">各状态在扰动下的出现率</div>';
+  h+='<div class="robsec">各状态在扰动下的出现率'
+    +'<span class="tip" tabindex="0" data-tip="浅色行＝在基准里就没出现过的状态，出现率低是正常的，'
+    +'不必当成问题。"> ?</span></div>';
   h+='<div class="robtbl">';
   robResult.states.forEach(s=>{
     const w=Math.round(s.rate*100);
@@ -5827,7 +6098,6 @@ function renderRobust(){
       +'<span class="rj '+cls+'">'+wd+'</span></div>';
   });
   h+='</div>';
-  h+='<div class="robnote">浅色行＝在基准里就没出现过的状态，出现率低是正常的，不必当成问题。</div>';
 
   if(robResult.cells.length){
     h+='<div class="robsec">最该复核的判断（改 ±1 档后，基准结论被推翻的比例）</div>';
@@ -5842,14 +6112,16 @@ function renderRobust(){
         +'<td class="dim">改为 '+(c.v+c.dir>0?'+':'')+(c.v+c.dir)+' 时</td></tr>';
     });
     h+='</tbody></table>';
-    h+='<div class="robnote">列表里的条目，就是「一个人拍脑袋改一档、结论就变」的地方。'
-      +'人审的力气应该优先花在这些格子上，而不是平均分配。'
-      +'本次共扫描 '+robResult.cellN+' 条会改变结论的判断，表中列出最敏感的 10 条。</div>';
+    h+='<div class="robnote">本次共扫描 '+robResult.cellN+' 条会改变结论的判断，表中列出最敏感的 10 条。'
+      +'<span class="tip" tabindex="0" data-tip="列表里的条目，就是「一个人拍脑袋改一档、结论就变」的地方。'
+      +'人审的力气应该优先花在这些格子上，而不是平均分配。"> ?</span></div>';
   }
 
   const fr=robResult.fragile.filter(x=>x.rate<0.5);
   const stb=robResult.stable.filter(x=>x.rate>=0.9);
-  h+='<div class="robconcl"><b>怎么读这张表。</b>';
+  h+='<div class="robconcl">'
+    +'<span class="tip wide" tabindex="0" data-tip="出现率一直高的状态，说明结论不是碰巧落在那儿；'
+    +'出现率低于 50% 的，要么依赖少数几条关键判断，要么本来就在自洽边界上。">怎么读这张表</span>。';
   if(stb.length){
     h+='在扰动下始终成立的状态有 <b>'+stb.length+'</b> 个（'
       +stb.map(x=>(DSHORT[x.d]||x.d)+'＝'+x.nm).join('、')
@@ -6138,6 +6410,10 @@ function renderBayes(){
    已有情景需要重新检验；省略 = 不动结果（只改界面、措辞、性能或新增旁路分析）。
    与 git 提交对应；此处只列入对外可讲、能被核对的事项。 */
 const CHANGELOG=[
+ {d:'2026-10-25',k:'可用性',x:'讨论日志与版本更新日志各开一页',y:'这两份记录原先挤在使用说明页第八节里，靠一个弹窗看更新日志、靠往下滚看讨论记录，三件事共用一条侧栏。现在各自成页：顶栏「更新日志」图标进版本页，更多菜单里另给「讨论日志」入口，两页各有自己的侧栏与目录。原先第八节那张逐条变更列表没有丢，挪到版本页末尾，仍带「影响面」标记——它是判断"这次改动要不要重跑已有情景"的依据。讨论日志按面谈场次编排，每场分「导师要求／已落实／待办／存疑」四节；引注去掉了文件路径与行号（读的人不需要知道内容存在哪个文件），只保留「录音第 N 段」这类能回溯到原始出处的段号。'},
+ {d:'2026-10-25',k:'功能',x:'状态勾选改为「划定可信范围」，枚举只在范围内搜',y:'原先勾选只影响定点检验与取档导出，全量检验照样把每个描述符的全部状态枚举一遍——用户勾了两个档，平台却仍按未勾选的样子算，勾选看起来没有作用。现在勾了的档位才是候选：枚举与一致性检验只在勾选范围内找自洽情景，报告与影响谱也跟着这个范围走。副作用要说清楚：勾得越窄，越容易找不到自洽情景，这是"把范围划窄了"的正常结果，不是平台算错。同一描述符可以勾多个档位（原先只能单选），因为可信范围本就不止一档。'},
+ {d:'2026-10-25',k:'功能',x:'互斥对改为全局判定，并单独列出孤立档位',y:'原先只报"用户当前选中的档位之间"有没有互斥，没选到的组合一律不看——用户看不到全局有没有矛盾。现在把这次检验里所有描述符对的档位组合过一遍，列出全部互斥对（最多 40 对，超出的说明已截断），并单独标出「孤立档位」：在自洽集里从未出现过的档位。两者不是一回事——孤立档位是这一档自己站不住，互斥对是两档各自都行、凑一起不行，分开列才不会看混。抽样检验时另给告警：抽样没跑全，互斥对清单可能不全。'},
+ {d:'2026-10-25',k:'可用性',x:'影响谱、相关性与稳健性检验的解释文字改为悬停显示',y:'影响谱与相关性分析下方的成段说明、稳健性检验里「浅色行＝…」那段、以及「怎么读这张表」的方法句，原先都常驻在图表边上。这些是第一次读才需要的话，读过就成了噪音。现在收进标题旁的悬停提示；「怎么读这张表」只收方法句，本次检验的结论仍留在明面上——那个是每次都要看的结果，不是说明。'},
  {d:'2026-10-24',k:'可用性',x:'第 7 步从 17 块收敛到 10 块，逐层求解下沉为折叠段',y:'原先这一页堆了 17 块内容，「结构」组还占着四个 tab。撤掉「结构」组，时间轴并入本次配置摘要，情景筛选并入检验结果块，主被动图卡片删除——它与影响关系图讲同一件事，只是换个轴画法，引擎保留。逐层求解原是一张常驻卡片，占着一屏却只在勾了多个层级时才有内容，改成检验结果卡里一个默认收起的折叠段：不勾多层时整段（连标题）都不出现。删的只是入口与卡片，求解内核与出口全部保留。'},
  {d:'2026-10-24',k:'功能',x:'跨层档位判定前置到选档位时（约束前置）',y:'原先档位方向要等逐层求解跑完、再回头比相邻层，用户选的时候不知道会不会冲突，算完才发现。现在第 3 步按层给每个描述符选档位，选定的上层档位立刻筛下层：与它方向相差 ≥2 档、或取值区间不相交的档位直接置灰不可选，原因写在选项文字里。判据与枚举内核一致——allowUnder 本来就是拿上级区间去筛下级。平台不替用户改档：上层改动后下层原选若已不相容，只清空并说明原因，由用户重选，因为档位冲突可能是真实的政策张力，替用户消解它等于替用户做政策判断。'},
  {d:'2026-10-24',k:'可用性',x:'状态设置区的解释文字改为悬停显示',y:'这一段原本常驻两处解释：描述符树下一条"结果型不能勾选"的说明，以及状态设置下方整段"勾选只用于定点检验与取档导出、不缩小搜索范围"。它们讲的是同一件事的两面，却占了状态区上方最显眼的两块位置，第一次用的人还没选到任何东西就先读了两段说明。现在都收进标题旁的悬停提示，鼠标移上去才展开；文字一字未删，只是不再常驻。状态行末尾的证据等级徽标也从裸 title 换成同一套气泡，样式统一。'},
@@ -6189,38 +6465,364 @@ const CHANGELOG=[
  {d:'2026-10-16',k:'功能',x:'政策库与交叉影响打分',y:'内置 106 条政策路径及其与描述符的映射；n×n 可编辑矩阵、AI 预填、逐格置信度与依据。'}
 ];
 const CHGKIND={缺陷:'rd',功能:'ok',口径:'wn',视觉:'ok',术语:'gray',顺序:'gray',可用性:'gray'};
-/* 打开日志：跳到使用说明页的第八节（不再弹模态）
-   整页换页用即时滚动，与 openDoc/backToCmp 一致；页内跳组才用平滑。 */
-function openChangelog(){
-  docOpen=true; inCmp=true; cur=0; render();
-  const t=document.getElementById('d8');
-  if(t&&t.getBoundingClientRect){
-    const y=t.getBoundingClientRect().top+(window.scrollY||0)-76;
-    window.scrollTo({top:Math.max(0,y)});
-  } else window.scrollTo({top:0});
+/* ================= 讨论日志页（pdis） =================
+   素材是 _src/_tmp/discuss_draft.md，转成 DISCUSS 常量内联在这里。
+   为什么内联而不是运行时读 md：成品是单文件离线 HTML，没有任何服务端，
+   运行时读不到外部文件。素材稿仍在 _src/_tmp 留着，改内容改这里、
+   两处对着看。 */
+const DISCUSS=[
+ {d:'2026-09-17',t:'首次面谈',src:'两篇日志前后夹逼推断（本场无纪要进工作区）',secs:[
+   {h:'导师要求',li:[
+     '正式布置两份 report：① 京津冀绿色低碳发展路径模型情景生成需求梳理；② 京津冀绿色低碳发展路径模型情景描述符状态体系构建。',
+     '面谈后发来四份材料：课题 7.5 任务书一页、 附件-国家情景数据表模板.xlsx、Kemp-Benedict (2010) 贝叶斯论文、cross-impact.org（CIB 官网）。',
+     '提示该方向真实工作是「变量名／单位／货币年份／Tier 这类地基活」，不是「全球能源数字治理」的空话。'
+   ]},
+   {h:'已落实',li:[
+     '四份材料逐份解读并产出导师材料解读_与下一步.html。',
+     '产出两份报告怎么写_思路与资料地图.html （含任务①八节目录骨架、任务②筛选标准与状态定义规则）。'
+   ]},
+   {h:'待办',li:[
+     '向导师索取 Song W., Zhang Q., Lu X. (2026) ICAE2025 那篇 CIB 应用论文。'
+   ]},
+   {h:'存疑',li:[
+     '本场没有录音或纪要进工作区；日期靠「导师约明日面谈」＋次日「面谈后导师发来四份材料」推断。'
+   ]}
+ ]},
+ {d:'2026-09-24',t:'面谈（有现场批注与纪要转写稿）',src:'两份报告的黄色高亮批注 6 处＝面谈现场记录；纪要转写稿与批注原件不在工作区',secs:[
+   {h:'导师要求',li:[
+     '批注①（报告一 §1.2）：「判断上下游的 output、input，进行情景开发，变量需要更新，建立 data 库」。',
+     '批注②（报告一 §6）：「弄清情景设置参数」。',
+     '批注③（报告一 §3 空间尺度，被标为最重要）：「变量应该多尺度同时保证一致性（不仅是众多变量运用 CIB 方法的一致性，更是上下级国家、省级、市级等等的一致性，这种尺度不应该是割裂的而是有联系且一致的），加入政策变量清单，建立历史数据库」。',
+     '批注④（表5 SSP 行）：「要对 ssP 做出国产化替代，因为中国的人口趋势不一样，SSP 过于老化且主要是全球层面，新的国产化要符合新时代，且受国内移民影响」。',
+     '批注⑤（表6 假设 A1）：「加国家级，京津冀，市，区三级，四级联通」。',
+     '批注⑥（报告二核心结论后）：「我们要做的项目即 CIB 算法这种环节相当于整个工作流程的一个插件，针对于小切口需求且要求快准狠到位。最终的结果要有学术专利，相当于交付的是数据库＋工具，实现开源，有自己的页面，并且是面对用户的一个产品具有普适性」。',
+     '会议纪要要点：情景分析以一致性替代概率性；CIB 检验既往评估报告、发现约 1/3 情境互相矛盾；从最差逻辑出发（长尾效应）；参数给区间值；要加「语义层／转换器」。',
+     '空间：四级联动（国家级／京津冀／省级／城市级），多层嵌套不割裂；时间锚点 2020、2025、2030、2035；变量五类（经济/技术/人口/资源/政策）；重点行业钢铁、水泥、化工、火电。',
+     '学术产出路线：Data paper／方法学论文／专利+软著／Policy perspective／开源（网页版+桌面版）。',
+     '导师额外要求：「不局限于京津冀，要做的是一个切口」。',
+     '硬节点：9 月 27 日前提交 SRT 研究内容草稿。'
+   ]},
+   {h:'已落实',li:[
+     '产出 2026-09-24面谈要点与任务分解_v1.docx （81 段 / 7 表，门禁 100 分）。',
+     '产出 SRT 立项选题方案与草稿，三个候选切口 A/B/C 及其取舍。',
+     '产出 SRT项目立项填表稿_v1.docx （65 段 / 5 表）；项目名称主推「多尺度情景一致性检验与语义化参数生成方法及工具开发」。',
+     '产出发给导师_项目内容与预期结果.txt （字数 932/1000、249/250）。'
+   ]},
+   {h:'待办',li:[
+     '五个待向导师确认的问题（SRT 周期与考核、立项书格式、「切口」定义、「约 1/3 情境矛盾」有无可引材料、工具目标用户）。',
+     '四处待补：导师工作证号·邮箱·单位职称、本人手机与邮箱、SRT 经历与获奖、项目类别下拉框选项。',
+     '对两份报告的回改清单 7 处，其中改动量最大的是「是否给描述符加层级维度」。'
+   ]},
+   {h:'存疑',li:[
+     '录音转写稿《2026-09-24 14:39 SRT讨论-任务部署记录_导读.docx》与批注原件都不在工作区（用户从桌面资料库提供）；且「约三分之一情境互相矛盾」出自转写稿，草稿中已写明正式引用前须核实出处与口径。'
+   ]}
+ ]},
+ {d:'2026-10-09',t:'小长假后第一次面谈',src:'10-09 智能纪要与录音原文转写稿（344 段）',secs:[
+   {h:'导师要求',li:[
+     '性质是「开工会 + 头脑风暴」，不是评审会；3 人（说话人1＝导师、说话人2＝用户、说话人3＝政策数据集同学）。',
+     '必须形成书面专题调研报告（导师加的第 3 条议题）。',
+     '下次议题列表：① 基于数据集生成的描述符主观因素是否过多、能否更客观唯一；② 多层级分级方案。',
+     '两人要确定边界、明确各自需求、相辅相成，并形成一份工作对齐报告。',
+     '时间：下次 10/16（周五）同点，「早完成早发」。',
+     '现场反应：报告结构被评「具体、清晰、明确」；主动提出「参数可追溯」时导师当场说「你这个设计得非常好」。'
+   ]},
+   {h:'已落实',li:[
+     '10/10 起按「工作对齐报告」推进，明确用户是「出规格的那一方」。',
+     '10/13 完成原型 v1.0 说明与演示脚本（3 分钟五步）。'
+   ]},
+   {h:'待办',li:[
+     '状态数口径统一：用户此前多处说「33 个状态」，需统一改为 34（或核实是否有状态被漏编）。',
+     '未答到落点的问题：「参数型描述符的翻译会不会有主观性」是导师提的，其内核是「翻译会不会变成黑箱」。'
+   ]},
+   {h:'存疑',li:[
+     '录音原文 .docx （344 段）不在工作区，本场全部内容经记忆日志转述；导师原话「这是别人对你的质疑」为日志转述。'
+   ]}
+ ]},
+ {d:'2026-10-16',t:'面谈（有完整录音与 AI 纪要）',src:'录音原文 553 段与 AI 纪要 69 段',secs:[
+   {h:'导师要求',li:[
+     '概念纠偏：没有「模拟」这个概念——「咱又不是个模拟模型 simulation，咱没有这概念，咱就这个一致性检测」（录音第 49 段）。',
+     '研究定位：贡献点应定在把政策文本转成 CIB 可计算描述符的「转译层」或「语义层」，并把 agent 接进来（录音第 55 段）。',
+     '目标不是收集政策：「我的目标不是说要收集政策」，而是「任何人，任何地区……给我一个政策文本……自动的就解译成……描述符体系里面去」（录音第 65 段）。',
+     '路径是倒推：「还是从倒推吧——从人家的 model 要什么 input……它是个字典」（录音第 89 段）。',
+     '方法要抓主次：「你不要混沌型、不要江湖型」（录音第 91 段）。',
+     '第二个技术点：描述符状态之间的交叉影响构建知识图谱并显性化，「人只是来做审核」（录音第 93 段）。',
+     '术语半定量化：「高速中速是一个很自然语言，很模糊的……可以让用户自定义这个权限……你不就实现了一个半定量嘛」（录音第 173 段）。',
+     '人机协同（导师点名的创新点）：「让那个 agent 先填一版出来然后有人来审核……一个人来审核，两个人来审核，三个人来审核」（录音第 189 段）。',
+     '报告与叙事：可「给模型的配置情景设定提供一套」，同时「一键生成一个报告……一键生成一个情景的逻辑叙事」（录音第 201 段）；当场又自我修正「咱不是 API 接口……咱是直接就是网页版的」（录音第 201 段）。',
+     '指出平台缺件：缺「评分的过程」——「三分二分一分还是负一负三这个都没有」（录音第 213 段）。',
+     '评分要带证据与置信度：「AI 可以给出一个，他说可以打 3 分，打 2 分也好，有个依据让人来……人就会把精力放在那个低执行度的角度来进行 check」（录音第 223 段）。',
+     '对标德国 CIB 软件：研究其界面里值得纳进来的好功能点（录音第 227、231、345–401 段；逐页点评）。',
+     '界面必须挂一个京津冀政策库，同时保留用户上传与自定义窗口（录音第 313 段）；差异化卖点是「绕不开咱 CIB 的原因是因为你这里面有京津冀本地化的数据」（录音第 323 段）。',
+     '可视化硬要求：「最后你无论怎么着要有一个图」（录音第 369 段）；「总得有个图，要不然别人认同不了你这个工作的价值」（录音第 369 段）。',
+     '集成模式（单表 vs 多专家集成）被点为他认定的创新点（录音第 377 段）。',
+     '每版必须留档：「每一版最好要保留这个东西……每一版可能有每一个版的亮点……避免那个改改之后最后因为它 AI 的有时候也是有随机性的」（录音第 403 段）。',
+     '对同学（发言人2）的点名批评：「你写的这个周报，典型的 AI 语言」；AI 是能力放大器，「他绝对不能去把你的价值给你欺诈了」（录音第 109、53 段）。',
+     '结束语给的方法论：「以问题导向」而非投入时间多少（录音第 551 段）。',
+     '时间调整：因同学第 5–6 周有《环境工程原理》考试，原定下周五改为下周三下午 3 点后联合汇报（录音第 543 段）。'
+   ]},
+   {h:'已落实',li:[
+     '当日接连归档三版：v1.0 cb73583 （20:50）、v1.1 aac3447 （22:58）、v1.2 86ba636 （23:41）。',
+     '「亮点代码切割」完成：仓库 highlights/ 下 H1–H8 八个模块。',
+     '平台发给导师与同学。',
+     '归档文档对外中性化，提交 3c2742b。',
+     '北大 Wang et al. 2026 论文研读报告、ScenarioWizard 手册研读报告各一份 docx。'
+   ]},
+   {h:'待办',li:[
+     '导师任务清单 5 项 + 纪要待办九条。',
+     '平台状态参数自定义范围、替换模糊自然语言标签（纪要第 68 段）。',
+     '交叉影响评分证据链知识图谱原型（同学侧）（纪要第 65 段）。',
+     '技术文档常态化：每次迭代配技术文档（代码+截图+问题-效果对照）（纪要第 50 段）。',
+     '纪要 3.8 节待办九条，第 1 条为「下载并研究 CGE 模型的详细信息，特别是其接口和参数设置」。'
+   ]},
+   {h:'存疑',li:[
+     '录音本身不标姓名，「发言人1＝导师、发言人2＝李崇旭、发言人3＝于昊阳」的对照来自记忆日志，非录音原文；记忆日志另标注录音有同音错字（CID／CRB／CRP＝CIB，「化工」＝昊阳）。'
+   ]}
+ ]},
+ {d:'2026-10-21',t:'面谈（有录音，615 段 / 3.6 万字）',src:'10-21 录音转写（615 段 / 3.6 万字），docx 不在工作区',secs:[
+   {h:'导师要求',li:[
+     '对平台的五条批评：墨绿配色「像 GPT 默认的墨绿色」，要求去 AI 味，参考传统/IPCC 风格，可加背景图（不是纯色底）。',
+     '界面主次不清、「凌乱」、「堆了很多功能」，less is more；每一个功能点都要有存在理由。',
+     '术语看不懂：「参数型/输入型」看不懂；「情景族」应叫「簇」（cluster 的中文）；M001、d1:s1 这类编码外人无法理解。',
+     '置信度应该用颜色表达把握水平，且分数与置信度分开标注。',
+     '参照 EPS（Energy Policy Simulator） 网站：模型介绍、版本更新说明、方法学按部门透明列参数、说明文档、教程、API/Excel；要求「讲人话」。',
+     '0 的语义被当场纠正：「不是置信度低，他俩之间没关系」（该原话被引用进平台更新日志）。',
+     '对同学评分工作的批评：关系来源错了——关系应来自学术论文的弹性估计或实证数据，不能从政策文本推；阈值也要有文献共识；「直接关联文件数」几乎全是 0，导师原话「出了个卷子，全国考生都打零分，这卷子有效吗？」；AI 生成痕迹重，要求文档里人写的话与机器写的话用黄色区分；下次让同学讲课（北大政策数据库 + 国际分类框架 + 两篇文章），做 PPT，不能用 AI 生成 PPT。',
+     '对用户的下一步：用户自报 5 条（界面去 AI 味／功能太多没重点／置信度偏低／参数生成方式要多种／技术亮点与技术报告落实）导师认可；导师另补 2 条——参照 EPS 形态、「讲人话」；每次汇报讲「这次解决了哪几个问题」，不罗列功能；项目需加一页讨论日志/大事记（每次 fix/bug/决定）。',
+     '项目定位：吃透 CIB → 京津冀案例 → 学术论文／发明专利／软著；现在是「热身」，不要以为跑通就完成。',
+     '下次时间：下周一 10-26 下午 15:30。'
+   ]},
+   {h:'已落实',li:[
+     '「情景族」→「情景簇」、矩阵格内显示置信度与 AI 标记：提交 0c79922 （10-22 22:58）。',
+     '0 的语义修正、参数生成方式扩成四种、使用说明页按 EPS 分区：提交 15158b2 （10-23 23:09）。',
+     '使用说明页第三区「方法学」改名「算法说明」：提交 4d2f377 （10-23 23:21）。',
+     '五批 30 处「less is more」整改、影响平衡值定名、参数表增列情景号：提交 e9ff50a （10-24 11:27）。',
+     '更新日志从弹窗改为使用说明页第八节、每条补「影响面」（即导师要的「讨论日志」落点）。',
+     '界面重做（纸墨配色、字号收敛、左轨七步、常驻小字改悬停）。'
+   ]},
+   {h:'待办',li:[
+     '10-26 两人各讲 PPT，禁 AI 做；同学讲北大数据库分类课。',
+     '政策库自动更新；结题报告每节攻一个点；交付物至少 2 个载体。',
+     '关系依据、阈值文献共识、评分规则定稿（使用说明页「算法说明」已写明依据来源与验证另立一节）。'
+   ]},
+   {h:'存疑',li:[
+     '全部内容来自记忆日志对录音的转述，录音 docx 未进工作区；「615 段 / 3.6 万字」为日志自述。'
+   ]}
+ ]},
+ {d:'2026-10-26',t:'面谈（尚未发生）',src:'本场尚未举行',secs:[
+   {h:'',li:[
+     '时间由 10-21 面谈确定：「下次时间：下周一 10-26 下午 15:30」。',
+     '会前材料已备： 京津冀平台_整改要点与逻辑梳理_1026面谈.docx （22 段 + 4 表，正文约 1100 字）。',
+     '本次日志撰写时间为 2026-10-24，该场尚未举行，不写入任何「导师要求」。'
+   ]}
+ ]}
+];
+const DISCUSS_WHO='发言人1＝导师宋伟泽；发言人2＝李崇旭（政策数据集侧）；发言人3＝于昊阳（平台侧）。录音只标「发言人1/2/3」，姓名对照来自记忆日志，非录音原文。录音把「昊阳」转写成「化工/二阳」，「CIB」转写成「CID／CRB／CRP」。';
+const DISCUSS_GAPS=[
+ '只有一场面谈有录音进工作区： _src/mtg_rec.txt （553 段）与 _src/mtg_min.txt （69 段）经记忆日志确认属 2026-10-16 那场。09-24、10-09、10-21 三场的录音/纪要 docx 都存放在桌面资料库或微信文件夹，不在本工作区，本文件对这三场的记录全部是记忆日志的转述，不是录音原文。',
+ '10-17 那场没有发生：记忆日志曾写「导师已把交流定在明天（10/17 周六）下午 15:30—16:30」，次日被明确更正为顺延到 10-21 下午 3 点后；更正时作者自陈「把顺延后的日期记成了原定日期」。本文件不收录 10-17 面谈。',
+ '09-17 面谈的日期是推断的：工作区没有该场纪要，仅由两篇日志前后夹逼。',
+ '「发言人身份」靠日志认定：录音只标「发言人1/2/3」，导师与两位同学的对应来自记忆日志，录音原文中未出现姓名。',
+ '引号内容的可靠度分级： _src/mtg_rec.txt ／ _src/mtg_min.txt 的引语可回溯到录音段落号，可靠度最高； .workbuddy/memory/*.md 里带引号的导师原话是 AI 助手在会话中记录的，可能经过整理，未经录音原文复核。',
+ '09-24 的批注没有原件：6 处黄色高亮批注的原文抄录自记忆日志，批注所在的两份报告 docx 后被编辑器打开保存过一次、体积变化（39,872→41,238；53,085→53,574），日志称高亮完整保留但未再复核。',
+ '无法确认的日期细节：10-09 面谈的具体开始时间、10-21 面谈的具体开始时间，工作区材料里都没有；只有「下午 3 点后」「15:30」这类约定，不是实际开始时间。'
+];
+/* ================= 版本更新日志页（pver） =================
+   素材是 _src/_tmp/version_draft.md + git log。同上，内联。
+   v1.5.x 是事后编排的小版本号，页面上必须写明这一点（见 VER_GAPS[0]）。 */
+const VERSIONS=[
+ {v:'v1.0',d:'2026-10-16',tag:'',sum:'首版归档：五步向导 + 8 个亮点模块切割',ev:'提交 cb73583',
+  items:[
+   '归档提交 cb73583「平台原型 v1.0 归档：五步向导 + 8 个亮点模块切割」，时间 2026-10-16 20:50',
+   '按 README 版本表记载的五步向导：选尺度 → 选描述符与状态 → 校验方式 → 目标模型 → 检验与导出',
+   '含 19 个描述符（6 一级 / 12 二级）、对比首屏、政策库预填、翻译依据、判断链、矛盾闭环、双锚点时间轴、真实结构导出',
+   '配套提交 07bbdf2（10-16 21:02，README 补在线预览入口）、3c2742b（10-16 21:09，归档文档表述中性化，便于对外分发）',
+   'CHANGELOG 无 v1.0 条目：日志最早的两条日期是 2026-10-16，但记的是 v1.1 的内容；v1.0 的功能清单只能靠 README 与提交信息回溯',
+   '留档：platform/v1.0/ 单文件成品'
+  ]},
+ {v:'v1.1',d:'2026-10-16',tag:'',sum:'七步向导 + 政策库与映射、交叉影响打分两屏，接上 CIB 一致性检验',ev:'提交 aac3447 等',
+  items:[
+   '七步向导；新增「政策库与映射」「交叉影响打分」两屏',
+   'CHANGELOG {功能}「接入 CIB 一致性检验」im:1：枚举状态组合、逐条计算影响平衡、按「选中状态是否为最大影响平衡值」判自洽——「这是平台第一次真的会算」',
+   'CHANGELOG {功能}「政策库与交叉影响打分」：内置 106 条政策路径及其与描述符的映射；n×n 可编辑矩阵、AI 预填、逐格置信度与依据',
+   '方法修正：改正 v1.0 的一处错误——待打分项由「对称合并 n(n−1)/2」改为符合官方手册的非对称 n(n−1)',
+   'git 序列（同日晚间连续提交）：aac3447 22:58「平台 v1.1 归档：新增政策库与映射、交叉影响打分两屏」；9b46d44 23:00「v1.1 增加影响关系图」；af4c054 23:16「v1.1 增加情景报告」',
+   'git 序列（续）：eec4d1d 23:22「v1.1 自洽情景真算：接上 CIB 一致性检验」；71552de 23:24「v1.1 收尾：清掉全部『模拟』表述并接上真实导出」',
+   'git 序列（续）：3d90371 23:30「v1.1 增加主被动图」；9bf03b7 23:33「v1.1 增加情景表：A 档六项全部到齐」；a6ee6f3 23:33「补充 v1.1 技术文档」',
+   '留档：platform/v1.1/ 单文件 + src/'
+  ]},
+ {v:'v1.2',d:'2026-10-16',tag:'',sum:'状态半定量化起共 ⑪ 项：多专家集成、情景地图与筛选、跨层一致性、逐层求解',ev:'提交 86ba636 等',
+  items:[
+   '首个提交 86ba636（2026-10-16 23:41）「平台 v1.2：状态半定量化」',
+   '按 README 版本表共 ⑪ 项：状态半定量化、多专家集成、情景地图、情景筛选、状态级精判、跨层一致性+四层结构、数值锚定、区间依据分层、区间分层、逐层求解、影响路径分析',
+   '情景区：情景筛选（德国软件 Selection Manager）1ca376b 10-17 08:41；情景地图（情景族聚类图 + 状态分布热力图，B1）b66a02c 10-17 08:27；多专家集成（Ensemble 模式）d1ce61f 10-17 08:20',
+   '检算区：状态级精判（把打分从描述符级打到状态对）5c8b263 10-17 15:38；跨层一致性（纵向检验）b68194f 10-17 16:02；层级树改四层：国家（给定）/ 区域 / 省 / 市 1d96941 10-17 16:14',
+   '数值与区间：数值锚定（状态区间真正参与检算）53656a5 10-17 16:32；区间依据分层（55 个状态不再笼统标示例值）f467924 10-17 17:22；区间分层（区域级与三省的档位边界分开）9baee2c 10-17 17:59',
+   '求解与分析：逐层求解（跨层约束进入枚举）a558543 10-17 18:42；影响路径分析（B4）ae58b71 10-17 19:04；影响谱（Influence profile）d4596cd 10-17 19:14；相关性分析（Correlations）e6f377f 10-17 19:26',
+   '演示模式（德国软件 Presenter，七章全屏只读）69943be 10-17 19:57；政策依据接入（法律文件与定量口径挂到政策库）47514b3 10-17 21:05',
+   '留档：platform/v1.2/ 单文件 + src/'
+  ]},
+ {v:'v1.3',d:'2026-10-17',tag:'',sum:'稳健性检验与框架导入导出、报告导出 Word；贝叶斯后验真算、逐层求解内核重写',ev:'提交 9397970 等',
+  items:[
+   '9397970 10-17 21:32「v1.3 三块新增：稳健性检验（扰动重算+单格翻转）、描述符框架导入导出、情景报告导出 Word」',
+   'e7efae1 10-17 22:01「逐层求解内核重写：整层判一次+归桶筛选，支撑 19 描述符；修复链式层级上级约束未传入的旧缺陷」',
+   'c3829b0 10-17 22:40「v1.3 映射补证：联网核实 15 条政策原文（发改价格1501号、五部门令64号、GB55015、发改产业723号等），8 条置信度升高」',
+   '1632ff3 10-18 10:47「v1.3 UI 专业升级版：排版层级与间距节奏精修、卡片/按钮/表格质感、原生 CSS 微动效、细滚动条、键盘焦点环、prefers-reduced-motion」',
+   'e907e33 10-18 15:06「v1.3 去AI味换皮：墨绿主色替换默认蓝、宋体标题+黑体正文、去幽灵卡与全部彩色左边条、徽章弱化、图表族色板重排防撞色」',
+   '8594c31 10-18 19:46「v1.3 贝叶斯后验真算（有序 logit + 90% 区间，参与 CIB 计算）；导出接状态区间，去掉待定；装配文件不确定时明确标注」；9b6de20 10-18 19:46「技术文档补第 28—29 节（贝叶斯后验、导出参数化）」',
+   'f443d0f 10-18 21:12「状态选择改为单选（一个情景一个档）…新增 test_sel 八项；文档修正 57 条口径」',
+   '6861107 10-18 21:20；39756f4 21:23「数值锚定从第 7 步移到第 3 步」；f851c17 10-18 21:32「跨层一致性移到第 3 步并跟随所选状态」',
+   '2364ee6 10-18 21:53「检验结果新增『你选的情景』自洽判定」；ec73b73 10-18 22:01「检验结果明确列出全部自洽情景」；64766b0 10-18 22:19「矛盾组合改为真算」',
+   '5a76458 10-18 22:33「第 7 步分组导航：17 块分四组，新增 test_menu」',
+   'cb8502f 10-18 23:32「首页改版：删掉写死情景与估算数字（100/12/4），改为实时统计（106/101/79/15）」；cc96c18 10-18 23:44「首页标题层级重排」；ccfe530 23:51「首页墨绿分布」；33dcbb5 23:59「去掉功能标签里的版本号」',
+   'CHANGELOG 归属 2026-10-18 的 5 条：{缺陷}「贝叶斯由界面标签改为真算」im:1、{缺陷}「导出不再写『待定』」im:1、{功能}「稳健性检验」',
+   'CHANGELOG 续：{缺陷}「修复逐层求解上级约束未传入」im:1（修复后同数据省级 81→49 组）、{功能}「逐层求解内核重写」im:1（19 描述符三层从跑不完降到 2.6 秒）',
+   '留档：platform/v1.3/ 仅单文件成品，分文件源码缺档'
+  ]},
+ {v:'v1.4',d:'2026-10-22',tag:'补档',sum:'界面整体重做：纸墨配色、字号收 6 档、左轨七步、常驻小字改悬停、新增「怎么用」',ev:'提交 aa13035 补档',
+  items:[
+   '界面整体重做（导师 10-21「界面主次不清、凌乱」的直接整改）：纸墨配色、字号收敛 6 档、左轨七步、常驻小字改悬停、新增「怎么用」',
+   '按 README 版本表记载的五条改动①：配色换「纸墨」（弃用 Tailwind 默认绿 #166534）',
+   '五条改动②：向导界面字号从 12 种收到 6 档（11/13/15/16/21/30），正文 11.5px → 15px',
+   '五条改动③：横向七步改左侧步骤轨，顶栏六个按钮收进图标入口',
+   '五条改动④：常驻小字改悬停或折叠（原常驻约 2500 字说明，20 段，平均每段 111 字）',
+   '五条改动⑤：新增「怎么用」帮助入口，首页七行对比表压成三行',
+   '仓库里没有 v1.4 的历史提交：platform/v1.4/ 是 2026-10-24 11:35 由提交 aa13035「补 v1.4 留档（单文件 + 可编辑源码）」一次性补档的，因此日期只能取 README 的 2026-10-22/23，没有逐提交的时间证据',
+   'README 注明有三项变更其实留在 v1.3 归档文件里（该文件一直维护到 10-22）：情景族→情景簇、矩阵格内写置信度与 AI 标记、目标节奏统一 20–30%',
+   '留档：单文件 + 可编辑源码，10-24 才补档'
+  ]},
+ {v:'v1.5',d:'2026-10-23',tag:'',sum:'0 的语义修正、参数生成四种、使用说明页按 EPS 分区、更新日志改页面',ev:'提交 15158b2 等',
+  items:[
+   '15158b2 10-23 23:09「发布 v1.5：0 的语义修正、参数生成四种、使用说明页按 EPS 分区、更新日志改页面」（root index.html + 成品单文件，8158 insertions）',
+   '4d2f377 10-23 23:21「使用说明页第三区改名：方法学 → 算法说明」',
+   'CHANGELOG 2026-10-23 共 18 条，其中 im:1 一条：{口径}「0 的意义改为『两者之间没有直接关系』，不再与低置信度绑在一起」——引用了 10-21 导师当场纠正的原话：「不是置信度低，他俩之间没关系」；没做判断的格子留空显示「·」，统计中「已判 / 未判 / 判为 0 / 低置信度」四项分开计数',
+   '其余 17 条覆盖：去功能模块标题旁 15 个灰色小标签、使用说明页侧栏标出「当前读到哪一节」、第三区「方法学」→「算法说明」、更新日志从弹窗改为使用说明页第八节、使用说明页按五区分区、删去「输入参数名」未实现概念、向导内页去卡片、页面说明文字改悬停',
+   '其余 17 条续：品牌名改「京津冀 · CIB」、首页改文献式、圆形扩散转场、左轨七步归三段、品牌绿换纸墨配色、字号 12 种收 6 档、横向七步改左侧步骤轨、常驻小字改悬停或折叠、新增「怎么用」入口',
+   '工程性变化（不在 CHANGELOG 里，属归档改动）：新增 platform/v1.5/ 可编辑源码与 30 套自检（源码级 29 + 成品级 1），使归档可重建、可验证',
+   '留档：platform/v1.5/ 单文件 + 可编辑源码 + 30 套自检；线上 Pages 当前即 v1.5'
+  ]},
+ {v:'v1.5.1',d:'2026-10-24',tag:'',sum:'五批 less is more 整改、影响平衡值定名、参数表增列情景号',ev:'提交 e9ff50a 等',
+  items:[
+   'e9ff50a（11:27）「发布 v1.5（10-24）：五批 less is more 整改、影响平衡值定名、参数表增列情景号；补 v1.5 可编辑源码与 30 套自检」',
+   'CHANGELOG {口径}「判自洽的量统一叫『影响平衡值』」：同一个量原先有两个名字且指向相反（一处叫「主动和」，术语表又定义「主动和 = 施加」），判定实际取的是「该状态从其余状态承受到的总量」；「主动和／被动和」只保留给主被动图的两根轴',
+   'CHANGELOG {功能}「结构化参数表增列『情景号』，保住 CIB 求出的联动关系」：表头改为 scenario,param,value',
+   '五批 30 处 less is more 整改',
+   'aa13035（11:35）「补 v1.4 留档（单文件 + 可编辑源码）；README 版本表补 v1.4/v1.5 两行；测试补跑法说明」',
+   'f2e26b7（11:41）「README 补发布流程：三处版本号绑定（merge 脚本的 VER、成品文件名、index.html 的 title，改一处不够）、--repo 不能省、PowerShell 推送报错不等于失败」'
+  ]},
+ {v:'v1.5.2',d:'2026-10-24',tag:'',sum:'删演示模式与跨层一致性台账、数值锚定下沉为已知值；补术语口径与归档自检闸门',ev:'提交 52fea84 等',
+  items:[
+   '52fea84（17:19）「删演示模式与跨层一致性台账；数值锚定下沉为状态面板里的『已知值』」',
+   '具体：删演示模式、删跨层一致性台账、数值锚定下沉改名「已知值」',
+   'f7d192c（17:22）「仓库根 index.html 与 v1.5 成品同步（Pages 入口此前仍停在旧成品）」',
+   '8d18ff5（17:44）「补一套术语口径自检，并给自检加一个真正会失败的闸门」；四份自检脚本 catch 补 process.exit(1)',
+   '2497e32（17:52）「归档自检闸门 + 文档同步」',
+   '测试闸门跳过用例与通过无法区分的修复：现汇总行写明跳过了哪几套；-Repo 开关此前一直是坏的'
+  ]},
+ {v:'v1.5.3',d:'2026-10-24',tag:'',sum:'状态设置说明改悬停、修气泡转义与闸门静默；结构收敛、跨层档位约束前置',ev:'提交 423790a 等',
+  items:[
+   '423790a（18:50）「状态设置的说明改为悬停；修掉气泡转义与闸门两处静默」',
+   '具体：状态设置区解释文字改悬停；悬停提示含引号截断气泡的 attrEsc() 转义修复；闸门两处静默修复',
+   '78565d4（20:42）「结构收敛到 10 块；跨层档位判定改为约束前置」',
+   '具体：第 7 步 17→10 块（{可用性}）、约束前置（{功能}）'
+  ]},
+ {v:'v1.5.4',d:'2026-10-24',tag:'未发布',sum:'本批未提交：说明文字改悬停、矛盾组合改全局互斥对、描述符状态改多档勾选、日志拆页',ev:'本批未提交',
+  items:[
+   '① 影响谱与相关性分析的说明文字改为悬停显示',
+   '② 稳健性检验的「浅色行等于什么」说明与「怎么读这张表」的方法句收进悬停，本次结论保留在页面上',
+   '③ 矛盾组合面板改为全局互斥对（原先只查手选的那一组状态）',
+   '④ 描述符状态由单选改为可勾选多档（勾中即划定可信范围，实际缩小枚举空间）',
+   '⑤ 讨论日志、版本更新日志从使用说明页拆出，各开一页（本版按发布小版本 v1.5.x 编排，注明小版本号为事后编排）'
+  ]}
+];
+const VER_GAPS=[ 'v1.5.x 小版本号为事后编排，非历史上真实发布过的版本号；v1.0–v1.5 六个版本号是历史事实。仓库无 tag，版本边界靠提交标题与 README 版本表界定。',
+ '第1条：v1.0 完全没有 CHANGELOG 条目。CHANGELOG 最早的两条日期是 2026-10-16，但记的是 v1.1 的内容（接入 CIB 一致性检验、政策库与交叉影响打分）。v1.0 的功能清单只有 README 版本表与提交 cb73583 的信息可依，无法逐条核对。',
+ '第2条：v1.4 没有历史提交。README 写明 v1.4 日期为 2026-10-22/23，但仓库里没有那个时段的提交——platform/v1.4/ 是 10-24 由 aa13035 一次性补档的。因此「v1.4 什么时候改了什么」只有 README 的一段自述，没有代码层时间证据；README 也自己注明有三项变更其实留在 v1.3 归档文件里。',
+ '第3条：README 的版本日期与 CHANGELOG 的日期对不上：README 把稳健性检验、框架导入导出、报告导出 Word 都列在 v1.3 / 2026-10-17 行，但 CHANGELOG 把「稳健性检验」「描述符框架导入导出」「情景报告导出 Word」记作 2026-10-17、把「第 7 步分组导航」也记作 2026-10-17，而对应提交（9397970、5a76458）分别在 10-17 21:32 与 10-18 22:33。同版内日期存在约一天的系统性错位，可能是「按讨论日而非提交日记账」。本文件两套日期都保留，未强行统一。',
+ '第4条：CHANGELOG 不是全量日志。它自己声明「只列入对外可讲、能被核对的事项」，实际 2026-10-17 只有 4 条，而当天 git 提交有十余个。因此不能用 CHANGELOG 反推某版「只改了这些」。',
+ '第5条：v1.3 的分文件源码缺档。platform/v1.3/ 只有单文件成品。工作区里 _src/v11/ 的页面标题实为「原型 v1.3」，另有 _src/v11_backup_20261022/ 一份带 src/ 的备份——目录名 v11 是历史遗留、内容不是 v1.1，引用时须以页面标题为准（HANDOFF 亦如此记载）。',
+ '第6条：仓库没有 tag。全部 82 个提交都在 main 一条线上，版本边界只能靠提交标题里的「平台 v1.1 归档」「平台 v1.2」「发布 v1.5」等字样与 README 版本表界定，没有机器可校验的版本标记。',
+ '第7条：技术文档缺 v1.4 / v1.5。docs/ 下只有 技术文档_v1.1.html、技术文档_v1.2.html、技术文档_v1.3.html、平台功能详解_v1.3.html 四份；v1.4 与 v1.5 没有对应的独立技术文档，v1.5 的功能说明落在平台内的「使用说明」页与 CHANGELOG。',
+ '第8条：docs/技术文档_v1.1.html 与 _src/v11/ 的命名易混：前者是 v1.1 的技术文档，后者是 v1.3 的源码工作副本，两者版本号不同却都含「v11」字样。'
+];
+/* 渲染 HTML 时一律走这两个转义函数：素材里有引号、书名号、`<` 这类字符，
+   以及「100% < 110%」这种会被浏览器当标签的开头。不转义就会吃掉半段文字。 */
+function disEsc(s){ return attrEsc(s); }
+function disSecs(secs){
+  let h='';
+  (secs||[]).forEach(s=>{
+    if(s.h) h+='<h3>'+disEsc(s.h)+'</h3>';
+    h+='<ul class="dli">';
+    (s.li||[]).forEach(t=>{ h+='<li>'+disEsc(t)+'</li>'; });
+    h+='</ul>';
+  });
+  return h;
 }
-function renderChangelog(){
-  const b=document.getElementById('chgBody');
-  if(!b) return;
+/* 讨论日志：一条面谈一节，侧栏按日期列出。 */
+function renderDiscuss(){
+  const nav=document.getElementById('disNav'), body=document.getElementById('disBody');
+  if(!nav||!body) return;
+  let nv='', bd='<p class="dnote">依据说明：'+disEsc(DISCUSS_WHO)+'</p>';
+  DISCUSS.forEach((it,i)=>{
+    const aid='k'+(i+1);
+    nv+='<a href="#'+aid+'"><span>'+String(i+1).padStart(2,'0')+'</span>'+disEsc(it.d)+'</a>';
+    bd+='<h2 id="'+aid+'">'+disEsc(it.d)+'　'+disEsc(it.t)+'</h2>';
+    if(it.src) bd+='<p class="dsrc">依据：'+disEsc(it.src)+'</p>';
+    bd+=disSecs(it.secs);
+  });
+  bd+='<h2>存疑与缺口</h2><ul class="dli">';
+  DISCUSS_GAPS.forEach(t=>{ bd+='<li>'+disEsc(t)+'</li>'; });
+  bd+='</ul>';
+  nav.innerHTML=nv;
+  body.innerHTML=bd;
+}
+/* 版本日志：一条版本一节，侧栏列版本号 + 日期。 */
+function renderVersions(){
+  const nav=document.getElementById('verNav'), body=document.getElementById('verBody');
+  if(!nav||!body) return;
+  let nv='', bd='';
+  VERSIONS.forEach((it,i)=>{
+    const aid='v'+(i+1);
+    nv+='<a href="#'+aid+'"><span>'+disEsc(it.v)+'</span>'+disEsc(it.d.slice(5))+'</a>';
+    bd+='<h2 id="'+aid+'">'+disEsc(it.v)+'　'+disEsc(it.d)
+      +(it.tag?'<span class="vtag">'+disEsc(it.tag)+'</span>':'')+'</h2>';
+    bd+='<p class="vsum">'+disEsc(it.sum)+'</p>';
+    bd+='<ul class="dli">';
+    (it.items||[]).forEach(t=>{ bd+='<li>'+disEsc(t)+'</li>'; });
+    bd+='</ul>';
+    if(it.ev) bd+='<p class="dsrc">依据：'+disEsc(it.ev)+'</p>';
+  });
+  bd+='<h2>证据缺口</h2><ul class="dli">';
+  VER_GAPS.forEach(t=>{ bd+='<li>'+disEsc(t)+'</li>'; });
+  bd+='</ul>';
+  /* 逐条变更记录：版本小节讲"哪一版解决了哪类问题"，这里给可核对的细账
+     （原先使用说明页第八节的那张列表）。它自带「影响面」标记，是判断
+     "这次改动要不要重跑已有情景"的依据，不能因为页面改版就丢掉。 */
+  bd+='<h2 id="vlog">逐条变更记录</h2>';
+  bd+='<p>'+disEsc('按日期倒序，最新的在最上面。每条末尾的「影响面」说明这次改动会不会动到已有结果：标注「不动结果」的，一致性检验的输入与输出都不变，重跑一遍结论一样；标注「影响结果」的，需要重新检验、必要时重出报告。')+'</p>';
   const cnt={};
   CHANGELOG.forEach(e=>{ cnt[e.k]=(cnt[e.k]||0)+1; });
   const imp=CHANGELOG.filter(e=>e.im).length;
-  let h='<div class="chgsum">共 '+CHANGELOG.length+' 条　·　影响结果 '+imp+' 条 / 不动结果 '
+  bd+='<div class="chgsum">共 '+CHANGELOG.length+' 条　·　影响结果 '+imp+' 条 / 不动结果 '
     +(CHANGELOG.length-imp)+' 条<br>'
     +Object.keys(cnt).map(k=>k+' '+cnt[k]).join('　')+'</div>';
-  h+='<div class="chglist">';
+  bd+='<div class="chglist">';
   CHANGELOG.forEach(e=>{
-    h+='<div class="chgrow">'
+    bd+='<div class="chgrow">'
       +'<div class="chgd">'+e.d.slice(5)+'</div>'
       +'<div class="chgk"><span class="ck '+(CHGKIND[e.k]||'gray')+'">'+e.k+'</span></div>'
-      +'<div class="chgb"><b>'+e.x+'</b><span>'+e.y+'</span>'
+      +'<div class="chgb"><b>'+attrEsc(e.x)+'</b><span>'+attrEsc(e.y)+'</span>'
       +'<span class="chgi'+(e.im?' h':'')+'">'+(e.im?'影响面：影响结果——改动了判定输入，已有情景需重新检验':'影响面：不动结果——重跑一遍结论一样')+'</span>'
       +'</div>'
       +'</div>';
   });
-  h+='</div>';
-  b.innerHTML=h;
+  bd+='</div>';
+  nv+='<a href="#vlog"><span>·</span>逐条变更</a>';
+  nav.innerHTML=nv;
+  body.innerHTML=bd;
 }
+/* 旧的内联更新日志列表：内容已并入版本日志页，这里只保留渲染入口，
+   让 render() 里那行调用不必改（改动面越小越好）。 */
+function renderChangelog(){ renderVersions(); renderDiscuss(); }
 
 /* ================= 第 7 步分组菜单 =================
    17 块按用途分四组，一次只看一组——避免一屏一屏往下划。
@@ -6269,18 +6871,18 @@ function render(){
   renderChangelog();
   p6Apply(); p6Status();
 
-  document.getElementById('pcmp').classList.toggle('on', inCmp && !docOpen);
+  document.getElementById('pcmp').classList.toggle('on', inCmp && !docPg);
   document.querySelectorAll('main .pane').forEach(p=>{
     if(p.id==='pcmp') return;
-    if(p.id==='pdoc'){ p.classList.toggle('on', docOpen); return; }
-    p.classList.toggle('on', !inCmp && !docOpen && p.id==='p'+cur);
+    if(p.id==='pdoc'||p.id==='pdis'||p.id==='pver'){ p.classList.toggle('on', p.id===DOCPG_ID[docPg]); return; }
+    p.classList.toggle('on', !inCmp && !docPg && p.id==='p'+cur);
   });
   /* docSpy 必须排在 pdoc 显隐之后：它要量各节位置，量的是隐藏元素就只能得到 0，
      于是所有 top 都是 0、最后一节永远胜出（实测高亮卡在 #d8）。 */
   docSpy();
   document.body.classList.toggle('wizard', !inCmp);
   document.getElementById('steps').style.display='';
-  document.getElementById('ctxNow').textContent = docOpen ? '使用说明' : (inCmp ? '概览' : `第 ${cur+1} 步 · ${STEP_NM[cur]}`);
+  document.getElementById('ctxNow').textContent = docPg ? DOCPG_NM[docPg] : (inCmp ? '概览' : `第 ${cur+1} 步 · ${STEP_NM[cur]}`);
   document.querySelector('.footbar').style.display=inCmp?'none':'flex';
 
   document.getElementById('prevBtn').disabled=cur===0;

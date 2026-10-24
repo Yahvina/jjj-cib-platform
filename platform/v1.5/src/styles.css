@@ -543,6 +543,14 @@ table.stmat select.sts{width:100%;height:26px;border:1px solid var(--line);borde
   background:#fff;font-size:11px;color:var(--tx2);padding:0 2px;text-align:center;}
 table.stmat select.sts.on{border-color:var(--pri);color:var(--pri);font-weight:600;background:var(--pri-s);}
 
+/* 已勾范围（v1.5 B 方案：勾选＝划定可信范围，不再是标签） */
+.selrow{display:flex;align-items:center;gap:9px;margin-top:9px;padding-top:9px;
+  border-top:1px dashed var(--line);font-size:13px;color:var(--tx3);}
+.selrow .slab{flex:0 0 auto;}
+.selrow .sval{flex:1 1 auto;min-width:0;}
+.selrow.on{color:var(--tx2);}
+.selrow.on .sval b{color:var(--pri);}
+
 /* 已知值（原「数值锚定」卡片，现长在状态面板里） */
 .ancrow{display:flex;align-items:center;gap:9px;margin-top:9px;padding-top:9px;
   border-top:1px dashed var(--line);font-size:13px;}
@@ -905,7 +913,10 @@ table.cim td.cc .cfw.h{font-weight:600;}
 .tip.flip::after{left:auto;right:0;}
 @media (hover:none){
   .tip::after{display:none;}
-  .tip.open::after{display:block;position:static;width:auto;margin-top:6px;box-shadow:none;}
+  /* opacity/visibility 必须在 .open 里显式重置：基态是 opacity:0;visibility:hidden，
+     只改 display 会让气泡"占位但看不见"——触屏点开等于点什么都没有。 */
+  .tip.open::after{display:block;position:static;width:auto;margin-top:6px;box-shadow:none;
+    opacity:1;visibility:visible;}
 }
 @media print{
   .tip{border:none;}
@@ -1094,60 +1105,77 @@ details.fold .foldbody{padding:10px 14px;margin-top:8px;border-left:2px solid va
 .tip.wide::after{width:420px;max-width:78vw;font-size:13px;line-height:1.9;}
 
 /* ================= 使用说明页 ================= */
-#pdoc{max-width:1040px;margin:0 auto;padding-bottom:64px;}
-#pdoc .doc-k{font-family:ui-monospace,Consolas,monospace;font-size:11px;
+.docpg{max-width:1040px;margin:0 auto;padding-bottom:64px;}
+.docpg .doc-k{font-family:ui-monospace,Consolas,monospace;font-size:11px;
   letter-spacing:.16em;color:var(--tx3);padding-top:34px;}
-#pdoc .doc-h h1{font-size:34px;font-weight:400;letter-spacing:.01em;margin-top:14px;}
-#pdoc .doc-h p{font-size:15px;line-height:1.95;color:var(--tx2);margin-top:14px;max-width:40em;}
-#pdoc .doc-cols{display:grid;grid-template-columns:186px minmax(0,1fr);gap:54px;
+.docpg .doc-h h1{font-size:34px;font-weight:400;letter-spacing:.01em;margin-top:14px;}
+.docpg .doc-h p{font-size:15px;line-height:1.95;color:var(--tx2);margin-top:14px;max-width:40em;}
+.docpg .doc-cols{display:grid;grid-template-columns:186px minmax(0,1fr);gap:54px;
   margin-top:40px;padding-top:28px;border-top:1px solid var(--line);}
-#pdoc .doc-nav{position:sticky;top:76px;align-self:start;}
-#pdoc .doc-nav a{display:block;position:relative;font-size:13px;color:var(--tx3);
+.docpg .doc-nav{position:sticky;top:76px;align-self:start;}
+.docpg .doc-nav a{display:block;position:relative;font-size:13px;color:var(--tx3);
   text-decoration:none;padding:6px 0;}
-#pdoc .doc-nav a:hover{color:var(--tx);}
+.docpg .doc-nav a:hover{color:var(--tx);}
 /* 当前读到哪一节：左侧立一道短竖线，不单靠变色 */
-#pdoc .doc-nav a.on{color:var(--tx);}
-#pdoc .doc-nav a.on::before{content:"";position:absolute;left:-14px;top:9px;bottom:9px;
+.docpg .doc-nav a.on{color:var(--tx);}
+.docpg .doc-nav a.on::before{content:"";position:absolute;left:-14px;top:9px;bottom:9px;
   width:2px;background:var(--wn);}
-#pdoc .doc-nav a.on span{color:var(--wn);}
+.docpg .doc-nav a.on span{color:var(--wn);}
 /* 侧栏分区标题：把 8 节归为简介/使用手册/算法说明/案例/参考五段 */
-#pdoc .doc-nav .dn-g{font-size:11px;letter-spacing:.12em;color:var(--tx3);
+.docpg .doc-nav .dn-g{font-size:11px;letter-spacing:.12em;color:var(--tx3);
   padding:14px 0 3px;border-top:1px solid var(--line2);margin-top:8px;}
-#pdoc .doc-nav .dn-g:first-child{border-top:0;margin-top:0;padding-top:0;}
+.docpg .doc-nav .dn-g:first-child{border-top:0;margin-top:0;padding-top:0;}
 /* 正文分区标签 */
-#pdoc .doc-body .dgrp{font-size:11px;letter-spacing:.14em;color:var(--tx3);
+.docpg .doc-body .dgrp{font-size:11px;letter-spacing:.14em;color:var(--tx3);
   margin:40px 0 -28px;}
-#pdoc .doc-body .dgrp + h2{margin-top:34px;padding-top:0;}
-#pdoc .doc-body .dnote{font-size:13.5px;line-height:1.9;color:var(--tx3);
+.docpg .doc-body .dgrp + h2{margin-top:34px;padding-top:0;}
+.docpg .doc-body .dnote{font-size:13.5px;line-height:1.9;color:var(--tx3);
   border-left:2px solid var(--line);padding-left:14px;margin:14px 0 4px;}
-#pdoc .doc-body h2{font-size:21px;font-weight:400;margin:44px 0 12px;padding-top:8px;}
-#pdoc .doc-body h2:first-child{margin-top:0;}
-#pdoc .doc-body h3{font-size:15px;font-weight:600;margin:22px 0 6px;font-family:inherit;}
-#pdoc .doc-body p{font-size:15px;line-height:1.95;color:var(--tx2);margin-bottom:12px;}
-#pdoc .doc-body b{color:var(--tx);font-weight:600;}
-#pdoc .doc-body code{font-family:ui-monospace,Consolas,monospace;font-size:13px;
+.docpg .doc-body h2{font-size:21px;font-weight:400;margin:44px 0 12px;padding-top:8px;}
+.docpg .doc-body h2:first-child{margin-top:0;}
+.docpg .doc-body h3{font-size:15px;font-weight:600;margin:22px 0 6px;font-family:inherit;}
+.docpg .doc-body p{font-size:15px;line-height:1.95;color:var(--tx2);margin-bottom:12px;}
+.docpg .doc-body b{color:var(--tx);font-weight:600;}
+.docpg .doc-body code{font-family:ui-monospace,Consolas,monospace;font-size:13px;
   background:var(--panel2);padding:1px 5px;border-radius:2px;}
-#pdoc .doc-body table{width:100%;border-collapse:collapse;margin:10px 0 18px;font-size:14px;}
-#pdoc .doc-body th{text-align:left;font-weight:600;color:var(--tx3);
+.docpg .doc-body table{width:100%;border-collapse:collapse;margin:10px 0 18px;font-size:14px;}
+.docpg .doc-body th{text-align:left;font-weight:600;color:var(--tx3);
   padding:8px 12px 8px 0;border-bottom:1px solid var(--line);}
-#pdoc .doc-body td{padding:8px 12px 8px 0;border-bottom:1px solid var(--line2);
+.docpg .doc-body td{padding:8px 12px 8px 0;border-bottom:1px solid var(--line2);
   color:var(--tx2);line-height:1.8;vertical-align:top;}
 @media (max-width:900px){
-  #pdoc .doc-cols{grid-template-columns:1fr;gap:24px;}
-  #pdoc .doc-nav{position:static;display:flex;flex-wrap:wrap;gap:14px;}
-  #pdoc .doc-nav .dn-g{display:none;}
-  #pdoc .doc-h h1{font-size:26px;}
+  .docpg .doc-cols{grid-template-columns:1fr;gap:24px;}
+  .docpg .doc-nav{position:static;display:flex;flex-wrap:wrap;gap:14px;}
+  .docpg .doc-nav .dn-g{display:none;}
+  .docpg .doc-h h1{font-size:26px;}
 }
 
 /* 首页次要入口 */
 #pcmp .go a.go2{font-size:13.5px;color:var(--tx3);border-bottom:1px solid var(--line);}
 #pcmp .go a.go2:hover{color:var(--tx);border-bottom-color:var(--tx);}
-#pdoc .doc-nav a span{display:inline-block;width:24px;font-family:ui-monospace,Consolas,monospace;
+.docpg .doc-nav a span{display:inline-block;width:24px;font-family:ui-monospace,Consolas,monospace;
   font-size:11px;color:var(--line);letter-spacing:.06em;}
-#pdoc .doc-nav a:hover span{color:var(--tx3);}
-#pdoc .doc-back{margin-top:18px;}
-#pdoc .doc-back a{font-size:13.5px;color:var(--tx3);text-decoration:none;border-bottom:1px solid var(--line);}
-#pdoc .doc-back a:hover{color:var(--tx);border-bottom-color:var(--tx);}
+.docpg .doc-nav a:hover span{color:var(--tx3);}
+.docpg .doc-back{margin-top:18px;}
+.docpg .doc-back a{font-size:13.5px;color:var(--tx3);text-decoration:none;border-bottom:1px solid var(--line);}
+.docpg .doc-back a:hover{color:var(--tx);border-bottom-color:var(--tx);}
+/* ---- 讨论日志 / 版本更新日志：两页与使用说明共用版式，只加条目样式 ----
+   条目用「无序列表 + 左侧细线」，比再加一层卡片轻：这两页动辄上百条，
+   每条套一个方框就又把版面堆回去了（导师点名的「凌乱」正是这么来的）。 */
+.docpg .dli{list-style:none;margin:8px 0 18px;padding:0 0 0 16px;
+  border-left:1px solid var(--line2);}
+.docpg .dli li{position:relative;font-size:14.5px;line-height:1.9;color:var(--tx2);
+  padding:3px 0;}
+.docpg .dli li::before{content:"";position:absolute;left:-17px;top:14px;
+  width:3px;height:3px;border-radius:50%;background:var(--line);}
+.docpg .dli li b{color:var(--tx);font-weight:600;}
+.docpg .dsrc{font-size:13px;color:var(--tx3);line-height:1.8;margin:-4px 0 10px;}
+.docpg .vsum{font-size:14.5px;color:var(--tx2);margin:-4px 0 8px;}
+.docpg .vtag{display:inline-block;margin-left:10px;font-size:11px;vertical-align:2px;
+  color:var(--wn);background:var(--wn-s);border-radius:4px;padding:1px 6px;}
+/* 侧栏号位列：使用说明是「01」两位数，日志两页是日期与版本号（v1.5.1 更宽），
+   固定 24px 会把版本号挤成两行，改成下限 24px、需要时自己撑开。 */
+.docpg .doc-nav a span{width:auto;min-width:24px;padding-right:8px;}
 /* 统计标签上的解释：不加下划线，鼠标变问号 */
 .tip.quiet{border-bottom:none;cursor:help;}
 /* 状态设置区把解释性文字收进提示里，锚点就是原来的标签本身（不加下划线、不加图标，
@@ -1216,7 +1244,7 @@ main .cimside .empty{padding:32px 0;}
 /* 表头去底色；只有吸顶的矩阵表头需要不透明底 */
 main table th{background:transparent!important;}
 main table.cim thead th{background:var(--bg)!important;}
-#pdoc .doc-body th{background:transparent!important;}
+.docpg .doc-body th{background:transparent!important;}
 
 /* 左轨与表格头：统一到纸白 */
 body.wizard .steps{background:var(--bg);}

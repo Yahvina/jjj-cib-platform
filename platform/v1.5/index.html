@@ -36,6 +36,8 @@
     </button>
     <div class="menu" id="moreMenu" role="menu">
       <button role="menuitem" onclick="closeMenu();openHelp()">一分钟上手</button>
+      <button role="menuitem" onclick="closeMenu();openDiscuss()">讨论日志</button>
+      <button role="menuitem" onclick="closeMenu();openChangelog()">版本更新日志</button>
       <button role="menuitem" onclick="closeMenu();backToCmp()">回到概览</button>
       <button role="menuitem" onclick="closeMenu();saveCfg()">保存配置</button>
       <button role="menuitem" onclick="closeMenu();loadCfg()">载入配置</button>
@@ -178,7 +180,7 @@
     </div>
     <div>
       <div style="font-size:13px;color:var(--tx2);margin-bottom:8px;">
-        <span class="tip quiet wide" tabindex="0" data-tip="含取值区间，可编辑。勾选状态只用于定点检验与取档导出，不改变全量检验——一致性检验始终把每个描述符的全部状态都枚举一遍，勾选不缩小搜索范围。要排除数值上站不住的档位，用每个描述符下方的已知值。">状态设置</span></div>
+        <span class="tip quiet wide" tabindex="0" data-tip="含取值区间，可编辑。勾选的档位就是这个描述符的可信范围——一致性检验只在这个范围里找自洽情景，一个都不勾＝不设限（全部档位都参与）。要排除数值上站不住的档位，用每个描述符下方的已知值。">状态设置</span></div>
       <div class="scopebar">
         <span class="slb">区间视角</span>
         <span class="scopebtns" id="scopeBtns"></span>
@@ -450,7 +452,6 @@
       <a href="#d6"><span>06</span>换一个领域</a>
       <div class="dn-g">参考</div>
       <a href="#d7"><span>07</span>术语对照</a>
-      <a href="#d8"><span>08</span>版本与讨论日志</a>
     </nav>
 
     <div class="doc-body">
@@ -580,11 +581,35 @@
         <tr><td>后验</td><td>用专家打分更新先验后得到的均值与区间</td></tr>
       </table>
 
-      <h2 id="d8">八　版本与讨论日志</h2>
-      <p>记录每次讨论之后的缺陷修复、口径变更与新增功能，倒序排列，最新的在最上面。每条都能在代码提交里找到对应，只列对外可讲、可核对的事项。</p>
-      <p>每条末尾的「<b>影响面</b>」说明这次改动会不会动到已有结果：标注「<b>不动结果</b>」的，一致性检验的输入与输出都不变，重跑一遍结论一样；标注「<b>影响结果</b>」的，需要重新检验、必要时重出报告。</p>
-      <div id="chgBody"></div>
     </div>
+  </div>
+</section>
+
+<!-- ============ 讨论日志 ============ -->
+<section class="pane" id="pdis">
+  <div class="doc-h">
+    <div class="doc-k">LOG　讨论日志</div>
+    <h1>讨论日志</h1>
+    <p>按面谈顺序记录每次讨论里导师的要求、当场落实的事、以及留下的待办。只收录有录音、纪要或记忆日志可回溯的面谈；依据不足的按「存疑」标明，不替当时的人补话。</p>
+    <p class="doc-back"><a href="#" onclick="closeDoc();return false;">← 返回概览</a></p>
+  </div>
+  <div class="doc-cols">
+    <nav class="doc-nav" id="disNav"></nav>
+    <div class="doc-body" id="disBody"></div>
+  </div>
+</section>
+
+<!-- ============ 版本更新日志 ============ -->
+<section class="pane" id="pver">
+  <div class="doc-h">
+    <div class="doc-k">LOG　版本更新日志</div>
+    <h1>版本更新日志</h1>
+    <p>什么时候更新成了什么版本、每个版本解决了哪些问题。版本号与 git 提交一一对应；<b>v1.5.x 这类小版本号是事后编排的</b>，历史上只发过 v1.0–v1.5 六个大版本号，仓库里没有 tag，详情见页末「证据缺口」。</p>
+    <p class="doc-back"><a href="#" onclick="closeDoc();return false;">← 返回概览</a></p>
+  </div>
+  <div class="doc-cols">
+    <nav class="doc-nav" id="verNav"></nav>
+    <div class="doc-body" id="verBody"></div>
   </div>
 </section>
 
