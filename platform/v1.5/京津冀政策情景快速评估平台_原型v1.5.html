@@ -6878,7 +6878,7 @@ function render(){
     p.classList.toggle('on', !inCmp && !docPg && p.id==='p'+cur);
   });
   /* docSpy 必须排在 pdoc 显隐之后：它要量各节位置，量的是隐藏元素就只能得到 0，
-     于是所有 top 都是 0、最后一节永远胜出（实测高亮卡在 #d8）。 */
+     于是所有 top 都是 0、最后一节永远胜出（实测高亮卡在末节）。 */
   docSpy();
   document.body.classList.toggle('wizard', !inCmp);
   document.getElementById('steps').style.display='';
