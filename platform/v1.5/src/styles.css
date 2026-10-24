@@ -544,32 +544,17 @@ table.stmat select.sts{width:100%;height:26px;border:1px solid var(--line);borde
   background:#fff;font-size:11px;color:var(--tx2);padding:0 2px;text-align:center;}
 table.stmat select.sts.on{border-color:var(--pri);color:var(--pri);font-weight:600;background:var(--pri-s);}
 
-/* ================= v1.2 跨层一致性 ================= */
-table.xltab{border-collapse:collapse;width:100%;font-size:13px;}
-table.xltab th{background:var(--panel2);font-weight:600;text-align:left;padding:7px 10px;
-  border:1px solid var(--line2);font-size:13px;color:var(--tx2);}
-table.xltab td{padding:6px 10px;border:1px solid var(--line2);vertical-align:top;}
-table.xltab td.xlnm{font-weight:600;white-space:nowrap;}
-table.xltab td.xlcell select{width:100%;max-width:220px;height:30px;padding:0 8px;}
-table.xltab td.xlcell i{display:block;font-style:normal;font-size:11px;color:var(--tx3);margin-top:3px;}
-table.xltab td.xlcell.bad{background:var(--rd-s);}
-table.xltab td.xlcell.bad select{border-color:var(--rd);color:var(--rd);}
-.xlbads{margin-top:10px;display:flex;flex-direction:column;gap:6px;}
-.xlb{font-size:13px;color:var(--rd);background:var(--rd-s);border:1px solid var(--rd-b);
-  padding:7px 11px;border-radius:3px;line-height:1.7;}
-
-/* 数值锚定（状态区间参与检算） */
-table.anctab{width:100%;border-collapse:collapse;font-size:13px;}
-table.anctab th{background:var(--panel2);color:var(--tx3);font-weight:500;font-size:13px;
-  text-align:left;padding:7px 10px;border-bottom:1px solid var(--line);}
-table.anctab td{padding:6px 10px;border-bottom:1px solid var(--line);vertical-align:middle;}
-table.anctab tr:last-child td{border-bottom:none;}
-table.anctab input.ancin{width:100%;height:28px;padding:0 8px;font-size:13px;border-radius:3px;
+/* 已知值（原「数值锚定」卡片，现长在状态面板里） */
+.ancrow{display:flex;align-items:center;gap:9px;margin-top:9px;padding-top:9px;
+  border-top:1px dashed var(--line);font-size:13px;}
+.ancrow .alab{color:var(--tx3);flex:0 0 auto;}
+.ancrow input.ancin{flex:1 1 auto;min-width:0;height:28px;padding:0 8px;font-size:13px;border-radius:3px;
   border:1px solid var(--line);background:var(--panel);color:var(--tx);font-family:inherit;}
-table.anctab input.ancin.on{border-color:var(--pri);color:var(--pri);font-weight:600;background:var(--pri-s);}
-table.anctab .ancu{font-size:13px;color:var(--tx3);}
-table.anctab .ancb{color:var(--rd);font-weight:600;}
-table.anctab .ancx{font-size:13px;color:var(--pri);cursor:pointer;}
+.ancrow input.ancin.on{border-color:var(--pri);color:var(--pri);font-weight:600;background:var(--pri-s);}
+.ancrow .aunit{color:var(--tx3);flex:0 0 auto;min-width:34px;}
+.ancrow .acnt{color:var(--tx3);flex:0 0 auto;}
+.ancrow.dead .acnt{color:var(--rd);font-weight:600;}
+.ancrow .ancx{font-size:13px;color:var(--pri);cursor:pointer;flex:0 0 auto;}
 .ancsum{margin-top:11px;font-size:13px;color:var(--tx2);line-height:1.85;
   background:var(--panel2);padding:10px 13px;border-radius:3px;}
 .ancsum code{background:var(--panel);padding:1px 4px;border-radius:3px;font-size:13px;}
@@ -618,6 +603,12 @@ table.anctab .ancx{font-size:13px;color:var(--pri);cursor:pointer;}
 .layrow:last-child{border-bottom:none;}
 .layidx{display:inline-block;min-width:27px;color:var(--tx3);font-size:13px;}
 .laysep{color:var(--tx3);margin:0 7px;}
+.laydir{margin-top:14px;border-top:1px solid var(--line);padding-top:13px;}
+.laydirhd{display:flex;align-items:baseline;gap:9px;flex-wrap:wrap;font-size:14px;margin-bottom:8px;}
+.laybads{margin-top:9px;}
+.laybad{font-size:13px;line-height:1.8;padding:6px 10px;background:var(--wn-s);
+  border-radius:4px;margin-bottom:5px;}
+.laybad b{color:var(--tx1);}
 
 /* 影响路径分析 */
 .pathbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;background:var(--panel2);
@@ -689,83 +680,8 @@ table.proftab tr.pgroup td{background:var(--panel2);color:var(--tx);font-weight:
 .corrprof{margin-top:15px;padding-top:13px;border-top:1px dashed var(--line);}
 .cproflist{margin-top:8px;}
 
-/* ================= 演示模式 ================= */
-.pres{position:fixed;inset:0;z-index:60;background:var(--bg);display:none;}
-.pres.on{display:flex;}
-.presnav{width:216px;flex:none;background:var(--panel);border-right:1px solid var(--line);
-  padding:22px 12px;display:flex;flex-direction:column;gap:3px;}
-.presbrand{font-size:11px;color:var(--tx3);letter-spacing:.12em;padding:0 10px;margin-bottom:14px;}
-.pnav{display:flex;gap:9px;align-items:baseline;padding:9px 11px;border-radius:4px;
-  text-align:left;color:var(--tx2);font-size:13px;line-height:1.5;}
-.pnav:hover{background:var(--panel2);}
-.pnav.on{background:var(--pri-s);color:var(--pri);font-weight:600;}
-.pnav.dis{opacity:.32;cursor:not-allowed;}
-.pnav .pn{font-size:11px;color:var(--tx3);font-variant-numeric:tabular-nums;flex:none;}
-.pnav.on .pn{color:var(--pri);}
-.presexit{margin-top:auto;padding:8px 4px 0;}
-.pbtn{height:32px;padding:0 16px;border-radius:4px;border:1px solid var(--line);
-  background:var(--panel);color:var(--tx2);font-size:13px;font-family:inherit;cursor:pointer;}
-.pbtn:hover{border-color:var(--pri-b);color:var(--pri);}
-.pbtn.ghost{width:100%;}
-.presmain{flex:1;display:flex;flex-direction:column;min-width:0;}
-.presbody{flex:1;overflow:auto;padding:42px 54px 24px;}
-.presfoot{flex:none;border-top:1px solid var(--line);background:var(--panel);
-  height:52px;display:flex;align-items:center;gap:16px;padding:0 22px;}
-.pcnt{flex:1;text-align:center;font-size:13px;color:var(--tx3);}
-
-.pch{max-width:1060px;margin:0 auto;}
-.pch h1{font-size:30px;line-height:1.32;letter-spacing:-.2px;margin-bottom:12px;font-weight:600;}
-.peyebrow{font-size:13px;color:var(--pri);letter-spacing:.08em;margin-bottom:9px;}
-.plead{font-size:15px;color:var(--tx2);line-height:1.9;margin-bottom:24px;}
-.pnote{font-size:13px;color:var(--tx3);line-height:1.85;margin-top:12px;}
-.pdim{color:var(--tx2);font-size:13px;}
-.pstats{display:flex;gap:11px;flex-wrap:wrap;margin:16px 0 22px;}
-.pstat{background:var(--panel);border:1px solid var(--line);border-radius:4px;
-  padding:11px 17px;min-width:112px;}
-.pstat b{display:block;font-size:21px;line-height:1.35;color:var(--pri);font-weight:600;}
-.pstat span{font-size:13px;color:var(--tx3);}
-.pthree{display:grid;grid-template-columns:repeat(3,1fr);gap:13px;margin-top:6px;}
-.pthree>div{background:var(--panel);border:1px solid var(--line);border-radius:4px;
-  padding:14px 16px;}
-.pthree b{font-size:13px;}
-.pthree p{font-size:13px;color:var(--tx2);margin-top:6px;line-height:1.85;}
-
-.ptable,.ptab2,.pmat{width:100%;border-collapse:collapse;font-size:13px;
-  background:var(--panel);border:1px solid var(--line);}
-.ptable th,.ptab2 th,.pmat th{background:var(--panel2);color:var(--tx3);font-weight:500;
-  font-size:13px;text-align:left;padding:9px 11px;border-bottom:1px solid var(--line);}
-.ptable td,.ptab2 td,.pmat td{padding:9px 11px;border-bottom:1px solid var(--line2);vertical-align:top;}
-.ptab2 th,.ptab2 td{text-align:center;padding:7px 5px;font-size:13px;}
-.ptab2 .pcnr,.pmat .pcnr,.pmat .pcrh{text-align:left;min-width:96px;}
-.prng{display:inline-block;font-size:11px;color:var(--tx2);background:var(--panel2);
-  border:1px solid var(--line);border-radius:4px;padding:0 5px;margin-left:3px;vertical-align:1px;}
-.pconf{font-size:11px;color:var(--tx3);margin-left:4px;}
 .pwarn{background:var(--wn-s);border:1px solid var(--wn-b);color:#6E452C;
   padding:10px 14px;font-size:13px;line-height:1.8;margin:14px 0;}
-.pbad{color:var(--rd);font-size:13px;}
-.pok{color:var(--ok);font-size:13px;}
-.pbal{font-size:13px;color:var(--tx2);line-height:1.9;}
-.pmat td{text-align:center;font-variant-numeric:tabular-nums;font-size:13px;}
-.pmat .pself{color:var(--line);}
-.pmat .pempty{background:#FDFCFA;}
-.pmat .pz{color:var(--tx3);}
-.pmat .pv1{background:#F2F5F5;color:#22363F;}
-.pmat .pv2{background:#E4EBEC;color:#2F4858;}
-.pmat .pv3{background:#CFDADD;color:#22363F;font-weight:600;}
-.pmat .pn1{background:#FBF3F0;color:#9B3B2E;}
-.pmat .pn2{background:#F7E5E0;color:#9B3B2E;}
-.pmat .pn3{background:#F0D5CD;color:#7E2B21;font-weight:600;}
-.ptab2 .ps0{background:#EEF2F4;}
-.ptab2 .ps1{background:#EAF0F0;}
-.ptab2 .ps2{background:#F8F2EA;}
-.ptab2 .ps3{background:#F7EDEF;}
-.ptab2 .ps4{background:#F2ECEE;}
-@media (max-width:900px){
-  .presnav{width:150px;padding:14px 8px;}
-  .presbody{padding:22px 18px;}
-  .pthree{grid-template-columns:1fr;}
-  .pch h1{font-size:30px;}
-}
 
 /* 政策依据区块 */
 .pitem .pe{flex:none;font-size:11px;color:var(--ok);background:var(--ok-s);

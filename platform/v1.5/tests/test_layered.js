@@ -124,9 +124,30 @@ if(okChain){
   console.log('  第二层解落在上级允许集内且自洽:', legal2?'✓':'✗');
   console.log('  第二层组合数:', s19b.sols.length, '(上级 '+parents.length+' 组)');
 }
+
+console.log();
+console.log('=== 8. 档位方向判定长在真解上（原跨层一致性表已下沉）===');
+console.log('  layConflicts 存在:', (typeof layConflicts==='function')?'✓':'✗');
+console.log('  layDirectionHTML 存在:', (typeof layDirectionHTML==='function')?'✓':'✗');
+renderLay();
+const lh=document.getElementById('layBox').innerHTML;
+console.log('  渲染出档位方向块:', /档位方向/.test(lh)?'✓':'✗');
+console.log('  无冲突时给出「约束已生效」而非「没查」:', /约束已经生效/.test(lh)?'✓':'✗');
+// 造一条必然冲突的假结果：同一描述符相邻两层差 2 档
+const fake={ds:[A], order:['region','prov'], combos:1, ts:'0ms',
+  layers:[{scope:'region',n:1,checked:1},{scope:'prov',n:1,checked:1}],
+  final:[{path:[{scope:'region',cb:[0]},{scope:'prov',cb:[2]}]}]};
+const bad=layConflicts(fake);
+console.log('  差 2 档被判定为冲突:', (bad.length===1&&bad[0].diff===2)?'✓':'✗');
+const fakeOK={ds:[A], order:['region','prov'], combos:1, ts:'0ms',
+  layers:[{scope:'region',n:1,checked:1},{scope:'prov',n:1,checked:1}],
+  final:[{path:[{scope:'region',cb:[1]},{scope:'prov',cb:[2]}]}]};
+console.log('  差 1 档不算冲突:', layConflicts(fakeOK).length===0?'✓':'✗');
+console.log('  面板会列出冲突条目:', /相差 2 档/.test(layDirectionHTML(fake))?'✓':'✗');
 `;
 
 try { new Function(code + test)(); } catch (e) {
   console.log('崩溃检测：' + e.message);
   console.log(e.stack.split('\n').slice(0, 5).join('\n'));
+  process.exit(1);
 }

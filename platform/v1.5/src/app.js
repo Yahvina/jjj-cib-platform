@@ -453,7 +453,6 @@ function tglState(nm,st){
   const b=sel.desc[nm]; if(!b) return;
   const cur=(b.states||[])[0];
   b.states = (cur===st) ? [] : [st];
-  if(typeof xlSel==='object'&&xlSel) delete xlSel[nm];   // 跨层默认值跟着新选择重算
   cimResult=null; BAYES=null; layeredResult=null;
   corrResult=null;
   profResult=null;
@@ -726,13 +725,15 @@ function renderStates(){
         ${c.src?`<span class="src">来源：${c.src}</span>`:''}
         <i class="evi ${ev.k}" title="${ev.t}">${EVID_WORD[ev.k]||''}</i>${scopeTag}</div>`
         +(showLine?`<div class="evline"><b>${lineLb}</b>　${lineTxt}</div>`:'')
-        +rows+addBox+
+        +rows+addBox+ancRowHTML(nm)+
         `<div class="stfoot"><button class="btn sm" onclick="addState('${nm}')">＋ 自定义状态</button>
           ${hasScope&&rngScope!=='region'?`<button class="btn sm" onclick="dropScopeOverride('${nm}')">恢复区域级</button>`:''}
           <span class="sthint">${hintTxt}</span></div>`+
         (bad.length?`<div class="stbad">区间衔接提示：${bad.join('；')}</div>`:'')+
         `</div>`;
-    }).join('');
+    }).join('')
+      +ancConflictHTML()
+      +ancSummaryHTML();
   }
   const outs=allDescs().filter(d=>d.t==='结果型');
   document.getElementById('outPanel').innerHTML=
@@ -813,7 +814,10 @@ function impactVal(fd,fi,td,ti){
     return BAYES.matrix[fd+'>'+td];
   return expandV(r.v, ST(fd).length, fi, ST(td).length, ti);
 }
-/* ================= 数值锚定（v1.2 新增：让状态区间参与检算） ================= */
+/* ================= 数值锚定（v1.2 新增：让状态区间参与检算） =================
+   原先是一张独立卡片，列出所有描述符再由用户逐个填。现改为长在每个描述符的
+   状态面板里——它与状态选择是同一层输入，放在一起才是「选完状态顺手定已知值」。
+   卡片形式只剩一句总览（组合空间收窄多少），见 ancSummaryHTML。 */
 let anchors={};                       // 描述符名 -> {lo,hi}：已知值或现实区间
 function ancOf(nm){ return anchors[nm]||null; }
 function ancTxt(nm){
@@ -868,56 +872,48 @@ function ancConflicts(){
   });
   return out;
 }
-function renderAnc(){
-  const host=document.getElementById('ancBox'); if(!host) return;
+/* 状态面板里的「已知值」一行。缩进与 strow 对齐，视觉上属于这个描述符。 */
+function ancRowHTML(nm){
+  const a=ancOf(nm), defs=defsOf(nm);
+  const u=(defs.find(x=>x.u)||{}).u||'';
+  const tot=ST(nm).length, al=ancAllowed(nm);
+  const dead=!!a&&!al.length;
+  return `<div class="ancrow${a?' on':''}${dead?' dead':''}">`
+    +`<span class="alab">已知值</span>`
+    +`<input class="txt ancin${a?' on':''}" value="${ancTxt(nm)}" placeholder="不限，如 4.8 或 4.5~5.0"`
+    +` onchange="setAnc('${nm}',this.value)">`
+    +`<span class="aunit">${u||'—'}</span>`
+    +`<span class="acnt">${a?(dead?('<b>0</b> / '+tot):('<b>'+al.length+'</b> / '+tot)):('全部 '+tot)}</span>`
+    +(a?`<span class="ancx" onclick="setAnc('${nm}','')">清除</span>`:'')
+    +`</div>`
+    +(dead?`<div class="stbad">锚定把这个描述符的所有状态都排除了——检验会直接报错，请放宽已知值或改区间。</div>`:'');
+}
+/* 锚定总览：放在状态面板底部，只讲「收窄了多少」，不再重复列出所有输入框。 */
+function ancSummaryHTML(){
   const ds=Object.keys(sel.desc);
-  if(!ds.length){
-    host.innerHTML='<div class="empty">先在第 3 步勾选描述符，再回到这里设定数值锚定</div>'; return;
-  }
+  if(!ds.length) return '';
   let before=1, after=1, nA=0;
   ds.forEach(nm=>{ before*=ST(nm).length; after*=ancAllowed(nm).length; if(ancOf(nm)) nA++; });
-  const cf=ancConflicts(), deadOnes=ds.filter(nm=>ancOf(nm)&&!ancAllowed(nm).length);
-  let warn='';
-  if(cf.length||deadOnes.length){
-    warn='<div class="pwarn">';
-    if(deadOnes.length){
-      warn+='<b>锚定把某些描述符的所有状态都排除了：</b>'+deadOnes.join('、')
-        +'——检验会直接报错，请放宽锚定或改区间。<br>';
-    }
-    if(cf.length){
-      warn+='<b>你选中的状态与锚定不相交：</b>'
-        +cf.map(x=>x.nm+'「'+x.st+' '+x.lo+'–'+x.hi+(x.u?' '+x.u:'')+'」vs 锚定 '+ancTxt(x.nm)).join('；')
-        +'。检验时这些状态不会被考虑——请改选状态、放宽锚定，或确认锚定本身有误。';
-    }
-    warn+='</div>';
+  if(!nA) return `<div class="ancsum">尚未设定已知值——此时检验在全组合空间 ${before.toLocaleString()} 种上进行，状态区间只作说明之用。</div>`;
+  const deadOnes=ds.filter(nm=>ancOf(nm)&&!ancAllowed(nm).length);
+  let h=`<div class="ancsum">已给 <b>${nA}</b> 个描述符设定已知值：组合空间由 <b>${before.toLocaleString()}</b> 收窄为 <b>${after.toLocaleString()}</b> 种`;
+  if(before>after) h+=`（排除 ${(before-after).toLocaleString()} 种）`;
+  h+=`。<b>改变已知值后需重新运行检验。</b>　<a class="ancx" onclick="clearAnc()">全部清除</a>`;
+  h+=`<br>只有与已知值<b>完全不相交</b>的状态才被排除；部分重叠的保留，因为它仍可能与已知值相容。</div>`;
+  if(deadOnes.length){
+    h+=`<div class="note" style="margin-top:10px;">有描述符在已知值下<b>一个可用状态都不剩</b>——`
+      +`这套设定在数值上无解。要么放宽已知值，要么调整那些状态的取值区间。</div>`;
   }
-  let h=warn+'<table class="anctab"><tr><th>描述符</th><th style="width:132px">锚定值 / 区间</th>'
-    +'<th style="width:86px">单位</th><th style="width:104px">可用状态</th><th style="width:50px"></th></tr>';
-  ds.forEach(nm=>{
-    const a=ancOf(nm), al=ancAllowed(nm), tot=ST(nm).length, defs=defsOf(nm);
-    const u=(defs.find(x=>x.u)||{}).u||'';
-    h+='<tr><td>'+nm+'</td>'
-      +'<td><input class="txt ancin'+(a?' on':'')+'" value="'+ancTxt(nm)+'" placeholder="不限" '
-      +'onchange="setAnc(\''+nm+'\',this.value)"></td>'
-      +'<td class="ancu">'+(u||'—')+'</td>'
-      +'<td'+(a&&!al.length?' class="ancb"':'')+'>'
-      +(a?(al.length?('<b>'+al.length+'</b> / '+tot):('<b>0</b> / '+tot)):('全部 '+tot))+'</td>'
-      +'<td>'+(a?'<span class="ancx" onclick="setAnc(\''+nm+'\',\'\')">清除</span>':'')+'</td></tr>';
-  });
-  h+='</table>';
-  h+='<div class="ancsum">'+(nA
-      ? '已锚定 <b>'+nA+'</b> 个描述符：组合空间由 <b>'+before.toLocaleString()+'</b> 收窄为 <b>'
-        +after.toLocaleString()+'</b> 种'+(before>after?('（排除 '+(before-after).toLocaleString()+' 种）'):'')
-        +'。<b>改变锚定后需重新运行检验。</b>'
-      : '尚未设定锚定——此时检验在全组合空间上进行，状态区间只作说明之用。')
-    +'<br>输入方式：单值 <code>4.8</code>，或区间 <code>4.5~5.0</code>（单位与右侧一致）。'
-    +'只有与锚定值<b>完全不相交</b>的状态才被排除；部分重叠的保留，因为它仍可能与已知值相容。'
-    +(nA?'　<a class="ancx" onclick="clearAnc()">全部清除</a>':'')+'</div>';
-  if(ds.some(nm=>ancOf(nm)&&!ancAllowed(nm).length)){
-    h+='<div class="note" style="margin-top:10px;">有描述符在锚定下<b>一个可用状态都不剩</b>——'
-      +'这套设定在数值上无解。要么放宽锚定，要么回第 3 步调整那些状态的取值区间。</div>';
-  }
-  host.innerHTML=h;
+  return h;
+}
+/* 选中的状态与已知值不相交时必须显式提示：否则用户以为它被检验过了。
+   它在枚举里确实不会出现（ancAllowed 把它排除了），界面上却仍显示为已选。 */
+function ancConflictHTML(){
+  const cf=ancConflicts();
+  if(!cf.length) return '';
+  return '<div class="pwarn"><b>你选中的状态与已知值不相交：</b>'
+    +cf.map(x=>x.nm+'「'+x.st+' '+x.lo+'–'+x.hi+(x.u?' '+x.u:'')+'」vs 已知值 '+ancTxt(x.nm)).join('；')
+    +'。检验时这些状态不会被考虑——请改选状态、放宽已知值，或确认已知值本身有误。</div>';
 }
 
 /* 枚举核心：一致性检验与影响谱共用。
@@ -1170,7 +1166,7 @@ function renderLay(){
   if(R.layers.some(x=>x.sampled)){
     h+='<div class="dim" style="font-size:13px;margin:6px 0 0;">'
       +'标注「抽样」的层组合空间超过 25 万，按固定种子抽样估计（自洽组合数是<b>下限</b>，'
-      +'小空间层仍为精确枚举）。19 个描述符全开时全空间约 11.6 亿种，逐层判一遍而非每组判一遍，'
+      +'小空间层仍为精确枚举）。19 个描述符全开时全空间约 5.17 亿种，逐层判一遍而非每组判一遍，'
       +'才能在这个规模跑完。</div>';
   }
   h+=kv('最终跨层相容组合', '<span style="color:var(--pri);font-weight:600;">'+R.combos.toLocaleString()
@@ -1199,7 +1195,62 @@ function renderLay(){
   h+='<div style="margin-top:12px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;">'
     +'<button class="btn sm" onclick="runLayered()">重新求解</button>'
     +'<span class="dim" style="font-size:13px;">计算时间 '+R.ts+'</span></div>';
+  h+=layDirectionHTML(R);
   host.innerHTML=h;
+}
+
+/* 档位方向判定。原先由第 3 步那张手工「跨层一致性」表承担——用户给每层填一个档位，
+   再查相邻层是否方向相反。那张表不参与任何计算，改它不影响结果；现在判定长在
+   真正被算出来的组合上：对每条跨层相容组合，逐对相邻层比同一描述符的档位。
+   判据不变——差 0 完全一致、差 1 是允许的梯度、差 ≥2 判为方向相反。
+   逐层求解本身就用区间相交筛过下级（allowUnder），所以正常情况下这里应当是 0 项；
+   若出现非 0，说明相邻两层的状态区间有重叠，档位索引差大而数值仍相容，值得看一眼。 */
+function layConflicts(R){
+  const out=[];
+  if(!R||!R.final||!R.final.length) return out;
+  R.final.forEach((f,fi)=>{
+    const seq=f.path||[];
+    for(let i=0;i<seq.length-1;i++){
+      const u=seq[i], d=seq[i+1];
+      if(!u||!d) continue;
+      R.ds.forEach((nm,j)=>{
+        const ui=u.cb[j], di=d.cb[j];
+        if(ui===undefined||di===undefined) return;
+        const diff=Math.abs(ui-di);
+        if(diff>=2) out.push({i:fi,nm:nm,u:u.scope,d:d.scope,ui:ui,di:di,diff:diff});
+      });
+    }
+  });
+  return out;
+}
+function layDirectionHTML(R){
+  if(!R||!R.combos) return '';
+  const bad=layConflicts(R);
+  const nPair=Math.max(0,(R.order?R.order.length:0)-1);
+  const nDesc=(R.ds||[]).length;
+  let h='<div class="laydir">';
+  h+='<div class="laydirhd"><b>档位方向</b>'
+    +'<span class="dim">检查 '+nPair+' 组相邻层级 × '+nDesc+' 个描述符'
+    +'，对全部 '+R.combos+' 条组合逐条比对</span></div>';
+  if(!bad.length){
+    h+='<div class="rok">相邻层级之间<b>没有方向相反的组合</b>。'
+      +'逐层求解在枚举下级时就用上级区间做了筛选，方向冲突的组合从一开始就不会被算出来——'
+      +'所以这里是「约束已经生效」，不是「没查」。</div>';
+  }else{
+    h+='<div class="rnote"><b>'+bad.length+' 处档位方向相反</b>，出现在已求解的组合里。'
+      +'这通常说明相邻两层的状态区间有重叠：档位索引差得远，数值上却仍相容。'
+      +'若这种跨度不符合预期，回到第 3 步收窄对应层级的区间。</div>';
+    h+='<div class="laybads">';
+    bad.slice(0,12).forEach(b=>{
+      h+='<div class="laybad">组合 #'+(b.i+1)+'　<b>'+(DSHORT[b.nm]||b.nm)+'</b>：'
+        +XL_NAME[b.u]+'取「'+(ST(b.nm)[b.ui]||'?')+'」，'+XL_NAME[b.d]+'取「'
+        +(ST(b.nm)[b.di]||'?')+'」——相差 '+b.diff+' 档</div>';
+    });
+    h+='</div>';
+    if(bad.length>12) h+='<div class="dim" style="font-size:13px;margin-top:6px;">此处列出前 12 处，共 '+bad.length+' 处。</div>';
+  }
+  h+='</div>';
+  return h;
 }
 
 /* 「我选的那套情景」到底成不成立——这是状态选择的用处。
@@ -1241,7 +1292,7 @@ function checkResult(){
       +'把「所有描述符的选定状态都是各自平衡里得分最高的那一个」的组合挑出来——这些就是自洽情景。'
       +'<div style="margin-top:12px;"><button class="btn pri" onclick="runCIM()">运行一致性检验</button></div>'
       +'<div class="dim" style="font-size:13px;margin-top:9px;">组合数＝各描述符状态数之积。'
-      +'19 个描述符全选时约 3¹⁷×2² ≈ 11.6 亿种，远超可枚举范围，此时平台会自动改为随机抽样检验并标注。</div></div>');
+      +'19 个描述符全选时约 3¹⁷×2² ≈ 5.17 亿种，远超可枚举范围，此时平台会自动改为随机抽样检验并标注。</div></div>');
     return;
   }
   const r=cimResult;
@@ -1866,7 +1917,6 @@ function toast(m){
 function snapshot(){
   return {desc:sel.desc, model:curModel, exp:expertN, bayes:useBayes, gen:genMode, pulled,
     scales:[...document.querySelectorAll('[data-scale].sel')].map(x=>x.dataset.scale),
-    xlSel: xlSel,
     anchors: anchors,
     rngScope: rngScope,
     cim: (ens&&ens.active>=0 ? ens.people[ens.active].cim : cim),
@@ -1898,7 +1948,7 @@ function loadCfg(){
       const c=x.querySelector('.chk'); c.classList.toggle('on',on); c.innerHTML=on?TICK:'';
     });
     // 打分矩阵与多专家状态
-    ens=d.ens||null; ensRes=d.ensRes||{}; xlSel=d.xlSel||{}; anchors=d.anchors||{};
+    ens=d.ens||null; ensRes=d.ensRes||{}; anchors=d.anchors||{};
     if(d.rngScope&&SCOPE_NAME[d.rngScope]) rngScope=d.rngScope;
     Object.keys(scopedDefs).forEach(k=>delete scopedDefs[k]);
     if(ens&&ens.people&&ens.people.length){
@@ -3011,127 +3061,19 @@ function exportEns(){
   saveFile('集成工作簿_'+nowStr().replace(/[: ]/g,'-')+'.html', html, 'text/html');
 }
 
-/* ================= 跨层一致性（v1.2 新增） =================
-   同一个描述符在不同尺度上各有一个取值。上级定了调子，下级不能反着来——
-   但"不能反"不等于"必须相同"：差一档是允许的梯度，差两档才是方向相反。
-   这是纵向一致性，与 CIB 的横向自洽是两个正交的检验，都通过才算这套假设站得住。 */
+/* ================= 层级顺序（原「跨层一致性」表已删除） =================
+   这里只留层级顺序本身。同一描述符在不同尺度上各有一个取值，这个顺序决定了
+   逐层求解从哪一层开始、按什么次序往下推。
+   原先那张「跨层一致性」表要求用户手工给每层填一个档位、再查相邻层是否方向相反——
+   但它不参与任何计算（枚举、逐层求解、逐层约束都不读它），改它不影响任何结果。
+   档位方向的判定现在长在逐层求解的结果上（见 layConflicts），判的是真正被算出来的组合。 */
 
 const XL_ORDER=['nation','region','prov','city'];
 const XL_NAME={nation:'国家级',region:'区域级',prov:'省级',city:'市级'};
-let xlSel={};          // 描述符名 -> { nation:idx, prov:idx, city:idx }
 
 function xlayers(){
   const on=[...document.querySelectorAll('[data-scale].sel')].map(x=>x.dataset.scale);
   return XL_ORDER.filter(l=>on.indexOf(l)>=0);
-}
-function xlXY(){                       // 相邻的层级对
-  const seq=xlayers(), r=[];
-  for(let i=0;i<seq.length-1;i++) r.push([seq[i],seq[i+1]]);
-  return r;
-}
-function xlDefault(nm){
-  // 默认值跟随「描述符与状态」里选的档位，而不是一律从第 1 档开始——
-  // 否则跨层表看起来和上面的选择毫无关系，用户会以为它只是摆设。
-  const sn=((sel.desc[nm]||{}).states||[])[0];
-  const i=sn?ST(nm).indexOf(sn):-1;
-  return i>=0?i:0;
-}
-function xlEnsure(){
-  const L=xlayers();
-  Object.keys(sel.desc).forEach(nm=>{
-    if(!xlSel[nm]) xlSel[nm]={};
-    L.forEach(l=>{
-      if(xlSel[nm][l]===undefined||xlSel[nm][l]>=ST(nm).length) xlSel[nm][l]=xlDefault(nm);
-    });
-    Object.keys(xlSel[nm]).forEach(l=>{ if(L.indexOf(l)<0) delete xlSel[nm][l]; });
-  });
-  Object.keys(xlSel).forEach(nm=>{ if(!sel.desc[nm]) delete xlSel[nm]; });
-}
-function setXl(nm,l,v){ xlSel[nm]=xlSel[nm]||{}; xlSel[nm][l]=+v; renderXl(); }
-function xlCheck(){
-  xlEnsure();
-  const out=[];
-  xlXY().forEach(([u,d])=>{
-    Object.keys(sel.desc).forEach(nm=>{
-      const a=xlSel[nm]||{}, ui=a[u], di=a[d];
-      if(ui===undefined||di===undefined) return;
-      const diff=Math.abs(ui-di);
-      if(diff>=2) out.push({nm:nm,u:u,d:d,ui:ui,di:di,diff:diff});
-    });
-  });
-  return out;
-}
-function xlAlign(){
-  let n=0;
-  xlXY().forEach(([u,d])=>{
-    Object.keys(sel.desc).forEach(nm=>{
-      const a=xlSel[nm]; if(!a) return;
-      const ui=a[u], di=a[d];
-      if(ui===undefined||di===undefined) return;
-      if(Math.abs(ui-di)>=2){ a[d]=ui>di?ui-1:ui+1; n++; }
-    });
-  });
-  renderXl();
-  toast(n?('已把 '+n+' 处下级取值调到与上级相邻的档位'):'没有需要对齐的项');
-}
-function renderXl(){
-  const el=document.getElementById('xlBox'); if(!el) return;
-  const L=xlayers();
-  if(!nSel()){ el.innerHTML='<div class="empty">先在第 3 步勾选描述符。</div>'; return; }
-  if(L.length<2){
-    el.innerHTML='<div class="empty">当前只选了一个层级（'+(L.map(l=>XL_NAME[l]).join('')||'未选')
-      +'），没有跨层关系可查。回到第 1 步多勾一层。</div>';
-    return;
-  }
-  xlEnsure();
-  const nms=Object.keys(sel.desc), bad=xlCheck();
-  let h='<table class="xltab"><tr><th>描述符</th>'+L.map(l=>'<th>'+XL_NAME[l]
-    +(l==='nation'?' <span class="dim" style="font-weight:400;font-size:11px;">给定</span>':'')+'</th>').join('')+'</tr>';
-  nms.forEach(nm=>{
-    const sts=ST(nm), defs=defsOf(nm);
-    h+='<tr><td class="xlnm">'+(DSHORT[nm]||nm)+'</td>';
-    L.forEach((l,i)=>{
-      const v=xlSel[nm][l], x=defs[v]||{};
-      const rg=(x.lo===null||x.lo===undefined)?''
-        :'<i>'+(x.lo+'–'+x.hi+(x.u?' '+x.u:''))+'</i>';
-      let cl='';
-      if(i>0 && Math.abs(v-xlSel[nm][L[i-1]])>=2) cl=' bad';
-      h+='<td class="xlcell'+cl+'"><select class="txt" onchange="setXl(\''+nm+'\',\''+l+'\',this.value)">'
-        +sts.map((s,k)=>'<option value="'+k+'"'+(v===k?' selected':'')+'>'+s+'</option>').join('')
-        +'</select>'+rg+'</td>';
-    });
-    h+='</tr>';
-  });
-  h+='</table>';
-  const pairs=xlXY();
-  h+='<div class="filtbar"><span class="filtmeta">检查 <b>'+pairs.length+'</b> 组相邻层级 × <b>'
-    +nms.length+'</b> 个描述符 ＝ '+(pairs.length*nms.length)+' 项　·　'
-    +(bad.length?('冲突 <b style="color:var(--rd)">'+bad.length+'</b> 项')
-      :('<b style="color:var(--ok)">全部相容</b>'))+'</span>'
-    +'<div class="sp"></div>'
-    +(bad.length?'<button class="btn sm pri" onclick="xlAlign()">把下级调到相邻档</button>':'')
-    +'</div>';
-  if(bad.length){
-    h+='<div class="xlbads">';
-    bad.forEach(b=>{
-      h+='<div class="xlb"><b>'+(DSHORT[b.nm]||b.nm)+'</b>：'+XL_NAME[b.u]+'取「'
-        +(ST(b.nm)[b.ui]||'?')+'」，'+XL_NAME[b.d]+'却取「'+(ST(b.nm)[b.di]||'?')
-        +'」——<b>方向相反</b>（跨 '+b.diff+' 档）</div>';
-    });
-    h+='</div>';
-  }else{
-    h+='<div class="rok" style="margin-top:10px;">各描述符在相邻层级之间没有出现方向相反的情况。'
-      +'<b>梯度的存在是允许的</b>——省级比国家级保守一档，本身不算矛盾。</div>';
-  }
-  h+='<div class="dim" style="font-size:13px;line-height:1.75;margin-top:10px;">'
-    +'<b>判据</b>：档位差 0＝完全一致，1＝有梯度（允许），2＝方向相反（冲突）。'
-    +'只查<b>同一描述符在相邻层级之间</b>的关系，不涉及跨描述符、也不涉及 CIB 的影响平衡。<br>'
-    +'<b>国家级是给定层</b>：它是外部条件（国家政策目标），改它等于设定前提，不是在探索取值——'
-    +'所以它不参与组合枚举，只作为各层的约束起点。<br>'
-    +'<b>数值加总暂不自动校验</b>：京、津、冀是三个平级单位，而市级只覆盖河北——'
-    +'层级树的成员并不完整（京津下级缺位），"下级之和能否凑出上级"要先把每层成员补齐，'
-    +'目前只能查档位方向。</div>';
-  el.innerHTML=h;
 }
 
 /* ================= 情景筛选（v1.2 新增，对应德国软件的选择管理器） =================
@@ -3748,272 +3690,6 @@ function renderCorr(){
 }
 
 
-/* ================= 演示模式（v1.2 新增，对应德国软件的 Presenter） =================
-   定位：站着讲给人听，不是操作。全屏、只读、只用点击或方向键翻页。
-   章节顺序照 CIB 演示的常规流程排；其中「政策库与映射」「跨层一致性」两章
-   是德国软件没有的，也是我们区别于它的地方。 */
-const PRES=[
-  {k:'about',  t:'开场',        s:'这是什么工具、今天看什么'},
-  {k:'desc',   t:'描述符与状态', s:'每个变量有哪几档、依据是什么'},
-  {k:'policy', t:'政策库与映射', s:'政策语言怎么翻成模型语言'},
-  {k:'matrix', t:'交叉影响',     s:'谁影响谁、多强、依据是什么'},
-  {k:'scen',   t:'自洽情景',     s:'哪些组合站得住'},
-  {k:'one',    t:'钻进一个情景', s:'它为什么自洽'},
-  {k:'xl',     t:'跨层一致性',   s:'国家—区域—省—市对不对得上'}
-];
-let presI=0, presOpen=false, presScenIdx=0;
-
-function presAvail(k){
-  if(k==='matrix') return Object.keys(sel.desc).length>=2;
-  if(k==='scen'||k==='one') return !!(cimResult && cimResult.consistent.length);
-  return true;
-}
-function openPres(){
-  presOpen=true; presI=0; presScenIdx=0;
-  const b=document.getElementById('pres'); if(!b) return;
-  b.classList.add('on');
-  document.body.style.overflow='hidden';
-  renderPres();
-}
-function closePres(){
-  presOpen=false;
-  const b=document.getElementById('pres'); if(b) b.classList.remove('on');
-  document.body.style.overflow='';
-}
-function presGo(i){
-  if(i<0||i>=PRES.length) return;
-  if(!presAvail(PRES[i].k)) return;
-  presI=i; renderPres();
-}
-function presNext(){ for(let i=presI+1;i<PRES.length;i++){ if(presAvail(PRES[i].k)){ presGo(i); return; } } }
-function presPrev(){ for(let i=presI-1;i>=0;i--){ if(presAvail(PRES[i].k)){ presGo(i); return; } } }
-
-function renderPres(){
-  const nav=document.getElementById('presNav'), body=document.getElementById('presBody'),
-        cnt=document.getElementById('presCnt');
-  if(!nav||!body) return;
-  let h='<div class="presbrand">演示模式</div>';
-  PRES.forEach((c,i)=>{
-    const ok=presAvail(c.k);
-    h+='<button class="pnav'+(i===presI?' on':'')+(ok?'':' dis')+'"'
-      +(ok?' onclick="presGo('+i+')"':' disabled')+'>'
-      +'<span class="pn">'+String(i+1).padStart(2,'0')+'</span>'
-      +'<span class="pt">'+c.t+'</span></button>';
-  });
-  h+='<div class="presexit"><button class="pbtn ghost" onclick="closePres()">退出（Esc）</button></div>';
-  nav.innerHTML=h;
-  const ch=PRES[presI];
-  body.innerHTML=presBody(ch.k);
-  if(cnt) cnt.textContent=(presI+1)+' / '+PRES.length+'　·　'+ch.s;
-}
-
-function presStat(v,l){
-  return '<div class="pstat"><b>'+v+'</b><span>'+l+'</span></div>';
-}
-
-function presBody(k){
-  if(k==='about')  return presAbout();
-  if(k==='desc')   return presDesc();
-  if(k==='policy') return presPolicy();
-  if(k==='matrix') return presMatrix();
-  if(k==='scen')   return presScen();
-  if(k==='one')    return presOne();
-  if(k==='xl')     return presXl();
-  return '';
-}
-
-function presAbout(){
-  const S=cimResult?cimResult.consistent.length:0;
-  return '<div class="pch">'
-    +'<div class="peyebrow">清华大学 · 京津冀绿色低碳发展路径</div>'
-    +'<h1>政策情景快速评估</h1>'
-    +'<p class="plead">把政策文件里的目标，翻译成模型能用的参数；<br>再检验这些假设放在一起，是否互相打架。</p>'
-    +'<div class="pstats">'+presStat(19,'个描述符')+presStat(55,'个状态')
-      +presStat(106,'条政策路径')+presStat(S||'—','组自洽情景')+'</div>'
-    +'<div class="pthree">'
-      +'<div><b>不做预测</b><p>只说「这套假设内部站不站得住」，不说「未来会怎样」。自洽不等于会发生。</p></div>'
-      +'<div><b>跨三个尺度</b><p>国家给定目标、区域分解、省市落实；纵向也要对得上，不只是各自算一遍。</p></div>'
-      +'<div><b>每条判断可查</b><p>格子里的分数都带依据与置信度，低置信度的会被单独挑出来复核。</p></div>'
-    +'</div></div>';
-}
-
-function presDesc(){
-  const ds=Object.keys(sel.desc);
-  if(!ds.length) return '<div class="pch"><h1>还没有选择描述符</h1>'
-    +'<p class="plead">退出演示，回到第 3 步勾选几个描述符，再进来。</p></div>';
-  let h='<div class="pch"><div class="peyebrow">第二步 · 描述符与状态</div>'
-    +'<h1>情景由这些变量定义</h1>'
-    +'<p class="plead">每个描述符分几档；每一档都挂着取值区间和它的政策依据。</p>'
-    +'<table class="ptable"><thead><tr><th style="width:22%">描述符</th><th style="width:9%">类型</th>'
-    +'<th>状态（含取值区间）</th><th style="width:16%">依据</th></tr></thead><tbody>';
-  ds.slice(0,8).forEach(d=>{
-    const o=dOf(d)||{}, defs=defsOf(d);
-    const ev=(RANGE_EVID[d]||{}).k||'example';
-    h+='<tr><td><b>'+d+'</b></td><td class="pdim">'+(o.t||'—')+'</td><td>'
-      +defs.map(x=>x.n+(x.lo===null||x.hi===null?'':'<span class="prng">'+x.lo+'–'+x.hi+(x.u||'')+'</span>')).join('　')
-      +'</td><td class="pdim">'+(EVID_WORD[ev]||'')+'</td></tr>';
-  });
-  h+='</tbody></table>';
-  if(ds.length>8) h+='<p class="pnote">此处展示前 8 个，共 '+ds.length+' 个。</p>';
-  h+='</div>';
-  return h;
-}
-
-function presPolicy(){
-  const withMap=POLICY.filter(p=>p.m&&p.m.length);
-  const noMap=POLICY.length-withMap.length;
-  let h='<div class="pch"><div class="peyebrow">上游 · 政策库与映射</div>'
-    +'<h1>政策语言 → 模型语言</h1>'
-    +'<p class="plead">政策文件说的「补贴」「标准」「目标」，要落到模型里具体哪个变量上。'
-    +'这是一张查找表——德国软件从描述符开始，我们从政策开始。</p>'
-    +'<div class="pstats">'+presStat(POLICY.length,'条政策路径')+presStat(withMap.length,'条有对应变量')
-      +presStat(noMap,'条不在模型口径内')+'</div>';
-  h+='<table class="ptable"><thead><tr><th style="width:30%">政策路径</th><th style="width:12%">类别</th>'
-    +'<th>对应到</th></tr></thead><tbody>';
-  withMap.slice(0,7).forEach(p=>{
-    h+='<tr><td><b>'+p.n+'</b></td><td class="pdim">'+p.c+'</td><td>'
-      +p.m.map(x=>x[0]+'<span class="pconf">'+x[1]+'</span>').join('　')+'</td></tr>';
-  });
-  h+='</tbody></table>';
-  h+='</div>';
-  return h;
-}
-
-function presMatrix(){
-  const ds=Object.keys(sel.desc);
-  if(ds.length<2) return '<div class="pch"><h1>还差一步</h1><p class="plead">至少要选两个描述符才谈得上互相影响。</p></div>';
-  const show=ds.slice(0,8), n=show.length;
-  let filled=0, low=0, rev=0, zero=0, total=n*(n-1);
-  let h='<div class="pch"><div class="peyebrow">第三步 · 交叉影响</div>'
-    +'<h1>谁影响谁，有多强</h1>'
-    +'<p class="plead">每一格问的是：「当 A 取某一档时，会不会把 B 推向某一档」。−3 到 +3，正向促进、负向抑制；'
-    +'0 表示两者之间没有直接关系——这是一个判断，不是「没把握」，没把握请改置信度。</p>'
-    +'<table class="pmat"><thead><tr><th class="pcnr">来源 ＼ 目标</th>';
-  show.forEach(d=>{ h+='<th title="'+d+'">'+(DSHORT[d]||d)+'</th>'; });
-  h+='</tr></thead><tbody>';
-  show.forEach(s=>{
-    h+='<tr><th class="pcrh">'+(DSHORT[s]||s)+'</th>';
-    show.forEach(t=>{
-      if(s===t){ h+='<td class="pself">—</td>'; return; }
-      const r=cim[s+'>'+t];
-      if(!r){ h+='<td class="pempty"></td>'; return; }
-      filled++; if(r.conf==='低') low++; if(r.rev) rev++; if(r.v===0) zero++;
-      const cls=r.v>0?('pv'+r.v):(r.v<0?('pn'+(-r.v)):'pz');
-      h+='<td class="'+cls+'">'+(r.v>0?'+':'')+r.v+'</td>';
-    });
-    h+='</tr>';
-  });
-  h+='</tbody></table>';
-  h+='<div class="pstats">'+presStat(filled+' / '+total,'已判判断')+presStat(zero,'判为 0')
-    +presStat(low,'低置信度')+presStat(rev,'已人工审核')+'</div>';
-  h+='<p class="pnote">颜色越深影响越强；低置信度格子待人复核。判为 0 的格子表示两者之间'
-    +'没有直接关系，是一条判断，不是「没把握」；空白格子表示还没有判断。</p></div>';
-  return h;
-}
-
-function presScen(){
-  if(!cimResult||!cimResult.consistent.length) return '';
-  const L=cimResult.consistent, ds=cimResult.ds;
-  const cols=Math.min(L.length,10);
-  let h='<div class="pch"><div class="peyebrow">第四步 · 自洽情景</div>'
-    +'<h1>哪些组合站得住</h1>'
-    +'<p class="plead">不是所有搭配都可能：每个变量都取「在别人给定之后自己最占优」的那一档，才算自洽。</p>'
-    +'<div class="pstats">'+presStat(cimResult.total.toLocaleString(),'种组合')
-      +presStat(cimResult.checked.toLocaleString(),'实际检查')
-      +presStat(L.length,'组自洽')+presStat(cimResult.inconsistent.toLocaleString(),'组不自洽')+'</div>';
-  if(L.length>50) h+='<div class="pwarn">自洽情景超过 50 组。按手册的经验，一屋子人讨论 50 组以上管不过来——'
-    +'建议先在平台第 7 步用「情景筛选」收到 50 组以内再讲。</div>';
-  h+='<table class="ptab2"><thead><tr><th class="pcnr">描述符</th>';
-  for(let c=0;c<cols;c++) h+='<th>情景 '+(c+1)+'</th>';
-  h+='</tr></thead><tbody>';
-  ds.slice(0,9).forEach((d,ri)=>{
-    h+='<tr><td class="pcnr">'+(DSHORT[d]||d)+'</td>';
-    let c=0;
-    while(c<cols){
-      const v=L[c][ri];
-      let span=1;
-      while(c+span<cols && L[c+span][ri]===v) span++;
-      const nm=ST(d)[v]||'?';
-      h+='<td class="ps'+(v%5)+'" colspan="'+span+'">'+nm+(span>1?' ×'+span:'')+'</td>';
-      c+=span;
-    }
-    h+='</tr>';
-  });
-  h+='</tbody></table>';
-  if(L.length>cols) h+='<p class="pnote">此处显示前 '+cols+' 组，共 '+L.length+' 组。同一行颜色连成一片，说明这些情景在该变量上没有分歧。</p>';
-  h+='</div>';
-  return h;
-}
-
-function presOne(){
-  if(!cimResult||!cimResult.consistent.length) return '';
-  if(presScenIdx>=cimResult.consistent.length) presScenIdx=0;
-  const cb=cimResult.consistent[presScenIdx], ds=cimResult.ds;
-  let h='<div class="pch"><div class="peyebrow">第四步 · 情景 '+(presScenIdx+1)+'</div>'
-    +'<h1>这一组为什么自洽</h1>'
-    +'<p class="plead">逐个变量检查：选定这一档，在其他人已经给定的情况下，是不是它自己的最优选择。</p>'
-    +'<table class="ptable"><thead><tr><th style="width:22%">描述符</th><th style="width:26%">本情景取值</th>'
-    +'<th>各档的影响平衡（▲ 为最高）</th></tr></thead><tbody>';
-  ds.slice(0,9).forEach((d,i)=>{
-    const sts=ST(d), bal=[];
-    for(let j=0;j<sts.length;j++){
-      let s=0;
-      for(let k=0;k<ds.length;k++){ if(k!==i) s+=impactVal(ds[k],cb[k],d,j); }
-      bal.push(s);
-    }
-    const mx=Math.max.apply(null,bal);
-    h+='<tr><td><b>'+d+'</b></td><td>'+sts[cb[i]]+'</td><td class="pbal">'
-      +bal.map((v,j)=>(j===cb[i]?'<b>':'')+sts[j]+' '+(v>0?'+':'')+v.toFixed(1)
-        +(Math.abs(v-mx)<1e-6?' ▲':'')+(j===cb[i]?'</b>':'')).join('　')+'</td></tr>';
-  });
-  h+='</tbody></table>';
-  h+='<p class="pnote">各变量均取到自身最高分，故内部无冲突。'
-    +'注意：这只说明「内部一致」，不说明它在现实中可行。</p></div>';
-  return h;
-}
-
-function presXl(){
-  const ds=Object.keys(sel.desc);
-  const L=xlayers();
-  if(!ds.length||!L.length) return '<div class="pch"><h1>还没设置跨层</h1>'
-    +'<p class="plead">退出演示，在第 1 步勾选多个层级、并在第 7 步的「跨层一致性」里设定各层取值。</p></div>';
-  let confl=0;
-  let h='<div class="pch"><div class="peyebrow">第五步 · 跨层一致性</div>'
-    +'<h1>同一套假设，摊到四个尺度上还成立吗</h1>'
-    +'<p class="plead">国家级是给定层（政策目标），不参与枚举；区域、省、市逐级落实。'
-    +'相邻层级档位差 2 档以上，视为方向相反。</p>'
-    +'<table class="ptable"><thead><tr><th style="width:24%">描述符</th>';
-  L.forEach(l=>{ h+='<th>'+XL_NAME[l]+(l==='nation'?'（给定）':'')+'</th>'; });
-  h+='<th style="width:16%">判定</th></tr></thead><tbody>';
-  ds.slice(0,9).forEach(d=>{
-    const sts=ST(d);
-    h+='<tr><td><b>'+d+'</b></td>';
-    L.forEach(l=>{
-      const v=(xlSel[d]||{})[l];
-      h+='<td>'+(v===undefined?'—':sts[v])+'</td>';
-    });
-    let bad=null;
-    for(let i=0;i<L.length-1;i++){
-      const a=(xlSel[d]||{})[L[i]], b=(xlSel[d]||{})[L[i+1]];
-      if(a===undefined||b===undefined) continue;
-      if(Math.abs(a-b)>=2){ bad=XL_NAME[L[i]]+'→'+XL_NAME[L[i+1]]+' 相差 '+Math.abs(a-b)+' 档'; break; }
-    }
-    if(bad){ confl++; h+='<td class="pbad">'+bad+'</td>'; }
-    else h+='<td class="pok">一致</td>';
-    h+='</tr>';
-  });
-  h+='</tbody></table>';
-  h+='<p class="pnote">'+confl+' 个描述符存在跨层冲突。'
-    +'这一页是德国软件没有的——它只有单层级，压根不存在这个问题。</p></div>';
-  return h;
-}
-
-document.addEventListener('keydown', function(e){
-  if(!presOpen) return;
-  if(e.key==='Escape'){ closePres(); return; }
-  if(e.key==='ArrowRight'||e.key==='PageDown'||e.key===' '){ e.preventDefault(); presNext(); }
-  if(e.key==='ArrowLeft'||e.key==='PageUp'){ e.preventDefault(); presPrev(); }
-});
 
 /* ================= 稳健性检验（v1.3 新增） =================
    前面所有结论都建立在「−3 到 +3 那套判断」上，而判断是人给的。
@@ -4552,6 +4228,10 @@ function renderBayes(){
    已有情景需要重新检验；省略 = 不动结果（只改界面、措辞、性能或新增旁路分析）。
    与 git 提交对应；此处只列入对外可讲、能被核对的事项。 */
 const CHANGELOG=[
+ {d:'2026-10-24',k:'可用性',x:'删掉演示模式',y:'它把已经算好的结果重新排成一套翻页演示，信息量与正常页面完全重叠，却多出一条独立入口与一套导航。面向导师汇报的场景用正常页面讲即可，不需要一个只能读不能改的副本。入口、弹层、导航、十章渲染代码一并移除。'},
+ {d:'2026-10-24',k:'可用性',x:'删掉跨层一致性台账',y:'那张表要用户手工给每层填一个档位、再查相邻层是否方向相反，但它不参与任何计算——枚举、逐层求解、逐层约束都不读它，改它不影响任何结果，是一份填了也没用的账。档位方向的判定现在长在逐层求解的结果上（layConflicts），判的是真正被算出来的组合；能力保留，只去掉手工台账。'},
+ {d:'2026-10-24',k:'可用性',x:'数值锚定下沉进状态面板，改叫已知值',y:'原先是第 3 步里一张独立的表格，但它与选状态本来就是同一层输入——先选档位、再说这个档位在数值上成不成立，拆成两处要来回对照。现在每个描述符的状态框下方多一行已知值输入，选完状态顺手定它。数值上无解的描述符直接标红；选中状态与已知值不相交时也在面板里点名——不说的话用户会以为它被检验过了。'},
+ {d:'2026-10-24',k:'缺陷',x:'四份自检脚本吞掉崩溃、报通过',y:'这四份脚本把核心断言包在 try/catch 里，捕获到异常只打一行崩溃检测就结束，从不设非零退出码——引用到不存在的函数时，脚本看起来还是全部通过。现在 catch 里补上 process.exit(1)，崩溃就是失败。'},
  {d:'2026-10-24',k:'口径',x:'判自洽的量统一叫「影响平衡值」',y:'同一个量原先有两个名字、指向还相反：一处把它叫「主动和」（术语表又定义「主动和 = 施加」），而判定实际取的是「这个状态从其余状态承受到的总量」。现在全部改叫「影响平衡值」——每个描述符的选定状态都是它自身影响平衡值中得分最高的那一项，这样自洽的判据才读得通。「主动和／被动和」只保留给主被动图的两根横纵轴，两者不再混用。这条会影响报告与 PPT 措辞。'},
  {d:'2026-10-24',k:'功能',x:'结构化参数表增列「情景号」，保住 CIB 求出的联动关系',y:'CIB 求出的是一组互相咬合的自洽组合，原先导出成一行一个参数，等于把耦合又拆回独立参数，下游按行取值会读出彼此矛盾的组合。现在表头为 scenario,param,value：同属一组自洽情景的参数归到同一号，注释头写明「跨 scenario 混用会破坏一致性」。param,value 两列保持原样，下游模型仍可直接读。'},
  {d:'2026-10-24',k:'可用性',x:'五批 30 处「less is more」整改',y:'按 10-21 老师「界面主次不清、凌乱、堆了很多功能」的意见分五批清理：① 6 处会让人照做做错的自相矛盾（如 4 处写「到第 2 步勾选描述符」，实际第 3 步才是描述符与状态；一处写「用第 7 步的数值锚定」，但数值锚定已移到第 3 步）；② 死代码与死界面 9 处（含「已采纳的调整建议 N 条」——全项目没有一处写入点，永远显示 0；页面上的「联动方式」两个选项点了不起作用）；③ 「0 是一个判断，不是没把握」原本讲了 5 遍，保留一处权威位，其余改为指引；④ 合并重复入口与重复摘要，导出与报告的样式表三份副本合并成一份，「描述符级（19×19）」的死数字改为按实际框架算；⑤ 两条前置校验在 5 个函数里各写一遍，抽成一处。'},
@@ -4665,7 +4345,7 @@ function p6Status(){
 function render(){
   renderSteps(); renderCmp(); layerTable(); renderTree(); renderStates();
   expDetail(); renderEnsBox(); scaleSum(); renderPolicy();
-  renderCim(); renderEnsBar(); modelDetail(); renderAnc(); renderScopeBar(); checkResult(); renderXl(); renderLay(); renderFilt();
+  renderCim(); renderEnsBar(); modelDetail(); renderScopeBar(); checkResult(); renderLay(); renderFilt();
   renderTableau(); renderMap();
   confList(); timeline(); renderImpact(); renderPath(); renderAP(); renderProf(); renderCorr(); renderEnsPanel();
   renderRobust(); renderFW(); renderBayes();

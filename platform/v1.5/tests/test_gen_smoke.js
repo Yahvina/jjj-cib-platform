@@ -51,8 +51,8 @@ global.setTimeout = f => f();
 const smoke = `
 renderSteps=function(){}; renderCmp=function(){}; layerTable=function(){}; renderTree=function(){}; renderStates=function(){};
 expDetail=function(){}; renderEnsBox=function(){}; scaleSum=function(){}; renderPolicy=function(){}; renderCim=function(){};
-renderEnsBar=function(){}; modelDetail=function(){}; renderAnc=function(){}; renderScopeBar=function(){}; checkResult=function(){};
-renderXl=function(){}; renderLay=function(){}; renderFilt=function(){}; renderTableau=function(){}; renderMap=function(){};
+renderEnsBar=function(){}; modelDetail=function(){}; renderScopeBar=function(){}; checkResult=function(){};
+renderLay=function(){}; renderFilt=function(){}; renderTableau=function(){}; renderMap=function(){};
 confList=function(){}; timeline=function(){}; renderImpact=function(){}; renderPath=function(){}; renderAP=function(){};
 renderProf=function(){}; renderCorr=function(){}; renderEnsPanel=function(){}; renderRobust=function(){}; renderFW=function(){};
 renderBayes=function(){}; finalSum=function(){}; p6Apply=function(){}; p6Status=function(){};

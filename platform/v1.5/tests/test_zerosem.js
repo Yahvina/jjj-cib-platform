@@ -143,8 +143,9 @@ ck('报告区分「已判 / 未判」', /已判/.test(rpt)&&/未判/.test(rpt));
 ck('报告单列「判为 0」', /判为 0/.test(rpt));
 ck('报告声明未判≠判为 0', /不是一回事/.test(rpt));
 ck('报告 meta 行含未判条数', /应判 \\d+ 条，已判 \\d+ 条，未判 \\d+ 条/.test(rpt));
-const fl=presMatrix();
-ck('影响谱区分空白格与 0 格', /空白格子表示还没有判断/.test(fl)&&/没有直接关系/.test(fl));
+renderCim();
+const fl=EL['cimStat'].innerHTML;
+ck('打分网格区分空白格与 0 格', /\u300c\u00b7\u300d\uff1d\u8fd8\u6ca1\u5224/.test(fl)&&/\u6ca1\u6709\u76f4\u63a5\u5173\u7cfb/.test(fl));
 
 console.log();
 console.log('=== 9. 路径分析的措辞不再把「未判」说成「0」 ===');

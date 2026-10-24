@@ -90,35 +90,36 @@ console.log('  结果未被覆盖：'+(cimResult && cimResult.space===9?'✓':'�
 clearAnc();
 console.log();
 
-console.log('=== 7. 渲染 ===');
+console.log('=== 7. 渲染（已知值已下沉进状态面板）===');
 setAnc(B,'70');
-renderAnc();
-const h=document.getElementById('ancBox').innerHTML;
-console.log('  输入框数：'+(h.match(/<input/g)||[]).length+'　（应为 '+DS.length+'）');
+const h=ancRowHTML(B)+ancSummaryHTML();
+console.log('  含输入框：'+(/<input/.test(h)?'✓':'✗'));
 console.log('  含「收窄」说明：'+(/收窄/.test(h)?'✓':'✗'));
 console.log('  含「完全不相交」判据：'+(/完全不相交/.test(h)?'✓':'✗'));
 console.log('  含「全部清除」：'+(/全部清除/.test(h)?'✓':'✗'));
+renderStates();
+const hsp=document.getElementById('statePanel').innerHTML;
+console.log('  状态面板里出现已知值行：'
+  +((hsp.match(/class="ancrow/g)||[]).length+' 行 / '+Object.keys(sel.desc).length+' 个描述符'));
 
-console.log('=== 8. 选中状态与锚定冲突 ===');
-anchors={}; 
+console.log('=== 8. 选中状态与已知值冲突 ===');
+anchors={};
 anchors[A]={lo:6,hi:6};
-sel.desc[A].states=['高速'];                       // 5–7，与 6 相交
+sel.desc[A].states=['高速'];
 console.log('  相交时冲突数:', ancConflicts().length, ancConflicts().length===0?'✓':'✗');
-sel.desc[A].states=['低速'];                       // 0–3.5，与 6 不相交
+sel.desc[A].states=['低速'];
 const cf=ancConflicts();
 console.log('  不相交时冲突数:', cf.length, cf.length===1?'✓':'✗');
 console.log('  冲突描述:', cf.length?cf[0].nm+'「'+cf[0].st+'」':'—');
-renderAnc();
-const hw=document.getElementById('ancBox').innerHTML;
-console.log('  面板出现冲突提示:', /你选中的状态与锚定不相交/.test(hw)?'✓':'✗');
+console.log('  冲突提示块出现：', /你选中的状态与已知值不相交/.test(ancConflictHTML())?'✓':'✗');
 
 console.log('=== 9. 全部状态被排除 → 直接报错，不会静默跑空 ===');
 anchors[A]={lo:100,hi:110};
 console.log('  可用状态数:', ancAllowed(A).length, ancAllowed(A).length===0?'✓':'✗');
 const rd=enumCore([A,B,C],null);
 console.log('  返回 dead 索引:', JSON.stringify(rd), rd.dead===0?'✓':'✗');
-renderAnc();
-console.log('  面板提示“所有状态都排除”:', /所有状态都排除了/.test(document.getElementById('ancBox').innerHTML)?'✓':'✗');
+console.log('  面板提示“所有状态都排除了”:', /所有状态都被排除|一个可用状态都不剩/.test(ancSummaryHTML())?'✓':'✗');
+console.log('  该描述符行标为 dead:', /ancrow on dead/.test(ancRowHTML(A))?'✓':'✗');
 `;
 
 try {
@@ -126,4 +127,5 @@ try {
 } catch (e) {
   console.log('崩溃检测：' + e.message);
   console.log(e.stack.split('\n').slice(0, 4).join('\n'));
+  process.exit(1);
 }

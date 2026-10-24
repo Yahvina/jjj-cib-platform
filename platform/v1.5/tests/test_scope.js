@@ -102,4 +102,5 @@ setScope('region');
 try { new Function(code + test)(); } catch (e) {
   console.log('崩溃检测：' + e.message);
   console.log(e.stack.split('\n').slice(0, 5).join('\n'));
+  process.exit(1);
 }
