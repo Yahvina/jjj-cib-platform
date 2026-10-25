@@ -202,6 +202,50 @@ chk(verFn.indexOf('逐条变更记录') >= 0, '逐条变更记录仍在版本页
 chk(verFn.indexOf('chgrow') >= 0 && verFn.indexOf('影响面') >= 0, '逐条变更记录仍带「影响面」标记');
 chk(/<h2 id="vlog"><span class="tip wide"/.test(app), '「逐条变更记录」的读法挂在悬停上');
 
+console.log('=== 11. 版本号只有一个来源，且按时间排列 ===');
+// 用户 m09855：点「关于」显示的还是 v1.4。根因是关于框里把版本号写死成字符串，
+// 从 v1.4 起没人再改过——加版本条目不会带着它一起走。
+// 判据不是「不许出现 v1.4 这四个字」（版本日志里如实记录 v1.4 是对的），
+// 而是「关于框必须走 appVer()，不许内联版本字面量」。
+function fnBody(name) {
+  const s = app.indexOf('function ' + name + '(');
+  if (s < 0) return '';
+  const e = app.indexOf('\nfunction ', s + 1);
+  return app.slice(s, e < 0 ? app.length : e);
+}
+const aboutFn = fnBody('aboutApp');
+chk(aboutFn.length > 0, 'aboutApp 函数体定位成功');
+chk(/function appVer\(\)/.test(app), '版本号取值函数 appVer() 存在');
+chk(/VERSIONS\[VERSIONS\.length-1\]/.test(app), 'appVer() 从版本数组末条取号（单一来源）');
+chk(aboutFn.indexOf("appVer()") >= 0, '关于框的版本号取自 appVer()');
+chk(!/·\s*v1\.\d/.test(aboutFn), '关于框里不再内联版本字面量',
+  (aboutFn.match(/·\s*v1\.\d[\w.]*/g) || []).join(' '));
+// 版本数组必须按时间从旧到新。renderVersions 是按数组顺序渲染、不做排序的，
+// 数组排错，页面上就直接错——v1.5.6 曾经排在 v1.5.5 前面。
+const verSpan2 = app.slice(app.indexOf('const VERSIONS=['),
+  app.indexOf('\n];', app.indexOf('const VERSIONS=[')));
+const vseq = [...verSpan2.matchAll(/\{v:'(v[\d.]+)',d:'(\d{4}-\d{2}-\d{2})'/g)].map(m => ({ v: m[1], d: m[2] }));
+chk(vseq.length >= 8, '版本数组条目解析成功', vseq.length + ' 条');
+const sorted = vseq.every((x, i) => i === 0 || vseq[i - 1].d <= x.d);
+chk(sorted, '版本数组按日期从旧到新排列',
+  vseq.filter((x, i) => i > 0 && vseq[i - 1].d > x.d).map(x => vseq[vseq.indexOf(x) - 1].v + '>' + x.v).join(' '));
+// 只查日期是不够的：同一天会发好几个小版本（v1.5.5 / v1.5.6 / v1.5.7 都是 10-25），
+// 本次要修的那个错正是同一天内的乱序——v1.5.6 排在 v1.5.5 前面，日期检查完全看不出来。
+// 所以同日组内还要按版本号大小比一遍。
+const vnum = (s) => s.replace(/^v/, '').split('.').map(Number);
+const cmpVer = (a, b) => {
+  const p = vnum(a), q = vnum(b);
+  for (let k = 0; k < Math.max(p.length, q.length); k++) {
+    if ((p[k] || 0) !== (q[k] || 0)) return (p[k] || 0) - (q[k] || 0);
+  }
+  return 0;
+};
+const sameDayBad = vseq.filter((x, i) =>
+  i > 0 && vseq[i - 1].d === x.d && cmpVer(vseq[i - 1].v, x.v) > 0);
+chk(sameDayBad.length === 0, '同一天内的小版本按版本号从旧到新排列',
+  sameDayBad.map(x => vseq[vseq.indexOf(x) - 1].v + '>' + x.v).join(' '));
+chk(vseq[vseq.length - 1].v === 'v1.5.8', '末条即当前版本', vseq[vseq.length - 1].v);
+
 console.log('');
 console.log(bad === 0 ? '全部通过（0 项未通过）' : '未通过 ' + bad + ' 项');
 process.exit(bad === 0 ? 0 : 1);

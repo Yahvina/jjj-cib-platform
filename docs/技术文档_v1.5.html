@@ -55,7 +55,7 @@ footer{margin-top:64px;padding-top:18px;border-top:1px solid var(--line);font-si
 
 <div class="meta">
   <div><span>平台形态</span><span>单文件网页（HTML + CSS + JavaScript，无外部依赖），双击即用，不联网也能运行</span></div>
-  <div><span>代码规模</span><span>可编辑源码 <code>platform/v1.5/index.html</code> 655 行 + <code>src/styles.css</code> 1266 行 + <code>src/app.js</code> 4870 行；合并后单文件成品 466,336 字节，仓库根 <code>index.html</code> 与 <code>platform/v1.5/</code> 内的成品逐字节一致（同一份构建产物）</span></div>
+  <div><span>代码规模</span><span>可编辑源码 <code>platform/v1.5/index.html</code> 655 行 + <code>src/styles.css</code> 1266 行 + <code>src/app.js</code> 4882 行；合并后单文件成品 468,076 字节，仓库根 <code>index.html</code> 与 <code>platform/v1.5/</code> 内的成品逐字节一致（同一份构建产物）</span></div>
   <div><span>自检</span><span>31 个自检文件（源码级 30 套 + 成品冒烟 1 套），统一闸门 <code>tests/run_tests.ps1</code>——唯一会因断言失败而非零退出的入口；<code>-Repo</code> 改验归档副本，<code>-Prod</code> 才跑成品冒烟</span></div>
   <div><span>本版变化</span><span>界面整体重做（纸墨配色、字号收 6 档、左轨七步、常驻小字改悬停、新增「怎么用」）；0 的语义修正；参数生成扩成四种并增列情景号；使用说明页按五区七节重建；判自洽的量定名「影响平衡值」；第 7 步由 17 块收敛到 10 块；跨层档位判定由「选档位时置灰」收敛为逐层求解里的区间约束；状态勾选改为「划定可信范围」；矛盾组合改为全局互斥对并单列孤立档位；讨论日志与版本日志各开一页。已删除演示模式、跨层一致性台账、第 3 步的跨层档位下拉框、主被动图卡片与时间轴独立卡片</span></div>
   <div><span>留档</span><span>每完成一块即提交一次，仓库为单线 main，截至 2026-10-25 已逾 90 个提交（具体计数随每次提交增长，不写定值；<code>app.js</code> 的 <code>VER_GAPS</code> 第 6 条记的 82 是该常量写入时的快照）；仓库无 tag，版本边界靠提交标题与 README 版本表界定</span></div>
@@ -770,9 +770,9 @@ phi = (nAB·n00 − n10·n01) / sqrt(nA·(S−nA)·nB·(S−nB))</pre>
   <tr><th style="width:220px">路径</th><th>内容</th></tr>
   <tr><td><code>platform/v1.5/index.html</code></td><td>界面结构（655 行 / 47 KB），引用同目录 <code>src/</code></td></tr>
   <tr><td><code>platform/v1.5/src/styles.css</code></td><td>样式（1266 行 / 72 KB）</td></tr>
-  <tr><td><code>platform/v1.5/src/app.js</code></td><td>全部逻辑（4870 行 / 337 KB），含 <code>TREE</code> / <code>POLICY</code> / <code>CHANGELOG</code> / <code>VERSIONS</code> / <code>DISCUSS</code> 等常量</td></tr>
+  <tr><td><code>platform/v1.5/src/app.js</code></td><td>全部逻辑（4882 行 / 339 KB），含 <code>TREE</code> / <code>POLICY</code> / <code>CHANGELOG</code> / <code>VERSIONS</code> / <code>DISCUSS</code> 等常量</td></tr>
   <tr><td><code>platform/v1.5/tests/</code>（归档副本）</td><td>31 个 <code>test_*.js</code> 与统一闸门 <code>run_tests.ps1</code>，跑法见其中的 README</td></tr>
-  <tr><td><code>platform/v1.5/京津冀政策情景快速评估平台_原型v1.5.html</code></td><td>合并后的单文件成品（466,336 字节），<b>线上发布的就是它</b></td></tr>
+  <tr><td><code>platform/v1.5/京津冀政策情景快速评估平台_原型v1.5.html</code></td><td>合并后的单文件成品（468,076 字节），<b>线上发布的就是它</b></td></tr>
   <tr><td>仓库根 <code>index.html</code></td><td>同一份单文件成品的副本（两份逐字节一致），供 Pages 站点在根路径直接打开</td></tr>
 </table>
 <p>另有一处工程约定：<code>_src/</code> 是<b>工作区里的源码工作副本</b>（含 31 套自检），不进仓库；仓库内以 <code>platform/v1.5/</code> 为归档基准。合并、镜像与一致性校验由 <code>merge_v15.py</code> 完成，<code>--repo</code> 一次写齐根 <code>index.html</code>、<code>platform/v1.5/</code> 成品与分文件源码。</p>
@@ -877,6 +877,7 @@ pwsh -File run_tests.ps1 -Quiet     # 只输出汇总</pre>
   <li><b>{缺陷} 删掉演示模式</b>（2026-10-24）。</li>
   <li><b>{顺序} 跨层一致性台账整块删除</b>，判定移入选档位时的约束前置。</li>
   <li><b>{顺序} 第 3 步的跨层档位下拉框撤掉</b>（v1.5.7）：功能页去掉、能力保留。它只改界面可选性，不进检算与导出、也不随存档保存；跨层数值约束保留在逐层求解的 <code>allowUnder()</code> 里。同批把亮点模块 H3 的声明收窄为「各层差异预览」。</li>
+  <li><b>{缺陷} 「关于」里显示的版本号停在 v1.4</b>（v1.5.8）：关于框里的版本号是个写死的字符串，从 v1.4 起没再改过；平台已发到 v1.5.7，点开关于仍显示 v1.4。改为从 <code>VERSIONS</code> 末条取号（<code>appVer()</code>），并把那段描述 v1.4 改版内容的文字换成平台本身的说明。同批修正版本日志页的条目顺序：<code>renderVersions()</code> 按数组顺序渲染、不做排序，而 v1.5.6 排在了 v1.5.5 前面。</li>
 </ul>
 
 <h3>文档与历史对不上的地方（<code>VER_GAPS</code>，9 条全文）</h3>
