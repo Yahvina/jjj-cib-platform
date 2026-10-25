@@ -445,12 +445,15 @@ table.tab td{border-right:1px solid var(--line2);border-bottom:1px solid var(--l
   padding:6px 9px;text-align:center;white-space:nowrap;color:var(--tx);}
 table.tab td.tabh{position:sticky;left:0;background:var(--panel2);text-align:left;
   font-weight:600;color:var(--tx2);z-index:1;}
-table.tab td.s0{background:#EEF2F4;}
-table.tab td.s1{background:#ECF0F2;}
-table.tab td.s2{background:#F7F0E8;}
-table.tab td.s3{background:#F6EAE7;}
-table.tab td.s4{background:#F2ECEE;}
-table.tab td.s5{background:#EAF0F0;}
+/* 情景表的六档底色：同一行里颜色相同＝这些情景在该描述符上取同一状态。
+   六个色阶只用一档暖灰、靠明度拉开差距——原先六色明度几乎相同（#EEF2F4 与
+   #EAF0F0 差不到 2%），相邻整块分不出来。 */
+table.tab td.s0{background:#F6F3EF;}
+table.tab td.s1{background:#EEEAE2;}
+table.tab td.s2{background:#E6E1D6;}
+table.tab td.s3{background:#E0D9CC;}
+table.tab td.s4{background:#DBD3C2;}
+table.tab td.s5{background:#D5CCB8;}
 table.tab td .tgr{display:block;font-size:11px;color:var(--tx3);font-weight:400;
   margin-top:1px;white-space:nowrap;}
 

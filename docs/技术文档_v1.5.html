@@ -55,7 +55,7 @@ footer{margin-top:64px;padding-top:18px;border-top:1px solid var(--line);font-si
 
 <div class="meta">
   <div><span>平台形态</span><span>单文件网页（HTML + CSS + JavaScript，无外部依赖），双击即用，不联网也能运行</span></div>
-  <div><span>代码规模</span><span>可编辑源码 <code>platform/v1.5/index.html</code> 656 行 + <code>src/styles.css</code> 1269 行 + <code>src/app.js</code> 4996 行；合并后单文件成品 468,116 字节，仓库根 <code>index.html</code> 与 <code>platform/v1.5/</code> 内的成品逐字节一致（同一份构建产物）</span></div>
+  <div><span>代码规模</span><span>可编辑源码 <code>platform/v1.5/index.html</code> 662 行 + <code>src/styles.css</code> 1271 行 + <code>src/app.js</code> 4970 行；合并后单文件成品 472,992 字节，仓库根 <code>index.html</code> 与 <code>platform/v1.5/</code> 内的成品逐字节一致（同一份构建产物）</span></div>
   <div><span>自检</span><span>31 个自检文件（源码级 30 套 + 成品冒烟 1 套），统一闸门 <code>tests/run_tests.ps1</code>——唯一会因断言失败而非零退出的入口；<code>-Repo</code> 改验归档副本，<code>-Prod</code> 才跑成品冒烟</span></div>
   <div><span>本版变化</span><span>界面整体重做（纸墨配色、字号收 6 档、左轨七步、常驻小字改悬停、新增「怎么用」）；0 的语义修正；参数生成扩成四种并增列情景号；使用说明页按五区七节重建；判自洽的量定名「影响平衡值」；第 7 步由 17 块收敛到 10 块；跨层档位判定改为约束前置；状态勾选改为「划定可信范围」；矛盾组合改为全局互斥对并单列孤立档位；讨论日志与版本日志各开一页。已删除演示模式、跨层一致性台账、主被动图卡片与时间轴独立卡片</span></div>
   <div><span>留档</span><span>每完成一块即提交一次，仓库为单线 main，截至 2026-10-25 已逾 90 个提交（具体计数随每次提交增长，不写定值；<code>app.js</code> 的 <code>VER_GAPS</code> 第 6 条记的 82 是该常量写入时的快照）；仓库无 tag，版本边界靠提交标题与 README 版本表界定</span></div>
@@ -726,7 +726,7 @@ phi = (nAB·n00 − n10·n01) / sqrt(nA·(S−nA)·nB·(S−nB))</pre>
 <h4>讨论日志与版本日志各开一页</h4>
 <ul>
   <li><code>#pdis</code>（<b>讨论日志</b>）：记六场面谈，每场四节——导师要求 / 已落实 / 待办 / 存疑。依据说明由 <code>DISCUSS_WHO</code> 给出，渲染 <code>renderDiscuss()</code>，转义 <code>disEsc()</code> / <code>disSecs()</code>。</li>
-  <li><code>#pver</code>（<b>版本更新日志</b>）：版本沿革表（<code>VERSIONS</code>，10 项，渲染 <code>renderVersions()</code>）与逐条变更（<code>CHANGELOG</code>，51 条，渲染 <code>renderChangelog()</code>），每条带「影响面」——<b>改动会不会动到已有结果、要不要重新检验</b>。</li>
+  <li><code>#pver</code>（<b>版本更新日志</b>）：版本沿革表（<code>VERSIONS</code>，11 项，渲染 <code>renderVersions()</code>）与逐条变更（<code>CHANGELOG</code>，56 条，渲染 <code>renderChangelog()</code>），每条带「影响面」——<b>改动会不会动到已有结果、要不要重新检验</b>。</li>
 </ul>
 
 <h4>这两个日志页自己也留了两份"对不上"的清单</h4>
@@ -768,11 +768,11 @@ phi = (nAB·n00 − n10·n01) / sqrt(nA·(S−nA)·nB·(S−nB))</pre>
 <h4>结构</h4>
 <table>
   <tr><th style="width:220px">路径</th><th>内容</th></tr>
-  <tr><td><code>platform/v1.5/index.html</code></td><td>界面结构（656 行 / 28 KB），引用同目录 <code>src/</code></td></tr>
-  <tr><td><code>platform/v1.5/src/styles.css</code></td><td>样式（1269 行 / 72 KB）</td></tr>
-  <tr><td><code>platform/v1.5/src/app.js</code></td><td>全部逻辑（4996 行 / 343 KB），含 <code>TREE</code> / <code>POLICY</code> / <code>CHANGELOG</code> / <code>VERSIONS</code> / <code>DISCUSS</code> 等常量</td></tr>
+  <tr><td><code>platform/v1.5/index.html</code></td><td>界面结构（662 行 / 48 KB），引用同目录 <code>src/</code></td></tr>
+  <tr><td><code>platform/v1.5/src/styles.css</code></td><td>样式（1271 行 / 72 KB）</td></tr>
+  <tr><td><code>platform/v1.5/src/app.js</code></td><td>全部逻辑（4970 行 / 342 KB），含 <code>TREE</code> / <code>POLICY</code> / <code>CHANGELOG</code> / <code>VERSIONS</code> / <code>DISCUSS</code> 等常量</td></tr>
   <tr><td><code>platform/v1.5/tests/</code>（归档副本）</td><td>31 个 <code>test_*.js</code> 与统一闸门 <code>run_tests.ps1</code>，跑法见其中的 README</td></tr>
-  <tr><td><code>platform/v1.5/京津冀政策情景快速评估平台_原型v1.5.html</code></td><td>合并后的单文件成品（468,116 字节），<b>线上发布的就是它</b></td></tr>
+  <tr><td><code>platform/v1.5/京津冀政策情景快速评估平台_原型v1.5.html</code></td><td>合并后的单文件成品（472,992 字节），<b>线上发布的就是它</b></td></tr>
   <tr><td>仓库根 <code>index.html</code></td><td>同一份单文件成品的副本（两份逐字节一致），供 Pages 站点在根路径直接打开</td></tr>
 </table>
 <p>另有一处工程约定：<code>_src/</code> 是<b>工作区里的源码工作副本</b>（含 31 套自检），不进仓库；仓库内以 <code>platform/v1.5/</code> 为归档基准。合并、镜像与一致性校验由 <code>merge_v15.py</code> 完成，<code>--repo</code> 一次写齐根 <code>index.html</code>、<code>platform/v1.5/</code> 成品与分文件源码。</p>
@@ -859,7 +859,7 @@ pwsh -File run_tests.ps1 -Quiet     # 只输出汇总</pre>
   <tr><td><code>23db556</code></td><td>工程：修掉模块重叠（一张卡片里裹着另一块的折叠段）</td></tr>
 </table>
 
-<h3>本版逐条变更（<code>CHANGELOG</code> 摘录，51 条中与对外可讲相关的部分）</h3>
+<h3>本版逐条变更（<code>CHANGELOG</code> 摘录，56 条中与对外可讲相关的部分）</h3>
 <ul>
   <li><b>{口径} 0 的语义修正</b>：0 = 两者之间没有直接关系，是判断不是「没把握」；影响分与置信度两条独立轴；未判的格子留空并显示「·」，统计里「已判 / 未判 / 判为 0 / 低置信度」四项分开。</li>
   <li><b>{功能} 参数生成从两种扩成四种</b>：模型配置文件 / 结构化参数表 / 定性叙事 / 贝叶斯概率分布；<code>useBayes</code> 一个布尔管两件事的旧结构拆成两条独立设置。</li>

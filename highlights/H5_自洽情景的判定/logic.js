@@ -269,8 +269,7 @@ function checkResult(){
       +Math.round(rs.ok/Math.max(1,rs.total)*100)+'%）。'
       +(rs.ok?'':'<br><span style="color:var(--rd);">你划的这块范围里没有任何自洽情景——'
         +'说明这些档位的组合与当前打分矩阵不相容，需要放宽范围或复核相关判断。</span>')
-      +'<div class="dim" style="margin-top:7px;">范围越小＝你的主张越具体；'
-      +'一个都不勾＝不设限。要表达「某档不可能」，用下方的已知值（数值锚定），那里有区间依据可追溯。</div></div>';
+      +'</div>';
   }else if(sc.ok){
     const idx=r.consistent.findIndex(cb=>cb.join(',')===sc.cb.join(','));
     h+='<div class="rok" style="margin-top:12px;"><b>你选的情景：自洽。</b>'
@@ -289,10 +288,7 @@ function checkResult(){
       +'或者描述符选得太多。可以回「交叉影响打分」复核那些低置信度的判断，再跑一次。</div>';
   }else{
     const showN=allScen?r.consistent.length:Math.min(6,r.consistent.length);
-    h+='<div style="margin-top:14px;font-size:13px;color:var(--tx3);">'
-      +'以下是 CIB 筛出的<b>全部自洽情景</b>（共 '+r.consistent.length+' 组'
-      +(r.sampled?'，抽样结果，实际可能更多':'')+'），点击任一组可展开看它为什么自洽。'
-      +(allScen?'':'当前显示前 '+showN+' 组。')+'</div><div style="margin-top:10px;">';
+    h+='<div style="margin-top:10px;">';
     r.consistent.slice(0,showN).forEach((cb,i)=>{ h+=scenCard(r,i,cb); });
     h+='</div>';
     if(r.consistent.length>6){

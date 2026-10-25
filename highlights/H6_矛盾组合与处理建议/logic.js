@@ -82,9 +82,6 @@ function confList(){
     return;
   }
   el('confList', head
-    +'<div class="dim" style="line-height:1.9;margin-bottom:10px;">下列是本次检验的<b>全部互斥对</b>（'+r.pairs.length+' 对，'
-    +'按"两档各自出现得越多、却越凑不到一起"排序）。不再限于你手选的那一组——'
-    +'只要跑过检验就给出，与你选没选状态无关。</div>'
     + r.pairs.slice(0,40).map((p,idx)=>{
     const dA=r.ds[p.i], dB=r.ds[p.j];
     const sA=ST(dA)[p.ai], sB=ST(dB)[p.bj];

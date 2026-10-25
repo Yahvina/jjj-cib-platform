@@ -14,9 +14,9 @@
 | `POLICY` | 121–228 |
 | `POLICY_EVID` | 230–230 |
 | `POLICY_VERIF` | 237–253 |
-| `PALLC` | 2143–2143 |
+| `PALLC` | 2146–2146 |
 | `nSel` | 280–280 |
-| `renderPolicy` | 2144–2183 |
+| `renderPolicy` | 2147–2183 |
 | `pickPolicy` | 2184–2184 |
 | `polEvid` | 2186–2188 |
 | `polEvidBlock` | 2189–2221 |

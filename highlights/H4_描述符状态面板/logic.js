@@ -228,6 +228,7 @@ function renderStates(){
     el.innerHTML=names.map(nm=>{
       const c=sel.desc[nm], defs=defsOf(nm);
       const bad=rngIssues(nm);
+      const allOn=c.states.length>=defs.length;
       const ev=RANGE_EVID[nm]||{k:'example',t:''};
       const rows=defs.map(s=>{
         const on=c.states.indexOf(s.n)>=0, k=nm+'|'+s.n;
@@ -282,6 +283,7 @@ function renderStates(){
         <i class="evi tip wide ${ev.k}" tabindex="0" data-tip="${attrEsc(evTip)}">${EVID_WORD[ev.k]||''}</i>${scopeTag}</div>`
         +selRangeHTML(nm)+rows+addBox+ancRowHTML(nm)+xlPickHTML(nm)+
         `<div class="stfoot"><button class="btn sm" onclick="addState('${nm}')">＋ 自定义状态</button>
+          <button class="btn sm" onclick="selAllState('${nm}')">${allOn?'清空勾选':'全选 '+defs.length+' 档'}</button>
           ${hasScope&&rngScope!=='region'?`<button class="btn sm" onclick="dropScopeOverride('${nm}')">恢复区域级</button>`:''}</div>`+
         (bad.length?`<div class="stbad">区间衔接提示：${bad.join('；')}</div>`:'')+
         `</div>`;
@@ -454,7 +456,7 @@ function selRangeHTML(nm){
   if(!k) return '<div class="selrow"><span class="slab">已勾范围</span>'
     +'<span class="sval">不设限（全部 '+tot+' 档都参与检验）</span></div>';
   return '<div class="selrow on"><span class="slab">已勾范围</span>'
-    +'<span class="sval"><b>'+k+'</b> / '+tot+' 档　·　勾了的档位之外不再参与检验</span></div>';
+    +'<span class="sval"><b>'+k+'</b> / '+tot+' 档</span></div>';
 }
 
 function ancRowHTML(nm){
@@ -478,7 +480,7 @@ function ancSummaryHTML(){
   if(!ds.length) return '';
   let before=1, after=1, nA=0;
   ds.forEach(nm=>{ before*=ST(nm).length; after*=ancAllowed(nm).length; if(ancOf(nm)) nA++; });
-  if(!nA) return `<div class="ancsum">尚未设定已知值——此时检验在全组合空间 ${before.toLocaleString()} 种上进行，状态区间只作说明之用。</div>`;
+  if(!nA) return '';
   const deadOnes=ds.filter(nm=>ancOf(nm)&&!ancAllowed(nm).length);
   let h=`<div class="ancsum">已给 <b>${nA}</b> 个描述符设定已知值：组合空间由 <b>${before.toLocaleString()}</b> 收窄为 <b>${after.toLocaleString()}</b> 种`;
   if(before>after) h+=`（排除 ${(before-after).toLocaleString()} 种）`;

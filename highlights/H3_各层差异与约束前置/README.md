@@ -13,20 +13,20 @@
 |---|---|
 | `LAYERS` | 255–260 |
 | `layerTable` | 358–379 |
-| `tglScale` | 1966–1972 |
-| `rangeOf` | 1070–1075 |
-| `rngTxt` | 614–618 |
-| `ST` | 613–613 |
-| `defsOf` | 555–587 |
-| `XL_ORDER` | 3246–3246 |
-| `XL_NAME` | 3247–3247 |
-| `xlayers` | 3249–3252 |
-| `xlAct` | 3265–3265 |
-| `xlPickOf` | 3266–3276 |
-| `xlReason` | 3278–3291 |
-| `xlSet` | 3292–3309 |
-| `xlPickHTML` | 3311–3333 |
-| `allowUnder` | 1077–1094 |
+| `tglScale` | 1969–1975 |
+| `rangeOf` | 1080–1085 |
+| `rngTxt` | 622–626 |
+| `ST` | 621–621 |
+| `defsOf` | 563–595 |
+| `XL_ORDER` | 3232–3232 |
+| `XL_NAME` | 3233–3233 |
+| `xlayers` | 3235–3238 |
+| `xlAct` | 3251–3251 |
+| `xlPickOf` | 3252–3262 |
+| `xlReason` | 3264–3277 |
+| `xlSet` | 3278–3295 |
+| `xlPickHTML` | 3297–3319 |
+| `allowUnder` | 1087–1104 |
 
 - 样式：本目录 `style.css`（摘录）；完整样式表见 `../_shared/base.css`
 

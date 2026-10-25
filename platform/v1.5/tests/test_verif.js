@@ -80,9 +80,13 @@ console.log('  含文号:', side.indexOf(POLICY_VERIF[upKey].no.slice(0,8))>=0?'
 console.log('  含原文链接:', /查看政策原文/.test(side)?'✓':'✗');
 
 console.log();
-console.log('=== 6. 统计条含补证计数 ===');
+console.log('=== 6. 统计条不再单列联网补证计数 ===');
+// 2026-10-25 用户要求删掉统计条里「联网补证（10-17）N 条（其中升高 N 条）」这一项：
+// 它只数 POLICY_VERIF 的条数，而补证本身已经逐条落在政策侧栏的徽标上（见第 5 节），
+// 统计条再列一遍是重复。这里反向把关，防止它被顺手加回来。
 const stat=document.getElementById('polStat').innerHTML||'';
-console.log('  含联网补证:', /联网补证/.test(stat)?'✓':'✗');
+console.log('  统计条已不列联网补证:', !/联网补证/.test(stat)?'✓':'✗');
+console.log('  统计条仍给出政策路径数:', /政策路径/.test(stat)?'✓':'✗');
 `;
 
 eval(code + test);

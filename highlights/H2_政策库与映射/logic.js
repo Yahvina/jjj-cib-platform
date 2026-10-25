@@ -162,8 +162,6 @@ function renderPolicy(){
   all.forEach(p=>p.m.forEach(x=>{ covered[x[0]]=1; }));
   const evN=all.filter(p=>polEvid(p)).length;
   const qN=all.filter(p=>{ const e=polEvid(p); return e&&e.q&&e.q.length; }).length;
-  const vfN=Object.keys(POLICY_VERIF).filter(k=>{ const sp=k.split('|'); return PALLC().some(p=>p.n===sp[0]); }).length;
-  const vfUp=Object.keys(POLICY_VERIF).filter(k=>POLICY_VERIF[k].st==='升高').length;
   document.getElementById('polStat').innerHTML=
     '<span class="kv"><span>政策路径</span><span>'+all.length+' 条</span></span>'+
     '<span class="kv"><span>有对应描述符</span><span style="color:var(--ok)">'+hit+' 条</span></span>'+
@@ -171,7 +169,6 @@ function renderPolicy(){
     '<span class="kv"><span>覆盖描述符</span><span>'+Object.keys(covered).length+' / '+allDescs().length+' 个</span></span>'+
     '<span class="kv"><span>有工具级记录</span><span>'+evN+' 条</span></span>'+
     '<span class="kv"><span>含定量口径</span><span>'+qN+' 条</span></span>'+
-    '<span class="kv"><span>联网补证（10-17）</span><span style="color:var(--pri)">'+vfN+' 条（其中升高 '+vfUp+' 条）</span></span>'+
     '';
   polSidePanel();
 }

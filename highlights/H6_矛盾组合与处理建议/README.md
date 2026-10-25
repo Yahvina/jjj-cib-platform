@@ -6,20 +6,20 @@
 
 ## 代码位置（v1.5 工作副本）
 
-- HTML：`_src/v15/index.html` 第 340–343 行
+- HTML：`_src/v15/index.html` 第 338–341 行
 - 逻辑：`_src/v15/src/app.js`
 
 | 函数／常量 | 行号 |
 |---|---|
-| `exclPairs` | 1495–1522 |
-| `confPairs` | 1527–1547 |
-| `confList` | 1548–1600 |
-| `toggleConf` | 1601–1601 |
-| `applyConfFix` | 1602–1611 |
-| `coFn` | 1438–1446 |
-| `aliveTable` | 1449–1476 |
-| `freqOf` | 1478–1490 |
-| `selectedCombo` | 1272–1277 |
+| `exclPairs` | 1501–1528 |
+| `confPairs` | 1533–1553 |
+| `confList` | 1554–1603 |
+| `toggleConf` | 1604–1604 |
+| `applyConfFix` | 1605–1614 |
+| `coFn` | 1444–1452 |
+| `aliveTable` | 1455–1482 |
+| `freqOf` | 1484–1496 |
+| `selectedCombo` | 1282–1287 |
 
 - 样式：本目录 `style.css`（摘录）；完整样式表见 `../_shared/base.css`
 

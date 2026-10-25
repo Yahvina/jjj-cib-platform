@@ -461,6 +461,14 @@ function tglState(nm,st){
   profResult=null;
   render();
 }
+/* 一键勾满 / 清空某个描述符的全部档位。勾满＝把可信范围放到最大（等同不设限），
+   与不设限的区别只在「用户明确看过全部档位」——两者参与检验的范围相同。 */
+function selAllState(nm){
+  const b=sel.desc[nm]; if(!b) return;
+  b.states=(b.states.length>=defsOf(nm).length)?[]:defsOf(nm).map(s=>s.n);
+  cimResult=null; BAYES=null; layeredResult=null; corrResult=null; profResult=null;
+  render();
+}
 /* 每个描述符当前勾选的状态索引（可能为空数组＝不设限）。 */
 function selIdxOf(nm){
   const cur=((sel.desc[nm]||{}).states)||[];
@@ -695,6 +703,7 @@ function renderStates(){
     el.innerHTML=names.map(nm=>{
       const c=sel.desc[nm], defs=defsOf(nm);
       const bad=rngIssues(nm);
+      const allOn=c.states.length>=defs.length;
       const ev=RANGE_EVID[nm]||{k:'example',t:''};
       const rows=defs.map(s=>{
         const on=c.states.indexOf(s.n)>=0, k=nm+'|'+s.n;
@@ -749,6 +758,7 @@ function renderStates(){
         <i class="evi tip wide ${ev.k}" tabindex="0" data-tip="${attrEsc(evTip)}">${EVID_WORD[ev.k]||''}</i>${scopeTag}</div>`
         +selRangeHTML(nm)+rows+addBox+ancRowHTML(nm)+xlPickHTML(nm)+
         `<div class="stfoot"><button class="btn sm" onclick="addState('${nm}')">＋ 自定义状态</button>
+          <button class="btn sm" onclick="selAllState('${nm}')">${allOn?'清空勾选':'全选 '+defs.length+' 档'}</button>
           ${hasScope&&rngScope!=='region'?`<button class="btn sm" onclick="dropScopeOverride('${nm}')">恢复区域级</button>`:''}</div>`+
         (bad.length?`<div class="stbad">区间衔接提示：${bad.join('；')}</div>`:'')+
         `</div>`;
@@ -768,7 +778,7 @@ function renderStates(){
 function expDetail(){
   const el=document.getElementById('expDetail');
   if(!el) return;
-  if(expertN===1){ el.innerHTML='<div class="note">单人判断：全部打分由一人完成，不产生分歧项。</div>'; return; }
+  if(expertN===1){ el.innerHTML=''; return; }
   const n=nSel(), items=n>1?n*(n-1):0;
   el.innerHTML=`<div class="note info">
     <b>${expertN} 人独立打分</b><br>
@@ -904,7 +914,7 @@ function selRangeHTML(nm){
   if(!k) return '<div class="selrow"><span class="slab">已勾范围</span>'
     +'<span class="sval">不设限（全部 '+tot+' 档都参与检验）</span></div>';
   return '<div class="selrow on"><span class="slab">已勾范围</span>'
-    +'<span class="sval"><b>'+k+'</b> / '+tot+' 档　·　勾了的档位之外不再参与检验</span></div>';
+    +'<span class="sval"><b>'+k+'</b> / '+tot+' 档</span></div>';
 }
 /* 状态面板里的「已知值」一行。缩进与 strow 对齐，视觉上属于这个描述符。 */
 function ancRowHTML(nm){
@@ -928,7 +938,7 @@ function ancSummaryHTML(){
   if(!ds.length) return '';
   let before=1, after=1, nA=0;
   ds.forEach(nm=>{ before*=ST(nm).length; after*=ancAllowed(nm).length; if(ancOf(nm)) nA++; });
-  if(!nA) return `<div class="ancsum">尚未设定已知值——此时检验在全组合空间 ${before.toLocaleString()} 种上进行，状态区间只作说明之用。</div>`;
+  if(!nA) return '';
   const deadOnes=ds.filter(nm=>ancOf(nm)&&!ancAllowed(nm).length);
   let h=`<div class="ancsum">已给 <b>${nA}</b> 个描述符设定已知值：组合空间由 <b>${before.toLocaleString()}</b> 收窄为 <b>${after.toLocaleString()}</b> 种`;
   if(before>after) h+=`（排除 ${(before-after).toLocaleString()} 种）`;
@@ -1355,8 +1365,7 @@ function checkResult(){
       +Math.round(rs.ok/Math.max(1,rs.total)*100)+'%）。'
       +(rs.ok?'':'<br><span style="color:var(--rd);">你划的这块范围里没有任何自洽情景——'
         +'说明这些档位的组合与当前打分矩阵不相容，需要放宽范围或复核相关判断。</span>')
-      +'<div class="dim" style="margin-top:7px;">范围越小＝你的主张越具体；'
-      +'一个都不勾＝不设限。要表达「某档不可能」，用下方的已知值（数值锚定），那里有区间依据可追溯。</div></div>';
+      +'</div>';
   }else if(sc.ok){
     const idx=r.consistent.findIndex(cb=>cb.join(',')===sc.cb.join(','));
     h+='<div class="rok" style="margin-top:12px;"><b>你选的情景：自洽。</b>'
@@ -1375,10 +1384,7 @@ function checkResult(){
       +'或者描述符选得太多。可以回「交叉影响打分」复核那些低置信度的判断，再跑一次。</div>';
   }else{
     const showN=allScen?r.consistent.length:Math.min(6,r.consistent.length);
-    h+='<div style="margin-top:14px;font-size:13px;color:var(--tx3);">'
-      +'以下是 CIB 筛出的<b>全部自洽情景</b>（共 '+r.consistent.length+' 组'
-      +(r.sampled?'，抽样结果，实际可能更多':'')+'），点击任一组可展开看它为什么自洽。'
-      +(allScen?'':'当前显示前 '+showN+' 组。')+'</div><div style="margin-top:10px;">';
+    h+='<div style="margin-top:10px;">';
     r.consistent.slice(0,showN).forEach((cb,i)=>{ h+=scenCard(r,i,cb); });
     h+='</div>';
     if(r.consistent.length>6){
@@ -1574,9 +1580,6 @@ function confList(){
     return;
   }
   el('confList', head
-    +'<div class="dim" style="line-height:1.9;margin-bottom:10px;">下列是本次检验的<b>全部互斥对</b>（'+r.pairs.length+' 对，'
-    +'按"两档各自出现得越多、却越凑不到一起"排序）。不再限于你手选的那一组——'
-    +'只要跑过检验就给出，与你选没选状态无关。</div>'
     + r.pairs.slice(0,40).map((p,idx)=>{
     const dA=r.ds[p.i], dB=r.ds[p.j];
     const sA=ST(dA)[p.ai], sB=ST(dB)[p.bj];
@@ -2168,8 +2171,6 @@ function renderPolicy(){
   all.forEach(p=>p.m.forEach(x=>{ covered[x[0]]=1; }));
   const evN=all.filter(p=>polEvid(p)).length;
   const qN=all.filter(p=>{ const e=polEvid(p); return e&&e.q&&e.q.length; }).length;
-  const vfN=Object.keys(POLICY_VERIF).filter(k=>{ const sp=k.split('|'); return PALLC().some(p=>p.n===sp[0]); }).length;
-  const vfUp=Object.keys(POLICY_VERIF).filter(k=>POLICY_VERIF[k].st==='升高').length;
   document.getElementById('polStat').innerHTML=
     '<span class="kv"><span>政策路径</span><span>'+all.length+' 条</span></span>'+
     '<span class="kv"><span>有对应描述符</span><span style="color:var(--ok)">'+hit+' 条</span></span>'+
@@ -2177,7 +2178,6 @@ function renderPolicy(){
     '<span class="kv"><span>覆盖描述符</span><span>'+Object.keys(covered).length+' / '+allDescs().length+' 个</span></span>'+
     '<span class="kv"><span>有工具级记录</span><span>'+evN+' 条</span></span>'+
     '<span class="kv"><span>含定量口径</span><span>'+qN+' 条</span></span>'+
-    '<span class="kv"><span>联网补证（10-17）</span><span style="color:var(--pri)">'+vfN+' 条（其中升高 '+vfUp+' 条）</span></span>'+
     '';
   polSidePanel();
 }
@@ -2481,21 +2481,17 @@ function renderCim(){
     '<span class="kv"><span>其中判为 0</span><span>'+zero+' 条</span></span>'+
     '<span class="kv"><span>低置信度</span><span style="color:var(--rd)">'+low+' 条</span></span>'+
     '<span class="kv"><span>已审核</span><span style="color:var(--ok)">'+rev+' 条</span></span>'+
-    '<div class="cimlegend">格内上行＝影响分（−3…+3），下行＝置信度；<b>AI·</b> 表示这一格由 AI 预填、尚未经人工修改（改过分数或置信度即消失）；浅黄描边＝低置信度，需人审。'
-    +'<br><b>「·」＝还没判，判为 0 ＝两者之间没有直接关系——这是两回事。</b>0 可以判得很有把握，'
-    +'「没把握」由置信度表达；两者是否经第三个描述符间接相连，见「影响路径分析」。</div>'+
+    '<div class="cimlegend"><span class="tip wide" tabindex="0" data-tip="格内上行＝影响分（−3…+3），下行＝置信度；AI· 表示这一格由 AI 预填、尚未经人工修改（改过分数或置信度即消失）；浅黄描边＝低置信度，需人审。 「·」＝还没判，判为 0 ＝两者之间没有直接关系——这是两回事。0 可以判得很有把握，「没把握」由置信度表达；两者是否经第三个描述符间接相连，见「影响路径分析」。">图例：格内怎么读</span></div>'+
     '<span class="kv"><span>待审核</span><span style="color:var(--wn)">'+need+' 条</span></span>'+
     '<span class="kv"><span>状态级精判</span><span>'+stK+' 条 / '+stC+' 格</span></span>'+
-    '<div class="dim" style="margin-top:8px;font-size:13px;">整体为<b>描述符级</b>（'+ds.length+'×'+ds.length+'）；'
-    +'点开任一格可展开到<b>状态级逐对精判</b>，精判值优先进入一致性检验，未精判的按整体倾向自动展开。'
-    +'每格都带依据与置信度，审核后留痕。</div>';
+    '';
   cimBalance(ds);
   cimSidePanel();
 }
 function cimSidePanel(){
   const el=document.getElementById('cimSide'); if(!el) return;
   if(!cimSelKey){
-    el.innerHTML='<div class="empty">点击矩阵中任意一格，查看或修改这条判断</div>'; return;
+    el.innerHTML=''; return;
   }
   const p=cimSelKey.split('>'), s=p[0], t=p[1], r=cim[cimSelKey];
   const vs=[-3,-2,-1,0,1,2,3];
@@ -2522,7 +2518,7 @@ function cimSidePanel(){
    +'<div class="slabel">影响强度</div>'
    +'<div class="vrow">'+vs.map(vbtn).join('')+'</div>'
    +'<div class="sline">'+VWORD[String(r.v)]+'</div>'
-   +'<div class="slabel">置信度 <span class="dim" style="font-weight:400;">（对这条判断有多大把握，与上面填几分无关）</span></div>'
+   +'<div class="slabel">置信度</div>'
    +'<div class="crow">'+['高','中','低'].map(c=>'<button class="cb'+(r.conf===c?' on':'')+'" onclick="setConf(\''+c+'\')">'+c+'</button>').join('')+'</div>'
    +'<div class="slabel">依据（证据 / 来源）</div>'
    +'<textarea class="txt why" oninput="setWhy(this.value)" placeholder="写下这条判断的依据……">'+(r.why||'')+'</textarea>'
@@ -2530,18 +2526,13 @@ function cimSidePanel(){
    +'<button class="btn sm" style="width:100%;margin-top:6px;" onclick="clearCell()">清空这一格（回到未判断）</button>'
    +'<div class="slabel" style="margin-top:16px;border-top:1px dashed var(--line);padding-top:12px;">'
      +'状态级精判 <span class="dim">'+(nSt?'已改 '+nSt+' 格':'0 格精判，全部按默认展开')+'</span></div>'
-   +stTable(s,t,r)+
-   '<div class="dim" style="font-size:11px;line-height:1.7;margin-top:6px;">'
-     +'上面选的是<b>整体倾向</b>，这里才是逐对判断。不改的格子按整体倾向自动展开；'
-     +'改了就以你填的为准——<b>一致性检验优先用这里的值</b>。</div>'
+   +stTable(s,t,r)
    +(nSt?'<button class="btn sm" style="width:100%;margin-top:8px;" onclick="clearSt()">全部恢复默认展开</button>':'');
 }
 function stTable(s,t,r){
   const fs=ST(s), ts=ST(t);
   const fmt=v=>(Math.abs(v-Math.round(v))<0.05?String(Math.round(v)):v.toFixed(1));
-  let h='<div class="stcap">行＝来源状态，列＝目标状态，共 '+fs.length+'×'+ts.length
-    +'＝'+(fs.length*ts.length)+' 格；下拉里“默(x)”表示按整体分自动展开</div>'
-    +'<table class="stmat"><tr><th class="corner">来源＼目标</th>'
+  let h='<table class="stmat"><tr><th class="corner">来源＼目标</th>'
     +ts.map(x=>'<th title="'+x+'">'+x+'</th>').join('')+'</tr>';
   fs.forEach((sn,fi)=>{
     h+='<tr><th class="rowh" title="'+sn+'">'+sn+'</th>';
@@ -2997,10 +2988,7 @@ function renderTableau(){
     +(filtN()
       ?('<b>已按筛选条件</b>：命中 '+list.length+' 个（自洽情景共 '+cimResult.consistent.length+' 个）')
       :('共 '+list.length+' 个自洽情景'))
-    +(list.length>cols?('，此处显示前 '+cols+' 个'):'')
-    +'。同一行里颜色相同的整块，表示这些情景在该描述符上取了同一个状态——'
-    +'整块越大，说明这条判断在这些情景里越没有争议。'
-    +'每格下方小字是该状态的取值区间，情景之间的差异因此不只在标签上，也落在数值范围上。</div>';
+    +(list.length>cols?('，此处显示前 '+cols+' 个'):'')+'</div>';
 }
 
 /* ================= 多专家集成（v1.2 新增，对应德国软件的 Ensemble 模式） =================
@@ -3106,8 +3094,7 @@ function arbitAllMed(){
 function renderEnsBox(){
   const el=document.getElementById('ensBox'); if(!el) return;
   if(expertN<2){
-    el.innerHTML='<div class="note">单人判断：全部打分由一人完成，不产生分歧项。<br>'
-      +'若把专家数设为 <b>双人</b> 或 <b>三人</b>，平台会为每位专家各建一份独立矩阵，再自动比对差异。</div>';
+    el.innerHTML='';
     return;
   }
   el.innerHTML='<div class="note info"><b>'+expertN+' 人独立打分</b>：每位专家各持一份完整矩阵，'
@@ -3117,8 +3104,7 @@ function renderEnsBox(){
       ? '<button class="btn" onclick="dropEns()">重建独立矩阵</button>'
         +'<span style="font-size:13px;color:var(--tx2);">已建立 '+ens.people.length+' 份，'
         +'到第 5 步分人打分</span>'
-      : '<button class="btn pri" onclick="buildEns()">建立 '+expertN+' 份独立矩阵</button>'
-        +'<span style="font-size:13px;color:var(--tx2);">建好后可让 AI 各填一版，再分人复核</span>')
+      : '<button class="btn pri" onclick="buildEns()">建立 '+expertN+' 份独立矩阵</button>')
     +'</div>';
 }
 function renderEnsBar(){
@@ -3384,7 +3370,7 @@ function renderFilt(){
 }
 
 /* ================= 情景地图（v1.2 新增，对应德国软件的 Scenario maps） =================
-   两张图各管一件事：聚类图看「自洽情景分成几个族、族与族差在哪」，
+   两张图各管一件事：聚类图看「自洽情景分成几个簇、簇与簇差在哪」，
    热力图看「每个描述符在所有自洽情景里倾向取哪一档」。前者看格局，后者看分布。 */
 
 let mapMode='cluster';
@@ -3393,7 +3379,7 @@ const FAMC=['#2F4858','#8C5A3C','#7C3AED','#0891B2','#DB2777','#65A30D','#DC2626
 function setMapMode(m){ mapMode=m; renderMap(); }
 function scenSim(a,b){ let s=0; for(let i=0;i<a.length;i++) if(a[i]===b[i]) s++; return s/a.length; }
 
-// 相似度矩阵 + 层次聚类（平均连接）；族内允许的差异随描述符数自适应
+// 相似度矩阵 + 层次聚类（平均连接）；簇内允许的差异随描述符数自适应
 function scenClusters(){
   const L=filtList(), ds=cimResult.ds;
   const m=ds.length;
@@ -3419,7 +3405,7 @@ function scenClusters(){
   }
   return {groups:gs, N:N, total:L.length, allow:allow};
 }
-// 一个族的「定义」：族内所有情景取值都一致的描述符——这就是这一族的特征
+// 一个簇的「定义」：簇内所有情景取值都一致的描述符——这就是这一簇的特征
 function familyDesc(g){
   const L=cimResult.consistent, ds=cimResult.ds, out=[];
   ds.forEach((d,i)=>{
@@ -3488,26 +3474,21 @@ function renderCluster(host){
     const lx=0.5+(R+0.062)*Math.cos(a), ly=0.5+(R+0.062)*Math.sin(a);
     svg+='<text x="'+px(lx).toFixed(1)+'" y="'+py(ly).toFixed(1)
       +'" text-anchor="middle" dominant-baseline="central" font-size="11.5" font-weight="600" fill="'
-      +FAMC[gi%FAMC.length]+'">族 '+(gi+1)+'（'+g.length+'）</text>';
+      +FAMC[gi%FAMC.length]+'">簇 '+(gi+1)+'（'+g.length+'）</text>';
   });
   let h='<svg viewBox="0 0 680 520" style="width:100%;height:auto;display:block;">'+svg+'</svg>';
   h+='<div style="font-size:13px;color:var(--tx3);margin-top:4px;line-height:1.8;">'
-    +(filtN()?'<b>已按筛选条件</b>：':'共 ')
-    +cl.total+' 个自洽情景'+(cl.total>N?('，图中显示前 '+N+' 个'):'')
-    +'，按取值相似度聚成 <b>'+G.length+'</b> 个情景簇（族内平均差异不超过 '
-    +cl.allow+' 个描述符）。点靠得越近表示两个情景越像；鼠标悬停任一点可看它的完整取值。</div>';
+    +(filtN()?'<b>已按筛选条件</b>：':'')
+    +'共 '+cl.total+' 个自洽情景'+(cl.total>N?('，图中显示前 '+N+' 个'):'')
+    +'<span class="tip wide" tabindex="0" data-tip="按取值相似度聚成 '+G.length+' 个情景簇（簇内平均差异不超过 '+cl.allow+' 个描述符）。点靠得越近表示两个情景越像；鼠标悬停任一点可看它的完整取值。">，怎么看这张图</span></div>';
   h+='<div class="mapfams">';
   G.forEach((g,gi)=>{
     const def=familyDesc(g);
     h+='<div class="fam"><div class="famhd"><span class="fdot" style="background:'
-      +FAMC[gi%FAMC.length]+'"></span><b>族 '+(gi+1)+'</b>　<span class="fct">'+g.length+' 个情景</span></div>'
-      +'<div class="fdef">'+(def.length?def.join('　·　'):'族内各描述符取值不一（仅相似度接近）')+'</div></div>';
+      +FAMC[gi%FAMC.length]+'"></span><b>簇 '+(gi+1)+'</b>　<span class="fct">'+g.length+' 个情景</span></div>'
+      +'<div class="fdef">'+(def.length?def.join('　·　'):'簇内各描述符取值不一（仅相似度接近）')+'</div></div>';
   });
   h+='</div>';
-  h+='<div style="font-size:13px;color:var(--tx2);margin-top:12px;line-height:1.85;">'
-    +'每个族的定义，就是族内<b>所有情景取值都相同</b>的那些描述符。'
-    +'<b>族与族的差别，才是这套假设体系下真正分歧的地方</b>——'
-    +'剩下的描述符无论怎么取值都自洽，说明它们不是这套情景的关键变量。</div>';
   host.innerHTML=h;
 }
 function heatColor(p){
@@ -3661,9 +3642,6 @@ function renderPath(){
     });
     h+='</div>';
     if(ps.length>12) h+='<div class="dim" style="font-size:13px;margin-top:7px;">共 '+ps.length+' 条，此处列出最强的 12 条。</div>';
-    h+='<div class="dim" style="font-size:13px;margin-top:9px;line-height:1.75;">'
-      +'读法：链的强度取<b>最弱环节</b>的绝对值——一段 +3 接一段 +1，整体只按 +1 算；'
-      +'方向看负号的个数，偶数个为净促进、奇数个为净抑制。</div>';
   }
 
   const hid=hiddenLinks().filter(x=>!(x.from===pathFrom&&x.to===pathTo));
@@ -3742,15 +3720,8 @@ function renderProf(){
   const ds=Object.keys(sel.desc);
   if(ds.length<2){ host.innerHTML='<div class="empty">先在第 3 步勾选描述符</div>'; return; }
   if(!profResult){
-    host.innerHTML='<div style="font-size:13px;line-height:1.9;">'
-      +'<b>这张表回答「如果某件事被强行实现，剩下哪些可能」。</b><br>'
-      +'平台会把每一个状态逐个「钉死」，重算一遍自洽情景，再与不钉死时的基准对比：'
-      +'<span class="pmark n">−</span> 表示被它<b>挤掉</b>的可能，整行标空表示<b>这条冲击下没有任何自洽情景</b>。'
-      +'<span class="tip wide" tabindex="0" data-tip="本版把「强制」实现为硬约束，数学上强制只会缩小情景集，'
-      +'所以不会出现「新增」；德国软件里的 ＋ 标记，来自它把外部冲击当作会改写矩阵的影响来处理，'
-      +'那是另一种建模方式，本版未采用。"> ?</span>'
-      +'<div style="margin-top:12px;"><button class="btn pri" onclick="runProfile()">运行影响谱</button>'
-      +'<span class="dim" style="font-size:13px;margin-left:10px;">需先运行过一致性检验，状态数较多时会自动抽样</span></div></div>';
+    host.innerHTML='<div><button class="btn pri" onclick="runProfile()">运行影响谱</button>'
+      +'<span class="dim" style="font-size:13px;margin-left:10px;">需先运行过一致性检验，状态数较多时会自动抽样</span></div>';
     return;
   }
   const R=profResult;
@@ -3879,12 +3850,7 @@ function renderCorr(){
   const ds=Object.keys(sel.desc);
   if(ds.length<2){ host.innerHTML='<div class="empty">先在第 3 步勾选描述符</div>'; return; }
   if(!corrResult){
-    host.innerHTML='<div style="font-size:13px;line-height:1.9;">'
-      +'<b>哪些状态总是绑在一起出现？</b>这张表用 φ 系数回答：<b>＋100%</b> 表示两者要么同时出现、'
-      +'要么同时不出现；<b>−100%</b> 表示此消彼长；0 表示没有关联。<br>'
-      +'<span class="dim">它只描述「在当前这套判断下，这些状态怎么搭」，不说明因果。'
-      +'情景数很少时，系数可能是假象——手册原话是「may lead to artificial results」。</span>'
-      +'<div style="margin-top:12px;"><button class="btn pri" onclick="runCorr()">计算相关性</button></div></div>';
+    host.innerHTML='<div><button class="btn pri" onclick="runCorr()">计算相关性</button></div>';
     return;
   }
   const R=corrResult;
@@ -4138,13 +4104,7 @@ function renderRobust(){
     +[10,30,60].map(n=>'<button class="rbtn'+(robR===n?' on':'')+'" onclick="setRobR('+n+')">'+n+' 轮</button>').join('')
     +'<button class="btn pri sm" style="margin-left:10px" onclick="runRobust()">跑稳健性检验</button></div>';
   if(!robResult){
-    host.innerHTML=btns+'<div class="robintro">'
-      +'<b>这一步是给结论上保险。</b>这里按每条判断的置信度随机把它改 1 档——'
-      +'低置信度改得勤、高置信度几乎不动——重算几十轮，看两件事：<br>'
-      +'① <b>哪些状态经得起改</b>：出现率一直高的，说明结论不是碰巧落在那儿；<br>'
-      +'② <b>哪条判断最要命</b>：单独改它 ±1 就能让大批已有结论失效的，最该先找人复核。<br>'
-      +'<span class="dim">这不是概率，别读成「这个情景有 70% 的可能发生」。它衡量的是判断的晃动会不会改变结论。</span>'
-      +'</div>';
+    host.innerHTML=btns;
     return;
   }
   const stale=(robSig!==cimSig());
@@ -4487,6 +4447,12 @@ function renderBayes(){
    已有情景需要重新检验；省略 = 不动结果（只改界面、措辞、性能或新增旁路分析）。
    与 git 提交对应；此处只列入对外可讲、能被核对的事项。 */
 const CHANGELOG=[
+ /* —— 2026-10-25 第五轮：26 处界面收敛 + 说明话语归位到使用说明页 —— */
+ {d:'2026-10-25',k:'可用性',x:'界面上的解释性话语整批收起：能悬停的移进气泡，纯复述的删掉',y:'这一批按用户逐条点名处理 26 处。三类做法分清楚了：① 只是「怎么读这张图/这张表」的方法句，收进标题旁的悬停提示——第一次读才需要，读过就是噪音；② 与别处重复、或纯属复述界面已经画出来的东西（例如矩阵旁「行＝来源状态，列＝目标状态」、置信度标签后「对这条判断有多大把握，与上面填几分无关」），直接删；③ 「全选/清空」这类操作入口不是说明，保留并补齐。删掉的文字没有丢，全部改写进使用说明页对应步骤——平台仍然讲得清自己怎么用，只是不再把说明书摊在操作面上。'},
+ {d:'2026-10-25',k:'功能',x:'状态设置加「全选 / 清空」入口',y:'勾选＝可信范围之后，逐个档位点选太慢。新增一个按钮在「全选 N 档」与「清空勾选」之间切换。勾满与不勾的检验范围完全相同（都＝全部档位），区别只在「用户明确看过并认可了全部档位」。'},
+ {d:'2026-10-25',k:'术语',x:'聚类图里的「族」统一改为「簇」',y:'同一个概念在平台上有两个名字：地图与卡片写「族」，术语表与手册写「情景簇」。统一为「簇」，含 SVG 标签、卡片标题与空态文案。CHANGELOG 与 VERSIONS 里的历史叙述保留原文不改——那是当时的记录。'},
+ {d:'2026-10-25',k:'视觉',x:'自洽情景表的六档底色重排，相邻整块能分出来了',y:'原先六个色阶明度几乎相同（#EEF2F4 与 #EAF0F0 差不到 2%），同一行里相邻的整块看不成一块。改为单一暖灰按明度等差拉开（#F6F3EF→#D5CCB8），深浅的顺序与实际读法一致：颜色越深表示这些情景在该描述符上越是同取一档。'},
+ {d:'2026-10-25',k:'可用性',x:'标题悬停与卡内折叠段说重复的话，折叠段撤掉',y:'把说明移进标题悬停之后，稳健性检验、相关性分析、影响谱三张卡里原本常驻的折叠段（「稳健性在扰动什么」「φ 系数怎么读」「冲击分析问的是什么」）与气泡讲的是同一件事——一张卡里说两遍。逐句比对后撤掉折叠段：凡气泡没覆盖到的事实（如德国软件里这块叫 Influence profile）先并进气泡，再删。'},
  {d:'2026-10-25',k:'可用性',x:'讨论日志与版本更新日志各开一页',y:'这两份记录原先挤在使用说明页第八节里，靠一个弹窗看更新日志、靠往下滚看讨论记录，三件事共用一条侧栏。现在各自成页：顶栏「更新日志」图标进版本页，更多菜单里另给「讨论日志」入口，两页各有自己的侧栏与目录。原先第八节那张逐条变更列表没有丢，挪到版本页末尾，仍带「影响面」标记——它是判断"这次改动要不要重跑已有情景"的依据。讨论日志按面谈场次编排，每场分「导师要求／已落实／待办／存疑」四节；引注去掉了文件路径与行号（读的人不需要知道内容存在哪个文件），只保留「录音第 N 段」这类能回溯到原始出处的段号。'},
  {d:'2026-10-25',k:'功能',x:'状态勾选改为「划定可信范围」，枚举只在范围内搜',y:'原先勾选只影响定点检验与取档导出，全量检验照样把每个描述符的全部状态枚举一遍——用户勾了两个档，平台却仍按未勾选的样子算，勾选看起来没有作用。现在勾了的档位才是候选：枚举与一致性检验只在勾选范围内找自洽情景，报告与影响谱也跟着这个范围走。副作用要说清楚：勾得越窄，越容易找不到自洽情景，这是"把范围划窄了"的正常结果，不是平台算错。同一描述符可以勾多个档位（原先只能单选），因为可信范围本就不止一档。'},
  {d:'2026-10-25',k:'功能',x:'互斥对改为全局判定，并单独列出孤立档位',y:'原先只报"用户当前选中的档位之间"有没有互斥，没选到的组合一律不看——用户看不到全局有没有矛盾。现在把这次检验里所有描述符对的档位组合过一遍，列出全部互斥对（最多 40 对，超出的说明已截断），并单独标出「孤立档位」：在自洽集里从未出现过的档位。两者不是一回事——孤立档位是这一档自己站不住，互斥对是两档各自都行、凑一起不行，分开列才不会看混。抽样检验时另给告警：抽样没跑全，互斥对清单可能不全。'},
@@ -4812,7 +4778,16 @@ const VERSIONS=[
     '8382779（10-25 00:15）「日志拆成两页 + 状态勾选改 B + 全局互斥对 + 悬停收尾」',
     '2b764eb（00:22）「注释里的 #d8 已过期：说明页拆成七节后末节不是 d8，改为「末节」」',
     '工程性变化（不在 CHANGELOG 里，属归档改动）：1fb1451（00:55）「亮点模块改为从源码生成，不再手工摘抄」——highlights/ 8 个模块由 build_highlights.py 从平台源码切出，并接入发布流程做一致性校验；23db556（01:10）修掉模块重叠（H5 卡片里裹着 H7 的折叠段）'
-  ]}
+  ]},
+  {v:'v1.5.5',d:'2026-10-25',tag:'',sum:'26 处界面收敛（说明话语改悬停或删除、族改簇、六档底色重排、状态加全选），删掉的说明改写进使用说明页',ev:'本批提交',
+   items:[
+    '界面说明整批归位：能悬停的移进气泡（格内图例、情景地图、影响谱/相关性/稳健性三张卡的标题），纯复述界面的直接删（矩阵旁行列说明、置信度括号、精判表上方引导、空态说明、族定义、传导链读法）',
+    '第 3 步说明与现状对齐：原文仍写「每个描述符只取一个状态（单选）」，与 v1.5.4 改成的多档勾选矛盾，改为「勾选的档位＝可信范围，可多档，不勾＝不设限」',
+    '语义修正而非删除：聚类图「族」统一为「簇」；自洽情景表六档底色按明度等差重排（原六色明度差不到 2%）',
+    '新增操作入口：状态设置「全选 N 档 / 清空勾选」',
+    '反向一致性：界面删掉或收起的解释，全部改写进使用说明页对应步骤；test_doc.js 新增第 9 组，按主题断言这 16 处措辞与 3 个新增节，防止「界面清爽」变成「说明消失」',
+    '共性收尾：标题悬停与卡内折叠段说同一件事的三处折叠段撤掉（先把气泡没覆盖的事实并进去，再删）'
+   ]}
 ];
 const VER_GAPS=[ 'v1.5.x 小版本号为事后编排，非历史上真实发布过的版本号；v1.0–v1.5 六个版本号是历史事实。仓库无 tag，版本边界靠提交标题与 README 版本表界定。',
  '第1条：v1.0 完全没有 CHANGELOG 条目。CHANGELOG 最早的两条日期是 2026-10-16，但记的是 v1.1 的内容（接入 CIB 一致性检验、政策库与交叉影响打分）。v1.0 的功能清单只有 README 版本表与提交 cb73583 的信息可依，无法逐条核对。',

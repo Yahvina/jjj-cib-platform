@@ -6,25 +6,25 @@
 
 ## 代码位置（v1.5 工作副本）
 
-- HTML：`_src/v15/index.html` 第 331–334 行
+- HTML：`_src/v15/index.html` 第 329–332 行
 - 逻辑：`_src/v15/src/app.js`
 
 | 函数／常量 | 行号 |
 |---|---|
-| `LAYER_BUDGET` | 1101–1167 |
-| `rangeOf` | 1070–1075 |
-| `solveLayer` | 1103–1167 |
-| `allowUnder` | 1077–1094 |
-| `runLayered` | 1168–1196 |
-| `renderLay` | 1202–1267 |
-| `buildIMP` | 4000–4024 |
-| `evalCombo` | 4026–4039 |
-| `mulberry` | 3958–3965 |
-| `comboSample` | 3977–3998 |
-| `cloneCim` | 4040–4048 |
-| `ST` | 613–613 |
-| `defsOf` | 555–587 |
-| `rngTxt` | 614–618 |
+| `LAYER_BUDGET` | 1111–1177 |
+| `rangeOf` | 1080–1085 |
+| `solveLayer` | 1113–1177 |
+| `allowUnder` | 1087–1104 |
+| `runLayered` | 1178–1206 |
+| `renderLay` | 1212–1277 |
+| `buildIMP` | 3966–3990 |
+| `evalCombo` | 3992–4005 |
+| `mulberry` | 3924–3931 |
+| `comboSample` | 3943–3964 |
+| `cloneCim` | 4006–4014 |
+| `ST` | 621–621 |
+| `defsOf` | 563–595 |
+| `rngTxt` | 622–626 |
 
 - 样式：本目录 `style.css`（摘录）；完整样式表见 `../_shared/base.css`
 

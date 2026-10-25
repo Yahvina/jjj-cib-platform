@@ -94,7 +94,7 @@ console.log('  互斥对里不出现孤立档位索引 2:', ex2.pairs.every(p=>p
 console.log('=== 7b. 孤立与互斥是两回事，同时存在时各自计数正确 ===');
 confList();
 const hs=EL['confList'].innerHTML;
-console.log('  同时给出孤立档位块与互斥对:', (/class="soloBox"/.test(hs)&&/全部互斥对/.test(hs))?'✓':'✗');
+console.log('  同时给出孤立档位块与互斥对:', (/class="soloBox"/.test(hs)&&/class="conf"/.test(hs))?'✓':'✗');
 console.log('  孤立档位数标注为 2:', /孤立档位（2 个）/.test(hs)?'✓':'✗');
 
 console.log('=== 8. 抽样时给告警、精确时不告警 ===');
@@ -122,7 +122,7 @@ const h10=EL['confList'].innerHTML;
 console.log('  标注"此处列出最值得看的 40 对":', /此处列出最值得看的 40 对/.test(h10)?'✓':'✗');
 console.log('  标注总对数:', new RegExp('共 '+ex3.pairs.length+' 对').test(h10)?'✓':'✗');
 console.log('  互斥对措辞用"从未同时出现":', /从未同时出现/.test(h10)?'✓':'✗');
-console.log('  写明"不再限于你手选的那一组":', /不再限于你手选的那一组/.test(h10)?'✓':'✗');
+console.log('  已不写"不再限于你手选的那一组"（该段说明 2026-10-25 按用户要求删除）:', !/不再限于你手选的那一组/.test(h10)?'✓':'✗');
 console.log('  列出条数不超过 40:', (h10.match(/class="conf"/g)||[]).length<=40?'✓':'✗');
 
 console.log('=== 10b. 抽样时渲染给出"可能不全"告警 ===');
