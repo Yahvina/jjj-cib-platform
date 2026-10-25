@@ -1,4 +1,4 @@
-/* H4 ｜ 描述符状态面板（区间／依据／已知值／分层档位） ｜ 核心逻辑
+/* H4 ｜ 描述符状态面板（区间／依据／已知值） ｜ 核心逻辑
    摘自 _src/v15/src/app.js，按声明整段切出，未作改写。
    下面每个函数在 app.js 里的位置见本目录 README。 */
 
@@ -281,7 +281,7 @@ function renderStates(){
       return `<div class="stbox"><div class="hd">${nm}
         ${c.src?`<span class="src">来源：${c.src}</span>`:''}
         <i class="evi tip wide ${ev.k}" tabindex="0" data-tip="${attrEsc(evTip)}">${EVID_WORD[ev.k]||''}</i>${scopeTag}</div>`
-        +selRangeHTML(nm)+rows+addBox+ancRowHTML(nm)+xlPickHTML(nm)+
+        +selRangeHTML(nm)+rows+addBox+ancRowHTML(nm)+
         `<div class="stfoot"><button class="btn sm" onclick="addState('${nm}')">＋ 自定义状态</button>
           <button class="btn sm" onclick="selAllState('${nm}')">${allOn?'清空勾选':'全选 '+defs.length+' 档'}</button>
           ${hasScope&&rngScope!=='region'?`<button class="btn sm" onclick="dropScopeOverride('${nm}')">恢复区域级</button>`:''}</div>`+

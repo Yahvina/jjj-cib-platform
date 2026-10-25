@@ -490,24 +490,19 @@ SPEC = [
         css=['.policy', '.pol', '.verif', '.evi', '.map', '.side', '.tag'],
     ),
     dict(
-        dir='H3_各层差异与约束前置',
-        no='H3', title='各层差异预览与跨层约束前置',
-        why='多尺度在界面上的落点。先把「同一套描述符在国家级／区域级／省级／市级口径不一样」'
-            '摊开成一张表，再把跨层核对从「算完回头比」改成「选上层档位就立刻筛下层」：'
-            '与上层方向相差 ≥2 档、或取值区间不相交的下层档位直接置灰，原因写在选项里。'
-            '平台不替用户改档——档位冲突可能是真实的政策张力，上层改动后下层原选若不相容，'
-            '只清空并说明原因，由用户重选。',
-        need='跨层一致性要在选的时候就看得见，不能等检验跑完才发现上下打架。',
+        dir='H3_各层差异预览',
+        no='H3', title='各层差异预览',
+        why='多尺度在界面上的落点：把「同一套描述符在国家级／区域级／省级／市级口径不一样」'
+            '摊开成一张表，让跨层的口径差异在选尺度的时候就看得见。',
+        need='同一套描述符在四层上的口径不一样，这件事要让用户在第一步就看到。',
         kind='section', id='p0',
-        js=['LAYERS', 'layerTable', 'tglScale', 'rangeOf', 'rngTxt', 'ST', 'defsOf',
-            'XL_ORDER', 'XL_NAME', 'xlayers', 'xlAct', 'xlPickOf', 'xlReason', 'xlSet',
-            'xlPickHTML', 'allowUnder'],
+        js=['LAYERS', 'layerTable', 'tglScale', 'rngTxt', 'ST', 'defsOf'],
         globals=['sel', 'rngScope', 'toast', 'render'],
         css=['.grid2', '.opt', '.crow', '.clbl', '.cell', '.xl', '.dim', '.card', '.chk'],
     ),
     dict(
         dir='H4_描述符状态面板',
-        no='H4', title='描述符状态面板（区间／依据／已知值／分层档位）',
+        no='H4', title='描述符状态面板（区间／依据／已知值）',
         why='本方法的核心一屏。每个描述符的状态都挂取值区间，于是「高速／中速」这类定性标签'
             '落到具体数值范围上；区间可改、状态可增删、可重命名，改了以后原依据自动降为'
             '「已改」。依据徽标自己就是悬停锚点，说明文字挂在 data-tip 上，不占版面。'

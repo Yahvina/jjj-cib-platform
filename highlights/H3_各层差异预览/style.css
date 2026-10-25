@@ -1,4 +1,4 @@
-/* H3 ｜ 各层差异预览与跨层约束前置 ｜ 相关样式摘录
+/* H3 ｜ 各层差异预览 ｜ 相关样式摘录
    设计令牌（:root）永远带上；完整样式表见 ../_shared/base.css。 */
 
 :root{
@@ -108,15 +108,6 @@ table.cim td.cc.dimout{opacity:.16;}
 #toolBox{display:block;}
 
 .toolboxbody .card{margin:0;background:var(--panel2);}
-
-/* 分层档位（决策一②）：只在勾了 ≥2 个求解层时出现在状态卡里 */
-.xlrow{display:flex;align-items:center;gap:8px;margin-top:7px;}
-
-.xlrow .xllb{font-size:12px;color:var(--tx3);width:52px;flex:none;}
-
-.xlrow .xlsel{flex:1;min-width:0;}
-
-.xlrow select option:disabled{color:var(--tx3);}
 
 #pcmp .crow{border-bottom:1px solid var(--line2);}
 

@@ -860,11 +860,6 @@ pre.out::-webkit-scrollbar-thumb{background:#4A4640;border:2px solid transparent
   border-radius:99px;padding:0 6px;line-height:15px;}
 .toolboxbody{margin-top:12px;display:flex;flex-direction:column;gap:14px;}
 .toolboxbody .card{margin:0;background:var(--panel2);}
-/* 分层档位（决策一②）：只在勾了 ≥2 个求解层时出现在状态卡里 */
-.xlrow{display:flex;align-items:center;gap:8px;margin-top:7px;}
-.xlrow .xllb{font-size:12px;color:var(--tx3);width:52px;flex:none;}
-.xlrow .xlsel{flex:1;min-width:0;}
-.xlrow select option:disabled{color:var(--tx3);}
 @media (max-width:820px){.p6nav{position:static;}}
 
 /* 矩阵格内置信度：文字表达，不单靠颜色 */

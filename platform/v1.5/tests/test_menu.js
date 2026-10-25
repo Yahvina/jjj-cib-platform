@@ -81,9 +81,16 @@ chk(!/<details class="fold" id="layFold" open>/.test(sec), '折叠段默认收�
 chk(sec.indexOf('id="layBox"') >= 0, '下沉后仍有渲染出口 layBox');
 chk(app.indexOf('function renderLay') >= 0, '逐层求解的渲染函数仍在');
 chk(app.indexOf('function runLayered') >= 0, '逐层求解的驱动器仍在（功能未删）');
-// 事后检查器已由约束前置取代，这两个函数必须消失
+// 事后检查器与界面筛档两套机制都已删除，这几个函数必须消失
 chk(app.indexOf('function layConflicts') < 0, '事后检查器 layConflicts 已删');
 chk(app.indexOf('function layDirectionHTML') < 0, '事后检查器 layDirectionHTML 已删');
+// v1.5.7：第 3 步的界面筛档整块撤掉（它只改界面可选性、不进检算与导出）。
+// 断言这些不回来；跨层数值约束由 allowUnder 承担，下面单独钉住。
+['function xlReason', 'function xlPickHTML', 'function xlSet', 'function xlPickOf'].forEach(fn=>{
+  chk(app.indexOf(fn) < 0, '界面筛档已撤：' + fn);
+});
+chk(app.indexOf('xlPickHTML(nm)') < 0, '状态卡里不再调用界面筛档');
+chk(app.indexOf('function allowUnder') >= 0, '跨层数值约束（allowUnder）仍在');
 // 主被动图：与影响关系图重复，删 UI 留引擎
 chk(sec.indexOf('id="apFig"') < 0, '主被动图卡片已删');
 chk(app.indexOf('function renderAP') >= 0, '主被动图引擎仍在（删 UI 不删引擎）');

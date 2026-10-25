@@ -373,7 +373,7 @@ function layerTable(){
   });
   const onNames=LAYERS.filter(L=>on.indexOf(L.k)>=0).map(L=>L.n);
   h+=`<div class="dim" style="padding:10px 14px 0;font-size:13px;">
-    ${on.length>1?('本次参与跨层核对：'+onNames.join(' → ')+'。国家级为给定层，不参与枚举；相邻层级按「档位不反向」核对。')
+    ${on.length>1?('本次参与跨层核对：'+onNames.join(' → ')+'。国家级为给定层，不参与枚举；相邻层级按取值区间核对——上级某档与下级某档区间完全不相交时，该下级档不进枚举。')
       :'只勾了一个层级，不做跨层核对。'}</div>`;
   document.getElementById('layerTable').innerHTML=h;
 }
@@ -756,7 +756,7 @@ function renderStates(){
       return `<div class="stbox"><div class="hd">${nm}
         ${c.src?`<span class="src">来源：${c.src}</span>`:''}
         <i class="evi tip wide ${ev.k}" tabindex="0" data-tip="${attrEsc(evTip)}">${EVID_WORD[ev.k]||''}</i>${scopeTag}</div>`
-        +selRangeHTML(nm)+rows+addBox+ancRowHTML(nm)+xlPickHTML(nm)+
+        +selRangeHTML(nm)+rows+addBox+ancRowHTML(nm)+
         `<div class="stfoot"><button class="btn sm" onclick="addState('${nm}')">＋ 自定义状态</button>
           <button class="btn sm" onclick="selAllState('${nm}')">${allOn?'清空勾选':'全选 '+defs.length+' 档'}</button>
           ${hasScope&&rngScope!=='region'?`<button class="btn sm" onclick="dropScopeOverride('${nm}')">恢复区域级</button>`:''}</div>`+
@@ -1206,9 +1206,11 @@ function runLayered(){
 }
 
 /* 逐层求解的出口。原先是第 7 步一张常驻卡片，占着一屏却只在勾了多层辖区时才有内容；
-   决策三把它下沉成检验结果卡里的一个默认收起的折叠段（决策一②同时把「事后查档位差」
-   换成第 3 步的约束前置，删掉了 layConflicts/layDirectionHTML 那套事后检查）。
-   这里只讲逐层求解本身：上级取值约束下级、逐层往下推的结果。 */
+   决策三把它下沉成检验结果卡里的一个默认收起的折叠段。
+   这里只讲逐层求解本身：上级取值约束下级、逐层往下推的结果。
+   跨层约束到这一步只剩一条数值判据——上级某档与下级某档区间完全不相交时不进枚举
+   （allowUnder）。界面那套「方向相差 ≥2 档」的筛档 v1.5.7 已撤：它只改界面可选性、
+   不进检算与导出，留着反而让人以为选过的档位参与了结果。 */
 function renderLay(){
   const host=document.getElementById('layBox'); if(!host) return;
   const ds=Object.keys(sel.desc);
@@ -3222,12 +3224,14 @@ function exportEns(){
   saveFile('集成工作簿_'+nowStr().replace(/[: ]/g,'-')+'.html', html, 'text/html');
 }
 
-/* ================= 层级顺序（原「跨层一致性」表已删除） =================
+/* ================= 层级顺序 =================
    这里只留层级顺序本身。同一描述符在不同尺度上各有一个取值，这个顺序决定了
    逐层求解从哪一层开始、按什么次序往下推。
-   原先那张「跨层一致性」表要求用户手工给每层填一个档位、再查相邻层是否方向相反——
-   但它不参与任何计算（枚举、逐层求解、逐层约束都不读它），改它不影响任何结果。
-   档位方向的判定现在长在逐层求解的结果上（见 layConflicts），判的是真正被算出来的组合。 */
+   基于「档位方向」的界面机制先前有两件——第 7 步的「跨层一致性」台账、以及第 3 步的
+   「约束前置」筛档（v1.5.7 按用户决定撤掉）。两件都不参与任何计算：枚举、逐层求解、
+   导出与存档都不读它们，改它们不影响任何结果。
+   跨层的数值约束由逐层求解自己承担，判据只有一条：上级某档与下级某档的取值区间
+   完全不相交时，下级该档不进枚举（allowUnder）。 */
 
 const XL_ORDER=['nation','region','prov','city'];
 const XL_NAME={nation:'国家级',region:'区域级',prov:'省级',city:'市级'};
@@ -3237,86 +3241,6 @@ function xlayers(){
   return XL_ORDER.filter(l=>on.indexOf(l)>=0);
 }
 
-/* ================= 跨层档位（决策一②：约束前置） =================
-   第 1 步勾了 ≥2 个求解层时，每个描述符除了自己已选的档位（首层，沿用状态区那个单选），
-   还要为后续每一层选一个档位。选定的上层档位会限制下层：
-   与它方向相差 ≥2 档、或取值区间不相交的下层档位直接置灰，原因写在选项文字里。
-   这与枚举内核的判据一致——allowUnder 本来就是拿上级区间去筛下级（区间不相交即排除），
-   档位索引差 ≥2 则是 layConflicts 一直用来判「方向相反」的口径。
-
-   置灰只限制「能不能选」，平台绝不自动改写任何一方已定的档位：档位冲突可能是真实的
-   政策张力，替用户消解它等于平台替用户做政策判断。所以上层改动后，若下层原选已不相容，
-   只把它清空并在提示里说明原因，由用户重新选——不是静默改档。 */
-let xlPick={};                      // 描述符名 -> { 层: 状态索引 }（只存首层之后的层）
-const xlAct=()=>xlayers().filter(s=>s!=='nation');
-function xlPickOf(nm,scope){
-  const act=xlAct(), i=act.indexOf(scope);
-  if(i<0) return null;
-  if(i===0){                        // 首层＝状态区选的那一档，不另存一份，避免两个真相
-    const s=(sel.desc[nm]&&sel.desc[nm].states)||[];
-    const j=s.length?ST(nm).indexOf(s[0]):-1;
-    return j<0?null:j;
-  }
-  const p=xlPick[nm]||{};
-  return (typeof p[scope]==='number')?p[scope]:null;
-}
-/* 下层某档为什么不能选；能选则返回 null */
-function xlReason(nm,upScope,ui,dnScope,di){
-  if(ui===null||ui===undefined||di===null||di===undefined) return null;
-  if(upScope===dnScope) return null;
-  const st=ST(nm), un=st[ui], dn=st[di];
-  if(un===undefined||dn===undefined) return null;
-  const d=Math.abs(ui-di);
-  if(d>=2) return '与'+XL_NAME[upScope]+'「'+un+'」方向相差 '+d+' 档';
-  const pR=rangeOf(nm,upScope).find(x=>x.n===un);
-  const cR=rangeOf(nm,dnScope).find(x=>x.n===dn);
-  if(pR&&cR&&pR.lo!==null&&pR.hi!==null&&cR.lo!==null&&cR.hi!==null
-     &&(cR.hi<pR.lo||cR.lo>pR.hi))
-    return '与'+XL_NAME[upScope]+'「'+un+'」的取值区间不相交';
-  return null;
-}
-function xlSet(nm,scope,v){
-  xlPick[nm]=xlPick[nm]||{};
-  if(v==='') delete xlPick[nm][scope]; else xlPick[nm][scope]=+v;
-  /* 上层变了，下层原选可能已不相容——清掉并说清原因，不静默改档 */
-  const act=xlAct(), i=act.indexOf(scope);
-  let dropped=null;
-  for(let k=i+1;k<act.length;k++){
-    const dn=act[k], cur=xlPickOf(nm,dn);
-    if(cur===null) continue;
-    if(xlReason(nm,scope,xlPickOf(nm,scope),dn,cur)){
-      dropped=XL_NAME[dn]+'原选的「'+ST(nm)[cur]+'」';
-      delete xlPick[nm][dn];
-    }
-  }
-  cimResult=null; BAYES=null; layeredResult=null; corrResult=null; profResult=null;
-  render();
-  toast(dropped?(XL_NAME[scope]+'改动后，'+dropped+'已不相容，已清空请重选'):'已记录'+XL_NAME[scope]+'档位');
-}
-/* 分层档位的那几行；只在勾了 ≥2 个求解层时出现 */
-function xlPickHTML(nm){
-  const act=xlAct();
-  if(act.length<2) return '';
-  let h='';
-  for(let i=1;i<act.length;i++){
-    const scope=act[i], up=act[i-1];
-    const ui=xlPickOf(nm,up), cur=xlPickOf(nm,scope);
-    const tip=ui===null
-      ? '先在'+XL_NAME[up]+'选一档，这里会按它筛出可用的档位。'
-      : XL_NAME[up]+'已定「'+ST(nm)[ui]+'」：与它方向相差 ≥2 档、或取值区间不相交的档位已置灰。';
-    h+='<div class="xlrow"><span class="xllb">'+XL_NAME[scope]+'</span>'
-      +'<select class="txt xlsel" onchange="xlSet(\''+nm+'\',\''+scope+'\',this.value)">'
-      +'<option value="">（不指定）</option>'
-      +ST(nm).map((s,j)=>{
-        const why=(ui===null)?null:xlReason(nm,up,ui,scope,j);
-        return '<option value="'+j+'"'+(cur===j?' selected':'')
-          +(why?' disabled':'')+'>'+s+(why?'（'+why+'，不可选）':'')+'</option>';
-      }).join('')
-      +'</select>'
-      +'<span class="tip" tabindex="0" data-tip="'+attrEsc(tip)+'">?</span></div>';
-  }
-  return h;
-}
 
 /* ================= 情景筛选（v1.2 新增，对应德国软件的选择管理器） =================
    自洽情景常常几十上百个，看不过来。允许对任意描述符指定要求取值，
@@ -4447,11 +4371,15 @@ function renderBayes(){
    已有情景需要重新检验；省略 = 不动结果（只改界面、措辞、性能或新增旁路分析）。
    与 git 提交对应；此处只列入对外可讲、能被核对的事项。 */
 const CHANGELOG=[
+ /* —— 2026-10-25 第七轮：撤掉第 3 步的跨层档位筛（界面删掉，能力本就在引擎里） —— */
+ {d:'2026-10-25',k:'可用性',x:'撤掉第 3 步的「跨层档位」下拉框',y:'第 1 步勾了两层以上时，每个描述符面板下面会多出几行「省级／市级」下拉框，选定的上层档位会把下层不相容的档位置灰。它只改界面可选性——枚举、逐层求解、导出与存档都不读它（全项目 11 处引用，10 处是它自己），选过的档位既不影响任何计算结果，也不会被保存。平台上真正管跨层数值约束的是逐层求解里的区间判定，那条一直在生效。按「功能页去掉、能力保留」撤掉界面这一层。'},
+ {d:'2026-10-25',k:'可用性',x:'使用说明与术语表同步：跨层约束只讲区间不相交',y:'原先说明页写「相邻层级按档位不反向检查，方向相差 ≥2 档判冲突」——那是撤掉的那套界面筛档的口径，界面上已经没有它了。改成只讲引擎里真正在跑的一条：上级某档与下级某档的取值区间完全不相交时，下级该档不进枚举。术语表里的「档位不反向」同步换成「跨层区间约束」。'},
  /* —— 2026-10-25 第六轮：三份文档页版式修复 + 记录页瘦身 —— */
  {d:'2026-10-25',k:'缺陷',x:'三份文档页的侧栏版式失效：类名没挂上',y:'把日志拆成两页时，样式按「三页共用一套版式」重写成 .docpg 前缀的选择器，但三个 <section> 的 class 一直只有 pane，没人补上 docpg——这套网格与侧栏样式成了死代码，结果手册页的两栏网格没生效，侧栏塌成一行行链接。这里给三页补上类名，并把这层关系写进 test_doc.js 的断言（原先只断言 .docpg 选择器存在，没断言页面真的挂了这个类，所以样式全废也能通过）。'},
  {d:'2026-10-25',k:'可用性',x:'三页去掉页内返回链接',y:'顶栏菜单里一直有回到概览的入口，页面正文里再放一条同样的链接是重复。三页各删一条，返回入口仍在同一处。'},
  {d:'2026-10-25',k:'可用性',x:'删掉两类自陈性栏目',y:'版本页末尾与各场面谈末尾原先各有一段自陈性说明（罗列平台的待补项与不确定处），页末还有一节汇总。平台要开源对外，这类说明留在页面上对被记录的人和项目都没有好处，都改成不做记录。配套去掉各场的「依据」行与发言人对照说明，面谈标题统一写成「日期　面谈」。删除的是这些说明性栏目，导师要求／已落实／待办三节的内容一条没动。'},
  {d:'2026-10-25',k:'可用性',x:'「逐条变更记录」的读法收进悬停',y:'标题下方原先常驻一段「按日期倒序…标注不动结果的、重跑一遍结论一样…」，说明怎么读这张表。第一次读需要，之后每次进来都占一行。移进标题悬停。'},
+ {d:'2026-10-25',k:'口径',x:'v1.5.4 那条历史记录里残留的「存疑」一并改掉',y:'上一版删掉了「证据缺口」「存疑」两类栏目，但 v1.5.4 的版本条目里还写着「每场分『导师要求／已落实／待办／存疑』四节」。历史条目一般不随现状改写，但这一条与「平台要开源对外」直接冲突——保留历史不能让已经要求隐去的内容继续对外可见。改写成「三节（v1.5.6 把当时的第四类栏目整类删除了）」：既说清当时是四节，又不复述那类栏目。'},
  /* —— 2026-10-25 第五轮：26 处界面收敛 + 说明话语归位到使用说明页 —— */
  {d:'2026-10-25',k:'可用性',x:'界面上的解释性话语整批收起：能悬停的移进气泡，纯复述的删掉',y:'这一批按用户逐条点名处理 26 处。三类做法分清楚了：① 只是「怎么读这张图/这张表」的方法句，收进标题旁的悬停提示——第一次读才需要，读过就是噪音；② 与别处重复、或纯属复述界面已经画出来的东西（例如矩阵旁「行＝来源状态，列＝目标状态」、置信度标签后「对这条判断有多大把握，与上面填几分无关」），直接删；③ 「全选/清空」这类操作入口不是说明，保留并补齐。删掉的文字没有丢，全部改写进使用说明页对应步骤——平台仍然讲得清自己怎么用，只是不再把说明书摊在操作面上。'},
  {d:'2026-10-25',k:'功能',x:'状态设置加「全选 / 清空」入口',y:'勾选＝可信范围之后，逐个档位点选太慢。新增一个按钮在「全选 N 档」与「清空勾选」之间切换。勾满与不勾的检验范围完全相同（都＝全部档位），区别只在「用户明确看过并认可了全部档位」。'},
@@ -4752,13 +4680,14 @@ const VERSIONS=[
     '2b764eb（00:22）「注释里的 #d8 已过期：说明页拆成七节后末节不是 d8，改为「末节」」',
     '工程性变化（不在 CHANGELOG 里，属归档改动）：1fb1451（00:55）「亮点模块改为从源码生成，不再手工摘抄」——highlights/ 8 个模块由 build_highlights.py 从平台源码切出，并接入发布流程做一致性校验；23db556（01:10）修掉模块重叠（H5 卡片里裹着 H7 的折叠段）'
   ]},
-  {v:'v1.5.6',d:'2026-10-25',tag:'',sum:'修好三份文档页的侧栏版式（拆页时类名漏挂）；记录页去掉自陈性栏目，未发生的场次不再写',ev:'本批提交',
+  {v:'v1.5.6',d:'2026-10-25',tag:'',sum:'修好三份文档页的侧栏版式（拆页时类名漏挂）；记录页去掉自陈性栏目，未发生的场次不再写',ev:'提交 3ad9a70、3ad85fa、c1a969d',
    items:[
     '缺陷：三份文档页的侧栏版式失效——把日志拆成两页时样式按「三页共用一套」重写成 .docpg 前缀的选择器，但三个 section 的 class 一直只有 pane，没人补上 docpg，网格成了死代码、侧栏塌成一行行链接。test_doc.js 原先只断言样式里存在该选择器，没断言页面真的挂了类，所以样式全废也能通过；现两半都钉住',
     '三页去掉页内的返回链接（顶栏菜单里已有回到概览的入口，正文重复）',
     '删掉两类自陈性栏目：平台要开源对外，罗列平台待补项与不确定处的说明留在页面上，对被记录的人和项目都没有好处。配套去掉各场的「依据」行与发言人对照说明，面谈标题统一写成「日期　面谈」',
     '「逐条变更记录」的读法（按日期倒序、影响面怎么看）收进该标题悬停',
-    '没有发生的场次不再记录：原讨论日志里那场 10 月 26 日的面谈是排期不是面谈，整场删除'
+    '没有发生的场次不再记录：原讨论日志里那场 10 月 26 日的面谈是排期不是面谈，整场删除',
+    'v1.5.4 历史条目里残留的「存疑」一并改掉：历史条目不随现状改写是通例，但这一条与「平台要开源对外」直接冲突，改写成「三节（v1.5.6 把当时的第四类栏目整类删除了）」——说清当时是四节，不复述那类栏目'
    ]},
   {v:'v1.5.5',d:'2026-10-25',tag:'',sum:'26 处界面收敛（说明话语改悬停或删除、族改簇、六档底色重排、状态加全选），删掉的说明改写进使用说明页',ev:'提交 2832ff7',
    items:[
@@ -4768,6 +4697,12 @@ const VERSIONS=[
     '新增操作入口：状态设置「全选 N 档 / 清空勾选」',
     '反向一致性：界面删掉或收起的解释，全部改写进使用说明页对应步骤；test_doc.js 新增第 9 组，按主题断言这 16 处措辞与 3 个新增节，防止「界面清爽」变成「说明消失」',
     '共性收尾：标题悬停与卡内折叠段说同一件事的三处折叠段撤掉（先把气泡没覆盖的事实并进去，再删）'
+   ]},
+  {v:'v1.5.7',d:'2026-10-25',tag:'',sum:'撤掉第 3 步的跨层档位下拉框（界面删掉，跨层数值约束仍由逐层求解承担）',ev:'本批提交',
+   items:[
+    '第 1 步勾两层以上时，每个描述符面板下多出的「省级／市级」档位下拉框整块删除。它只改界面可选性，不参与枚举、逐层求解与导出，也不随存档保存——选过的档位既不影响结果，重载后也留不住',
+    '跨层数值约束不受影响：逐层求解里的 allowUnder 一直是硬约束，上级某档与下级某档取值区间不相交时该档不进枚举',
+    '使用说明与术语表同步：删掉「约束前置」一节，术语「档位不反向」改为「跨层区间约束」'
    ]}
 ];
 /* 渲染 HTML 时一律走这两个转义函数：素材里有引号、书名号、`<` 这类字符，

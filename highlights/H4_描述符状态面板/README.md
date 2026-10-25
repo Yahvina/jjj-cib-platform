@@ -1,4 +1,4 @@
-# H4 ｜ 描述符状态面板（区间／依据／已知值／分层档位）
+# H4 ｜ 描述符状态面板（区间／依据／已知值）
 
 ## 解决什么问题
 
@@ -77,10 +77,10 @@
 
 ## 目录外的函数依赖
 
-本模块还调用了 11 个**没有随本目录切出**的辅助函数，直接拷走本目录跑不起来；
+本模块还调用了 10 个**没有随本目录切出**的辅助函数，直接拷走本目录跑不起来；
 要跑请用完整平台，或连同下列调用一起取：
 
-`TREE`　`after`　`allDescs`　`collapsed`　`dOf`　`expanded`　`nSel`　`names`　`searchQ`　`toast`　`xlPickHTML`
+`TREE`　`after`　`allDescs`　`collapsed`　`dOf`　`expanded`　`nSel`　`names`　`searchQ`　`toast`
 
 ## 复用方式
 
