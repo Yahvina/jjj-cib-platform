@@ -30,13 +30,28 @@ sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='repla
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 REPO = os.path.dirname(HERE)
-ROOT = os.path.dirname(REPO)                      # 工作区根（repo 的上一级）
-SRC = os.path.join(ROOT, '_src', 'v15')
+VER = 'v1.5'
+CHECK = '--check' in sys.argv
+
+# 源码从哪儿切：自己认布局，别写死某台机器的路径。
+#   有工作区时用 <root>/_src/v15/ —— 那是正在编辑的那份，必须先看它，
+#   否则会拿仓库里的旧副本跟旧副本比，改了源码却校验通过（校验形同虚设）。
+#   克隆下来只有仓库时用 <repo>/platform/v1.5/ —— 全新克隆正是接手者的起点。
+# 原先写死 ROOT = dirname(REPO) 再拼 _src/v15，于是 clone 出来的仓库一跑就
+# FileNotFoundError（找的是克隆目录上一级的 _src/v15）。
+_REPO_SRC = os.path.join(REPO, 'platform', VER)
+_WS_SRC = os.path.join(os.path.dirname(REPO), '_src', 'v15')
+if os.path.isdir(_WS_SRC):
+    SRC = _WS_SRC
+elif os.path.isdir(_REPO_SRC):
+    SRC = _REPO_SRC
+else:
+    raise SystemExit(
+        '找不到 %s 的源码。期望其一存在：\n  %s（工作区）\n  %s（仓库内）\n'
+        % (VER, _WS_SRC, _REPO_SRC))
 HTML_SRC = os.path.join(SRC, 'index.html')
 JS_SRC = os.path.join(SRC, 'src', 'app.js')
 CSS_SRC = os.path.join(SRC, 'src', 'styles.css')
-VER = 'v1.5'
-CHECK = '--check' in sys.argv
 
 CHECK_FAIL = []
 
