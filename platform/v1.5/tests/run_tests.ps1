@@ -60,12 +60,30 @@ if ($repoRoot) {
   $testDir = $root
 }
 # The built file has a Chinese name; this script is ASCII-only, so locate the
-# newest single-file build by pattern instead of pasting the name in. From the
-# archive there is no output/ beside us, so -Prod is simply unavailable there.
-$outDir  = Join-Path $root '..\output'
+# newest single-file build by pattern instead of pasting the name in.
+#
+# Where to look depends on which copy we are testing:
+#   workspace : <root>/../output/*v1.5*.html   (produced by merge_v15.py)
+#   archive   : <testDir>/../*v1.5*.html       (committed beside the version)
+# A git clone has no output/ at all -- it only has the committed build. That
+# case used to be missing, so running the cloned copy with -Prod crashed: the
+# smoke test was not skipped yet received a null path, and Test-Path on $null
+# throws ParameterArgumentValidationError, burying the cause under a stack
+# trace. A fresh clone is exactly where a new maintainer starts, so -Prod has to
+# work there.
+$prodDirs = @()
+if ($repoRoot -or $isArchive) {
+  # archive: the committed build sits beside the version dir we are testing
+  $prodDirs += (Join-Path $testDir '..')
+} else {
+  # workspace: merge_v15.py writes the build into <root>/../output
+  $prodDirs += (Join-Path $root '..\output')
+}
 $prodArg = $null
-if (Test-Path $outDir) {
-  $cand = Get-ChildItem $outDir -Filter '*v1.5*.html' -File -ErrorAction SilentlyContinue |
+foreach ($candDir in $prodDirs) {
+  if ($prodArg) { break }
+  if (-not (Test-Path $candDir)) { continue }
+  $cand = Get-ChildItem $candDir -Filter '*v1.5*.html' -File -ErrorAction SilentlyContinue |
           Sort-Object LastWriteTime -Descending | Select-Object -First 1
   if ($cand) { $prodArg = $cand.FullName }
 }
@@ -94,9 +112,11 @@ $failed = @()
 
 foreach ($t in $tests) {
   $arg = Get-TestArg $t.Name
-  if (-not (Test-Path $arg)) {
-    # The built file may legitimately be absent when -Prod is not given; only
-    # report it when this run actually asked for it.
+  # $arg can be $null when -Prod was asked for but no built file was found.
+  # Test-Path throws ParameterArgumentValidationError on $null, which buries the
+  # real message under a PowerShell stack trace; report it plainly instead.
+  if (-not $arg -or -not (Test-Path $arg)) {
+    if (-not $arg) { $arg = '<none found>' }
     $failed += [pscustomobject]@{ Name = $t.Name; Why = 'input not found: ' + $arg; Detail = @() }
     continue
   }

@@ -24,6 +24,9 @@
 ```
 jjj-cib-platform/
 ├── index.html                     ← 平台原型（单文件，双击即用；当前为 v1.5）
+├── merge_v15.py                   ← 构建脚本：分文件源码 → 单文件成品
+├── AGENTS.md                      ← agent 入口（环境、命令、红线、会骗人的地方）
+├── HANDOFF.md                     ← 完整交接材料（架构、设计决定、踩坑清单）
 ├── platform/
 │   ├── v1.0/                      ← v1.0 原始文件留档
 │   │   └── 京津冀政策情景快速评估平台_原型v1.0.html
@@ -117,22 +120,27 @@ python build_highlights.py --check  # 校验是否与源码一致（退出码 1 
 
 ## 发布流程（改一次就发一次）
 
-平台源码的**工作副本在** `C:\Users\guiqu\WorkBuddy\2026-09-16-21-47-56\_src\v15\`（`index.html` + `src/app.js` + `src/styles.css`），本仓库里的是**归档副本**。改完一处就按下面三步走，线上始终等于仓库里的成品：
+源码就在本仓库里：`platform/v1.5/`（`index.html` + `src/app.js` + `src/styles.css`）。改完按下面走，线上始终等于仓库里的成品。
 
 ```powershell
-# 1. 在本机工作副本改完，跑自检（31 套，全过才继续）
-cd C:\Users\guiqu\WorkBuddy\2026-09-16-21-47-56\_src
-powershell -File run_tests.ps1          # 唯一会因断言失败而非零退出的入口；-Prod 另含成品冒烟
+# 1. 跑自检（31 套，全过才继续）
+powershell -ExecutionPolicy Bypass -File platform/v1.5/tests/run_tests.ps1 -Prod
 
-# 2. 合并成单文件并写进仓库（--repo 会同时更新 platform/<版本>/ 与本仓库根 index.html）
-python merge_v15.py --repo   # 顺带做两项自检：仓库源码重新合并 = 成品；亮点模块与源码一致
+# 2. 若动了平台源码：重新生成亮点模块（忘了这步发布会被闸门挡住）
+cd highlights; python build_highlights.py; cd ..
 
-# 3. 提交并推送（Pages 约 1 分钟后自动更新）
-cd ..\jjj-cib-platform
+# 3. 合并成单文件并更新仓库根 index.html（会在写文件前先做全部断言）
+python merge_v15.py
+
+# 4. 提交并推送（Pages 约 1 分钟后自动更新）
 git add -A; git commit -m "简述这次改了什么"; git push origin main
 ```
 
-**`--repo` 不能省**：不带它时只写桌面与工作区 `output/`，仓库与线上都不会动。带它时会自动做三件事——写 `platform/<版本>/` 单文件成品、镜像分文件源码、**把仓库里的源码重新合并一遍并断言与成品逐字节相同**（防止仓库源码与线上成品变成两套东西），同时把 31 套测试与统一闸门一起归档。
+`merge_v15.py` **自己认布局，不用传路径**：在仓库里跑就更新 `platform/v1.5/` 成品与仓库根 `index.html`；在带 `_src/v15/` 工作副本的目录里跑则写 `output/` 与桌面副本，加 `--repo` 才写仓库。
+
+它在**写任何文件之前**先做完全部断言，并额外做两件事：**把仓库里的源码重新合并一遍、断言与成品逐字节相同**（防止仓库源码与线上成品变成两套东西），以及**校验亮点模块与源码一致**。任一项不过就整体拒绝，仓库不留半成品。
+
+`--check` 可单独跑：`python merge_v15.py --check`（只校验、不写任何文件）。
 
 **版本号三处绑定**：`merge_v15.py` 的 `VER`、成品文件名 `NAME`、`index.html` 的 `<title>`。改版本号要三处一起改，否则发布出去的成品与归档目录对不上。
 
