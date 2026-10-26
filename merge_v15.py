@@ -130,14 +130,19 @@ for gone in ['id="chgModal"', 'id="chgBody"', 'function closeChangelog',
              'DISCUSS_GAPS', 'VER_GAPS', 'class="doc-back"', "h:'存疑'"]:
     assert gone not in html, '旧日志模态复活：' + gone
 
-# 未发生的面谈不许留在讨论日志里。但讨论日志之外（版本日志、更新日志）
-# 可以正当地出现同一个日期——版本发布就发生在那一天。这里只在 DISCUSS
-# 数组范围内查，不把整份合并文件当作作用域。这是第三次踩同一个坑：
+# 讨论日志只记真开过的会。原先 10-26 那场是把排期误抄了进来（已删），现在
+# 这场真开了、按同一套三节格式照实记了这一场。所以要挡的不是某个日期，而是
+# 「排期被当成面谈写进来」——判据落成：各场日期必须严格递增，不许重复或倒序。
+# 只在 DISCUSS 数组范围内查，不把整份合并文件当作用域：版本日志与更新日志里
+# 正当地出现同一天（发布就发生在当天）。这是第三次踩这个坑——
 # "2026-10-25 日志里如实写“删掉了这两类栏目”" 曾把自己的发布挡住。
 _d0 = html.find('const DISCUSS=[')
 _d1 = html.find('\n];', _d0)
 assert _d0 > 0 and _d1 > _d0, '讨论日志数组定位失败'
-assert "d:'2026-10-26'" not in html[_d0:_d1], '未发生的 10-26 面谈复活'
+_dis_dates = re.findall(r"\{d:'(\d{4}-\d{2}-\d{2})'", html[_d0:_d1])
+assert len(_dis_dates) >= 5, '讨论日志场次数异常'
+assert _dis_dates == sorted(_dis_dates) and len(set(_dis_dates)) == len(_dis_dates), \
+    '讨论日志必须按日期升序且不重复（排期混进日志会在这里被挡住）'
 
 # 亮点模块也必须跟着源码走。它们曾经是手工从 v1.0 切的，切完就没人管，
 # 一路引用着后来被删掉的函数（pullDB / applyFix / csvParam）和弃用的配色。

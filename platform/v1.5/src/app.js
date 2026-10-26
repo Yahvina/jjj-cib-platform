@@ -2144,14 +2144,48 @@ function loadCfg(){
 }
 
 /* ================= 政策库与映射（v1.1 新增） ================= */
-let polSel=null, polUser=[];
+let polSel=null, polUser=[], polDepts=[];
 function PALLC(){ return POLICY.concat(polUser); }
+/* 部门取值：直接从政策条目的 s 字段拆出来，不另建一张对照。
+   现有数据里 106 条有 35 条同时涉及多个部门（最多一条占 6 个），
+   所以这里按「一条政策可同时挂多个部门」处理，不做单部门归属。
+   数据集里的「能源」包含电力，不另立「电力」；「跨部门」本身是一个可筛选项。 */
+function polDeptList(){
+  const seen={}, out=[];
+  PALLC().forEach(p=>{
+    String(p.s||'').split(/[；;]/).forEach(x=>{
+      x=x.trim(); if(x&&!seen[x]){ seen[x]=1; out.push(x); }
+    });
+  });
+  return out;
+}
+function polDeptHit(p,ds){
+  ds=ds||polDepts; if(!ds.length) return true;
+  const own=String(p.s||'').split(/[；;]/).map(x=>x.trim()).filter(Boolean);
+  return own.some(x=>ds.indexOf(x)>=0);
+}
+function polDeptArr(s){ return String(s||'').split(/[；;]/).map(x=>x.trim()).filter(Boolean); }
+/* 列表里的部门标签：单个直接写部门名，多个写「首个 +N」，完整部门串放 title。 */
+function polDeptTag(s){
+  const a=polDeptArr(s);
+  if(!a.length) return '';
+  const txt=a.length>1?(a[0]+' +'+(a.length-1)):a[0];
+  return '<span class="pdp" title="'+attrEsc(a.join('；'))+'">'+attrEsc(txt)+'</span>';
+}
+function tglPolDept(nm){
+  const i=polDepts.indexOf(nm);
+  if(i>=0) polDepts.splice(i,1); else polDepts.push(nm);
+  polSel=null; renderPolicy();
+}
+function clearPolDept(){ polDepts=[]; polSel=null; renderPolicy(); }
 function renderPolicy(){
   const list=document.getElementById('polList'); if(!list) return;
   const cat=(document.getElementById('polCat')||{}).value||'all';
   const only=(document.getElementById('polOnly')||{}).value||'all';
   const all=PALLC();
-  const arr=all.filter(p=>(cat==='all'||p.c===cat)&&(only==='all'||(only==='hit')===(p.m.length>0)));
+  const arr=all.filter(p=>(cat==='all'||p.c===cat)
+    &&(only==='all'||(only==='hit')===(p.m.length>0))
+    &&polDeptHit(p));
   if(!arr.length){
     list.innerHTML='<div class="empty" style="padding:34px;">没有符合条件的路径</div>';
   }else{
@@ -2161,6 +2195,7 @@ function renderPolicy(){
       if(p.c!==last){ h+='<div class="pgh">'+p.c+'</div>'; last=p.c; }
       h+='<div class="pitem'+(i===polSel?' sel':'')+'" onclick="pickPolicy('+i+')">'+
          '<span class="pn">'+p.n+'</span>'+
+         polDeptTag(p.s)+
          '<span class="pa">'+(p.a==='地方补充'?'地方':(p.a||'—'))+'</span>'+
          (p.m.length?('<span class="pm">'+p.m.length+'</span>'):'<span class="pm no">0</span>')+
          (polEvid(p)?'<span class="pe" title="数据集里有工具级记录">证</span>':'')+
@@ -2168,13 +2203,24 @@ function renderPolicy(){
     });
     list.innerHTML=h;
   }
+  const depts=polDeptList(), depBox=document.getElementById('polDeps');
+  if(depBox) depBox.innerHTML=
+    '<span class="dplab">部门</span>'+
+    '<button class="dpbtn'+(polDepts.length?'':' on')+'" onclick="clearPolDept()">全部 '+all.length+'</button>'+
+    depts.map(d=>{
+      const n=all.filter(p=>polDeptHit(p,[d])).length;
+      return '<button class="dpbtn'+(polDepts.indexOf(d)>=0?' on':'')+'" onclick="tglPolDept(&quot;'+attrEsc(d)+'&quot;)">'
+        +attrEsc(d)+' '+n+'</button>';
+    }).join('');
   const hit=all.filter(p=>p.m.length>0).length;
+  const shown=arr.length;
   const covered={};
-  all.forEach(p=>p.m.forEach(x=>{ covered[x[0]]=1; }));
-  const evN=all.filter(p=>polEvid(p)).length;
-  const qN=all.filter(p=>{ const e=polEvid(p); return e&&e.q&&e.q.length; }).length;
+  arr.forEach(p=>p.m.forEach(x=>{ covered[x[0]]=1; }));
+  const evN=arr.filter(p=>polEvid(p)).length;
+  const qN=arr.filter(p=>{ const e=polEvid(p); return e&&e.q&&e.q.length; }).length;
   document.getElementById('polStat').innerHTML=
-    '<span class="kv"><span>政策路径</span><span>'+all.length+' 条</span></span>'+
+    '<span class="kv"><span>'+(polDepts.length?'当前筛选':'政策路径')+'</span><span>'+shown+' 条'
+      +(polDepts.length?'（全部 '+all.length+' 条）':'')+'</span></span>'+
     '<span class="kv"><span>有对应描述符</span><span style="color:var(--ok)">'+hit+' 条</span></span>'+
     '<span class="kv"><span>无对应</span><span style="color:var(--tx2)">'+(all.length-hit)+' 条</span></span>'+
     '<span class="kv"><span>覆盖描述符</span><span>'+Object.keys(covered).length+' / '+allDescs().length+' 个</span></span>'+
@@ -2221,6 +2267,18 @@ function polEvidBlock(p){
   h+='</div>';
   return h;
 }
+/* 政策实施时间线的字段壳。当前数据和代码里都还没有「起始年」「执行率」这两个字段，
+   这里只把位置留出来，取值口径定下来之后再往里填，不先编数。 */
+function polTimeBlock(p){
+  const y=p.year||p.startYear||'', r=(p.rate===0||p.rate)?p.rate:'';
+  const cell=(v)=>v?String(v):'<span class="tbd">待补</span>';
+  return '<div class="slabel">政策实施</div>'
+    +'<div class="ptime">'
+    +'<div class="ptrow"><span class="ptk">起始年</span><span class="ptv">'+cell(y)+'</span></div>'
+    +'<div class="ptrow"><span class="ptk">执行率</span><span class="ptv">'+cell(r)+'</span></div>'
+    +'</div>'
+    +'<div class="ptnote">这两个位置先留着——政策库里还没有年份与执行率，等口径定了再填。</div>';
+}
 function polSidePanel(){
   const el=document.getElementById('polSide'); if(!el) return;
   const all=PALLC();
@@ -2243,6 +2301,7 @@ function polSidePanel(){
    '<div class="shead">'+(p.a==='地方补充'||p.a==='自定义'?'京津冀地方补充':'CCPID 国家库')+'</div>'+
    '<div class="pname">'+p.n+'</div>'+
    '<div class="pmeta">'+p.c+' · '+p.g+(p.s?' · '+p.s:'')+(p.t?'　工具 '+p.t+' 项':'')+'</div>'+
+   polTimeBlock(p)+
    polEvidBlock(p)+
    '<div class="slabel">对应到的描述符</div>'+
    (p.m.length? p.m.map(x=>{
@@ -4371,7 +4430,8 @@ function renderBayes(){
    已有情景需要重新检验；省略 = 不动结果（只改界面、措辞、性能或新增旁路分析）。
    与 git 提交对应；此处只列入对外可讲、能被核对的事项。 */
 const CHANGELOG=[
- {d:'2026-10-26',k:'可用性',x:'概览页那段政策原文补上去向：原文 → 平台读作哪个描述符',y:'首页统计下面留着一整段政策原文，单看像是从文件里随手摘来的一句引文，看不出它和平台有什么关系。原文保留，上面加一行小字「示例 · 政策原文如何进入模型」，出处补上书名号，下面接一行「平台读作 → 排放交易体系（ETS） → 碳价水平与碳市场覆盖」——把「一段政策话」和「一个可判定的描述符」这一前一后接上。只动首页版式，不进检算也不改数据。'},
+ {d:'2026-10-26',k:'功能',x:'政策库加部门轴：按部门筛，一条政策可同时属于多个部门',y:'政策条目里 s 字段是部门，106 条里有 35 条同时涉及两个以上部门（最多一条占 6 个），所以左侧不能做成「一条政策只归一个部门」的单选导航，否则跨部门那批会被迫归到某一类或塞进「其他」。改成按钮多选：默认「全部」，点一个或多个部门只留下命中任一部门的路径，按钮上直接标该部门条数。部门名一律取自数据本身（能源、工业、交通、建筑、农业林业其他土地利用、废弃物、跨部门共 7 类），数据里没有「电力」这一项——电力归在能源里，不另立。列表每条补一个部门标签：单部门显示名字，多部门显示「首个 +N」，完整部门串放在悬停里。只筛列表，不改任何映射与打分。'},
+ {d:'2026-10-26',k:'功能',x:'政策侧栏补出「政策实施」的字段壳，值先留空',y:'按参照对象那种「选一个政策，能看到它在哪一年开始、执行到什么程度」的形态，在政策侧栏加两行：起始年、执行率。现在政策库和代码里都没有这两个字段，所以只把位置留出来，取不到值就写「待补」，不填假数；等和数据集侧把「哪一年、什么强度、按什么口径算」对齐之后再往里填。本轮只加位置，不进检算。'}, {d:'2026-10-26',k:'可用性',x:'概览页那段政策原文补上去向：原文 → 平台读作哪个描述符',y:'首页统计下面留着一整段政策原文，单看像是从文件里随手摘来的一句引文，看不出它和平台有什么关系。原文保留，上面加一行小字「示例 · 政策原文如何进入模型」，出处补上书名号，下面接一行「平台读作 → 排放交易体系（ETS） → 碳价水平与碳市场覆盖」——把「一段政策话」和「一个可判定的描述符」这一前一后接上。只动首页版式，不进检算也不改数据。'},
  {d:'2026-10-25',k:'缺陷',x:'「关于」里显示的版本号停在 v1.4',y:'关于框里的版本号是个写死的字符串，从 v1.4 起没再改过；平台已经发到 v1.5.7，点开关于仍然显示 v1.4。改成从版本日志的最后一条取号——数组按时间从旧到新排列，末条即当前版本，同时把那段描述 v1.4 改版内容的文字换成平台本身的说明，以后加版本条目不必回头改这里。顺带修掉版本日志页的条目顺序：v1.5.6 原先排在 v1.5.5 前面，而渲染是按数组顺序、不做排序。'},
  /* —— 2026-10-25 第七轮：撤掉第 3 步的跨层档位筛（界面删掉，能力本就在引擎里） —— */
  {d:'2026-10-25',k:'可用性',x:'撤掉第 3 步的「跨层档位」下拉框',y:'第 1 步勾了两层以上时，每个描述符面板下面会多出几行「省级／市级」下拉框，选定的上层档位会把下层不相容的档位置灰。它只改界面可选性——枚举、逐层求解、导出与存档都不读它（全项目 11 处引用，10 处是它自己），选过的档位既不影响任何计算结果，也不会被保存。平台上真正管跨层数值约束的是逐层求解里的区间判定，那条一直在生效。按「功能页去掉、能力保留」撤掉界面这一层。'},
@@ -4570,7 +4630,29 @@ const DISCUSS=[
      '政策库自动更新；结题报告每节攻一个点；交付物至少 2 个载体。',
      '关系依据、阈值文献共识、评分规则定稿（使用说明页「算法说明」已写明依据来源与验证另立一节）。'
    ]}
- ]}
+  ]},
+  {d:'2026-10-26',t:'面谈',secs:[
+    {h:'导师要求',li:[
+      '书院现在要求每次师生讨论都在系统里登记（日期、地点、聊了什么）。前面几次导师代填了，往后由学生自己填。',
+      '先讲清了整件事的三个出口：软著＝这套算法＋数据库＋界面组成的数字工具，给 GCAM/CGE 备情景参数用的前置配置工具，得先起个名字；发明专利＝方法上的改进（跨层级、抽样效率）；论文＝用这套工具做京津冀案例。论文周期长，先把软著做出来，其余从第一天起缺什么补什么。',
+      '平台的壳参照 EPS（Energy Policy Simulator）：左边是政策/部门的选择，点开一条政策能看到它的实施时间线（哪一年、执行率多少），右边出结果；换成政策研究者能看懂的业务语言，CIB 留在后面当检算引擎。',
+      '对同学的：数据集底表要做成「政策工具 → 模拟方法 → 参数及单位、参数值」的形态，先做北京、天津、河北三地文件，再谈京津冀统一口径。',
+      '下次形式：用户讲网站与 PPT，同学讲数据集底表和北大那套 agent 采集工作流，现场直接看软著还缺什么卖点、亮点。'
+    ]},
+    {h:'已落实',li:[
+      '政策库加部门轴：按部门筛选，一条政策可同时属于多个部门（106 条里 35 条跨部门），部门名一律取自数据本身共 7 类，数据里没有「电力」、「电力」归在能源。',
+      '政策侧栏补出「政策实施」字段壳（起始年、执行率两行），取不到值就写「待补」，不填假数，等口径对齐后再填。',
+      '首页政策引文补上「平台读作 → 描述符」，把一段政策原文和它落到哪个描述符接起来。'
+    ]},
+    {h:'待办',li:[
+      '自己和导师把每次讨论补登进书院系统；今天这场也要补。',
+      '给这套工具起一个正式名字（软著要用）。',
+      '软著材料刷新：13 张界面截图重截、软件说明书里「演示模式／跨层一致性／数值锚定」三处旧词改掉、源程序文档重导。',
+      '政策实施时间的取值口径（哪一年、执行率怎么算、谁来填）要和数据集侧对齐后再往字段壳里填。',
+      '「政策工具 → 参数」这张对照表补到 19 个描述符：加「换算方法」和「取档方式」两列，不为凑数硬给结果型描述符编输入参数。',
+      '方法改进整理成技术交底：中档系数为 0、方向表达、全中档组合这三件事本质是同一个展开公式的后果，先把这条写清再补理论。'
+    ]}
+  ]}
 ];
 /* ================= 版本更新日志页（pver） =================
    素材是 _src/_tmp/version_draft.md + git log。同上，内联。
@@ -4718,6 +4800,14 @@ const VERSIONS=[
     '首页统计下面那段政策原文原来只挂着出处，单看像随手摘的引文，看不出与平台的关系',
     '原文保留，出处补上书名号，上面加一条「示例 · 政策原文如何进入模型」，下面接「平台读作 → 排放交易体系（ETS） → 碳价水平与碳市场覆盖」',
     '只改首页版式，不做任何数据采集与模型侧改动；判定输入与输出都不变'
+   ]},
+  {v:'v1.5.10',d:'2026-10-26',tag:'',sum:'政策库加部门轴（多选筛选）与政策实施字段壳；讨论日志补上 10-26 这场',ev:'本批提交',
+   items:[
+    '政策库左侧加部门筛选：一条政策可同时属于多个部门（106 条里 35 条跨部门，最多一条占 6 个），所以做成按钮多选而不是单部门单选。部门名取自数据本身，共 7 类；数据里没有「电力」，电力归在能源',
+    '列表每条补部门标签：单部门显示名字，多部门显示「首个 +N」，完整部门串放在悬停里；统计条随手上的筛选走，并标出「当前筛选 N 条（全部 106 条）」',
+    '政策侧栏补出「政策实施」字段壳（起始年、执行率），现在没有这两个字段，取不到就写「待补」，不填假数，等和数据集侧对齐口径后再填',
+    '讨论日志补上 2026-10-26 这场：三件出口（软著／专利／论文）、参照 EPS 的界面形态、书院讨论登记由学生自己补、下次形式',
+    '本批只动政策库界面与讨论日志，不动打分、区间与枚举，已有情景不必重算'
    ]}
 
 ];

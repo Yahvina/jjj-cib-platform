@@ -98,6 +98,34 @@ const list=document.getElementById('polList').innerHTML||'';
 const marks=(list.match(/class="pe"/g)||[]).length;
 console.log('  列表中的「证」标记:', marks, '(应 57 上下)');
 console.log('  判定:', (marks>=50 && marks<=58)?'✓':'✗');
+
+console.log();
+console.log('=== 8. 部门筛选 ===');
+const depts=polDeptList();
+console.log('  部门取值:', depts.join(' / '));
+console.log('  部门数:', depts.length, '(应 7)');
+console.log('  判定:', depts.length===7?'✓':'✗');
+console.log('  含「能源」、不含「电力」:', (depts.indexOf('能源')>=0 && depts.indexOf('电力')<0)?'✓':'✗');
+const cross=polDeptHit({s:'工业；建筑'},['建筑']);
+console.log('  多部门政策命中其一部:', cross?'✓':'✗');
+const none=polDeptHit({s:'交通'},['建筑']);
+console.log('  不同部门不误命中:', none?'✗':'✓');
+polDepts=['建筑']; renderPolicy();
+const bList=document.getElementById('polList').innerHTML||'';
+const bCount=(bList.match(/class="pitem/g)||[]).length;
+const bShould=PALLC().filter(p=>polDeptHit(p,['建筑'])).length;
+console.log('  只看建筑:', bCount, '条（应', bShould, '）');
+console.log('  判定:', bCount===bShould?'✓':'✗');
+polDepts=[]; renderPolicy();
+
+console.log();
+console.log('=== 9. 政策实施字段壳 ===');
+const shell=polTimeBlock(POLICY[0]);
+console.log('  含「政策实施」:', /政策实施/.test(shell)?'✓':'✗');
+console.log('  含「起始年」与「执行率」:', (/起始年/.test(shell)&&/执行率/.test(shell))?'✓':'✗');
+console.log('  无值时不编数:', /待补/.test(shell)?'✓':'✗');
+const withYear=polTimeBlock({n:'x',year:2030,rate:0.5});
+console.log('  有值时正常显示:', (/2030/.test(withYear)&&/0\.5/.test(withYear))?'✓':'✗');
 `;
 
 eval(code + test);

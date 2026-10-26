@@ -140,7 +140,9 @@ function renderPolicy(){
   const cat=(document.getElementById('polCat')||{}).value||'all';
   const only=(document.getElementById('polOnly')||{}).value||'all';
   const all=PALLC();
-  const arr=all.filter(p=>(cat==='all'||p.c===cat)&&(only==='all'||(only==='hit')===(p.m.length>0)));
+  const arr=all.filter(p=>(cat==='all'||p.c===cat)
+    &&(only==='all'||(only==='hit')===(p.m.length>0))
+    &&polDeptHit(p));
   if(!arr.length){
     list.innerHTML='<div class="empty" style="padding:34px;">没有符合条件的路径</div>';
   }else{
@@ -150,6 +152,7 @@ function renderPolicy(){
       if(p.c!==last){ h+='<div class="pgh">'+p.c+'</div>'; last=p.c; }
       h+='<div class="pitem'+(i===polSel?' sel':'')+'" onclick="pickPolicy('+i+')">'+
          '<span class="pn">'+p.n+'</span>'+
+         polDeptTag(p.s)+
          '<span class="pa">'+(p.a==='地方补充'?'地方':(p.a||'—'))+'</span>'+
          (p.m.length?('<span class="pm">'+p.m.length+'</span>'):'<span class="pm no">0</span>')+
          (polEvid(p)?'<span class="pe" title="数据集里有工具级记录">证</span>':'')+
@@ -157,13 +160,24 @@ function renderPolicy(){
     });
     list.innerHTML=h;
   }
+  const depts=polDeptList(), depBox=document.getElementById('polDeps');
+  if(depBox) depBox.innerHTML=
+    '<span class="dplab">部门</span>'+
+    '<button class="dpbtn'+(polDepts.length?'':' on')+'" onclick="clearPolDept()">全部 '+all.length+'</button>'+
+    depts.map(d=>{
+      const n=all.filter(p=>polDeptHit(p,[d])).length;
+      return '<button class="dpbtn'+(polDepts.indexOf(d)>=0?' on':'')+'" onclick="tglPolDept(&quot;'+attrEsc(d)+'&quot;)">'
+        +attrEsc(d)+' '+n+'</button>';
+    }).join('');
   const hit=all.filter(p=>p.m.length>0).length;
+  const shown=arr.length;
   const covered={};
-  all.forEach(p=>p.m.forEach(x=>{ covered[x[0]]=1; }));
-  const evN=all.filter(p=>polEvid(p)).length;
-  const qN=all.filter(p=>{ const e=polEvid(p); return e&&e.q&&e.q.length; }).length;
+  arr.forEach(p=>p.m.forEach(x=>{ covered[x[0]]=1; }));
+  const evN=arr.filter(p=>polEvid(p)).length;
+  const qN=arr.filter(p=>{ const e=polEvid(p); return e&&e.q&&e.q.length; }).length;
   document.getElementById('polStat').innerHTML=
-    '<span class="kv"><span>政策路径</span><span>'+all.length+' 条</span></span>'+
+    '<span class="kv"><span>'+(polDepts.length?'当前筛选':'政策路径')+'</span><span>'+shown+' 条'
+      +(polDepts.length?'（全部 '+all.length+' 条）':'')+'</span></span>'+
     '<span class="kv"><span>有对应描述符</span><span style="color:var(--ok)">'+hit+' 条</span></span>'+
     '<span class="kv"><span>无对应</span><span style="color:var(--tx2)">'+(all.length-hit)+' 条</span></span>'+
     '<span class="kv"><span>覆盖描述符</span><span>'+Object.keys(covered).length+' / '+allDescs().length+' 个</span></span>'+
@@ -235,6 +249,7 @@ function polSidePanel(){
    '<div class="shead">'+(p.a==='地方补充'||p.a==='自定义'?'京津冀地方补充':'CCPID 国家库')+'</div>'+
    '<div class="pname">'+p.n+'</div>'+
    '<div class="pmeta">'+p.c+' · '+p.g+(p.s?' · '+p.s:'')+(p.t?'　工具 '+p.t+' 项':'')+'</div>'+
+   polTimeBlock(p)+
    polEvidBlock(p)+
    '<div class="slabel">对应到的描述符</div>'+
    (p.m.length? p.m.map(x=>{

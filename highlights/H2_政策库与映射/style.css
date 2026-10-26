@@ -32,6 +32,11 @@
 .pollist{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);
   max-height:540px;overflow:auto;}
 
+/* 部门筛选：一条政策可同时挂多个部门，按钮是多选、不是单选 */
+.poldept{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin:14px 0 0;}
+
+.poldept .dplab{font-size:13px;color:var(--tx2);margin-right:2px;}
+
 .polside{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);
   padding:15px;}
 

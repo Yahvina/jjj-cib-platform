@@ -190,11 +190,16 @@ chk(html.indexOf('按面谈顺序') < 0, '讨论页「按面谈顺序…」说�
 chk(app.indexOf("h:'存疑'") < 0, '讨论日志各场不再有「存疑」小节');
 const disSpanA = app.slice(app.indexOf('const DISCUSS=['),
   app.indexOf('\n];', app.indexOf('const DISCUSS=[')));
-// 日期只在讨论日志数据里查。VERSIONS 里会如实写「原讨论日志里 2026-10-26 那场是排期、
-// 已整场删除」——那是版本记录，留着是对的。（同一条纪律：消失类断言不查散文。）
-chk(disSpanA.indexOf('2026-10-26') < 0, '尚未发生的 10-26 场次已删除');
+// 讨论日志只记真开过的会。原先 10-26 那场是把排期误抄了进来，整场删掉过一次；
+// 现在这场真开了、也照实记了这一场，所以判据从「某个日期不许出现」改成
+// 「场次按时间升序、不重复」——把「排期混进日志」这类错挡住的仍是同一条纪律。
+const disDates = [...disSpanA.matchAll(/\{d:'(\d{4}-\d{2}-\d{2})'/g)].map(m => m[1]);
+chk(disDates.length >= 5, '讨论日志场次解析成功', disDates.length + ' 场');
+chk(disDates.every((x, i) => i === 0 || disDates[i - 1] < x), '讨论日志按日期升序、不重复',
+  disDates.join(' '));
 chk(disSpanA.indexOf(',src:') < 0, '讨论日志各场不再有「依据」字段');
-chk((disSpanA.match(/,t:'面谈'/g) || []).length === 5, '五场面谈标题统一为「面谈」',
+// 标题判据不写死套数：写死的话每加一场面谈都要回来改一行。
+chk((disSpanA.match(/,t:'[^']*'/g) || []).every(x => x === ",t:'面谈'"), '各场标题统一为「面谈」',
   (disSpanA.match(/,t:'[^']*'/g) || []).join(' '));
 // 逐条变更记录是版本页最要紧的一段（「这次改动要不要重跑情景」的依据），
 // 读法收进悬停可以，整段丢掉不行。
@@ -244,7 +249,7 @@ const sameDayBad = vseq.filter((x, i) =>
   i > 0 && vseq[i - 1].d === x.d && cmpVer(vseq[i - 1].v, x.v) > 0);
 chk(sameDayBad.length === 0, '同一天内的小版本按版本号从旧到新排列',
   sameDayBad.map(x => vseq[vseq.indexOf(x) - 1].v + '>' + x.v).join(' '));
-chk(vseq[vseq.length - 1].v === 'v1.5.9', '末条即当前版本', vseq[vseq.length - 1].v);
+chk(vseq[vseq.length - 1].v === 'v1.5.10', '末条即当前版本', vseq[vseq.length - 1].v);
 
 console.log('=== 12. 首页引文接上了去向 ===');
 // 编辑器反馈：首页那段政策原文单看像随手摘的引文，看不出它跟平台有什么关系。

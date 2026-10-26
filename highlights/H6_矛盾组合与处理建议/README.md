@@ -6,7 +6,7 @@
 
 ## 代码位置（v1.5 工作副本）
 
-- HTML：`_src/v15/index.html` 第 340–343 行
+- HTML：`_src/v15/index.html` 第 342–345 行
 - 逻辑：`_src/v15/src/app.js`
 
 | 函数／常量 | 行号 |

@@ -383,6 +383,28 @@ table.bal tr:last-child td{border-bottom:none;}
 .pitem .pm{font-size:11px;font-weight:600;color:var(--ok);background:var(--ok-s);
   border-radius:99px;padding:1px 7px;flex:none;}
 .pitem .pm.no{color:var(--tx3);background:var(--line2);}
+/* 部门标签：单部门直接写名字，多部门写「首个 +N」，完整串在 title */
+.pitem .pdp{font-size:11px;color:var(--pri);background:var(--pri-s);
+  border:1px solid var(--pri-b);border-radius:4px;padding:1px 6px;flex:none;
+  max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+/* 部门筛选：一条政策可同时挂多个部门，按钮是多选、不是单选 */
+.poldept{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin:14px 0 0;}
+.poldept .dplab{font-size:13px;color:var(--tx2);margin-right:2px;}
+.dpbtn{height:27px;padding:0 11px;border:1px solid var(--line);border-radius:99px;
+  background:var(--panel);color:var(--tx2);font-size:13px;
+  transition:all .16s var(--ease);white-space:nowrap;}
+.dpbtn:hover{border-color:var(--tx2);color:var(--tx);}
+.dpbtn.on{background:var(--pri);border-color:var(--pri);color:#fff;}
+.dpbtn.on:hover{background:var(--pri-d);border-color:var(--pri-d);}
+/* 政策实施时间线的字段壳：位置先留着，值还没有 */
+.ptime{border:1px solid var(--line);border-radius:7px;overflow:hidden;margin-bottom:12px;}
+.ptrow{display:flex;justify-content:space-between;gap:10px;padding:7px 12px;
+  font-size:13px;border-bottom:1px solid var(--line2);}
+.ptrow:last-child{border-bottom:none;}
+.ptrow .ptk{color:var(--tx2);}
+.ptrow .ptv{color:var(--tx);}
+.ptrow .tbd{color:var(--tx3);}
+.ptnote{font-size:11px;color:var(--tx3);line-height:1.7;margin:-4px 0 12px;}
 .polside{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);
   padding:15px;}
 .polside .empty{font-size:13px;color:var(--tx3);text-align:center;padding:40px 10px;line-height:1.8;}

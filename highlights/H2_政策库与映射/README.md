@@ -6,7 +6,7 @@
 
 ## 代码位置（v1.5 工作副本）
 
-- HTML：`_src/v15/index.html` 第 133–167 行
+- HTML：`_src/v15/index.html` 第 133–169 行
 - 逻辑：`_src/v15/src/app.js`
 
 | 函数／常量 | 行号 |
@@ -16,15 +16,15 @@
 | `POLICY_VERIF` | 237–253 |
 | `PALLC` | 2148–2148 |
 | `nSel` | 280–280 |
-| `renderPolicy` | 2149–2185 |
-| `pickPolicy` | 2186–2186 |
-| `polEvid` | 2188–2190 |
-| `polEvidBlock` | 2191–2223 |
-| `polSidePanel` | 2224–2260 |
-| `verifBlock` | 2262–2270 |
-| `applyPolicy` | 2271–2283 |
-| `uploadPolicy` | 2284–2306 |
-| `prepErr` | 2372–2377 |
+| `renderPolicy` | 2181–2231 |
+| `pickPolicy` | 2232–2232 |
+| `polEvid` | 2234–2236 |
+| `polEvidBlock` | 2237–2269 |
+| `polSidePanel` | 2282–2319 |
+| `verifBlock` | 2321–2329 |
+| `applyPolicy` | 2330–2342 |
+| `uploadPolicy` | 2343–2365 |
+| `prepErr` | 2431–2436 |
 
 - 样式：本目录 `style.css`（摘录）；完整样式表见 `../_shared/base.css`
 
@@ -43,10 +43,10 @@
 
 ## 目录外的函数依赖
 
-本模块还调用了 3 个**没有随本目录切出**的辅助函数，直接拷走本目录跑不起来；
+本模块还调用了 9 个**没有随本目录切出**的辅助函数，直接拷走本目录跑不起来；
 要跑请用完整平台，或连同下列调用一起取：
 
-`allDescs`　`cimKeys`　`polUser`
+`allDescs`　`attrEsc`　`cimKeys`　`polDeptHit`　`polDeptList`　`polDeptTag`　`polDepts`　`polTimeBlock`　`polUser`
 
 ## 复用方式
 
