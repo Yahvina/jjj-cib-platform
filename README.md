@@ -16,6 +16,7 @@
 
 - 亮点模块索引：https://yahvina.github.io/jjj-cib-platform/highlights/index.html
 - 技术文档：https://yahvina.github.io/jjj-cib-platform/docs/技术文档_v1.5.html（v1.1/v1.2/v1.3 三份留档同目录）
+- 平台是什么：https://yahvina.github.io/jjj-cib-platform/docs/平台是什么.md ← 建议先读这份。讲清每一步为什么这么做、导出文件各字段的含义、以及已知边界（含中档在默认展开下影响恒为 0 的成因与后果）
 
 ---
 
@@ -57,7 +58,7 @@ jjj-cib-platform/
 │   ├── H6_矛盾组合与处理建议/
 │   ├── H7_逐层求解/
 │   └── H8_四形态导出/
-└── docs/                          ← 技术文档（最新 技术文档_v1.5.html）
+└── docs/                          ← 技术文档（最新 技术文档_v1.5.html）＋平台是什么.md
 ```
 
 每个亮点模块目录内含：
