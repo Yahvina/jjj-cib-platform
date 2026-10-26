@@ -75,6 +75,8 @@ pre.out{background:#24221F;color:#E8E2D8;border:1px solid #33302B;border-radius:
 
 table.enstab td.enact .btn{margin:2px 3px 2px 0;height:24px;padding:0 8px;}
 
+.mkind.out{background:var(--panel);color:var(--tx3);border:1px solid var(--line);}
+
 .robrow.out .rdn,.robrow.out .rst{color:var(--tx3);}
 
 /* ================= v1.3 UI 升级层：滚动条 / 选中态 / 交互反馈 ================= */

@@ -6,7 +6,7 @@
 
 ## 代码位置（v1.5 工作副本）
 
-- HTML：`_src/v15/index.html` 第 133–169 行
+- HTML：`_src/v15/index.html` 第 134–170 行
 - 逻辑：`_src/v15/src/app.js`
 
 | 函数／常量 | 行号 |
@@ -14,17 +14,17 @@
 | `POLICY` | 121–228 |
 | `POLICY_EVID` | 230–230 |
 | `POLICY_VERIF` | 237–253 |
-| `PALLC` | 2148–2148 |
+| `PALLC` | 2235–2235 |
 | `nSel` | 280–280 |
-| `renderPolicy` | 2181–2231 |
-| `pickPolicy` | 2232–2232 |
-| `polEvid` | 2234–2236 |
-| `polEvidBlock` | 2237–2269 |
-| `polSidePanel` | 2282–2319 |
-| `verifBlock` | 2321–2329 |
-| `applyPolicy` | 2330–2342 |
-| `uploadPolicy` | 2343–2365 |
-| `prepErr` | 2431–2436 |
+| `renderPolicy` | 2268–2318 |
+| `pickPolicy` | 2319–2319 |
+| `polEvid` | 2321–2323 |
+| `polEvidBlock` | 2365–2365 |
+| `polSidePanel` | 2383–2423 |
+| `verifBlock` | 2443–2451 |
+| `applyPolicy` | 2452–2464 |
+| `uploadPolicy` | 2465–2487 |
+| `prepErr` | 2553–2558 |
 
 - 样式：本目录 `style.css`（摘录）；完整样式表见 `../_shared/base.css`
 
@@ -43,10 +43,10 @@
 
 ## 目录外的函数依赖
 
-本模块还调用了 9 个**没有随本目录切出**的辅助函数，直接拷走本目录跑不起来；
+本模块还调用了 12 个**没有随本目录切出**的辅助函数，直接拷走本目录跑不起来；
 要跑请用完整平台，或连同下列调用一起取：
 
-`allDescs`　`attrEsc`　`cimKeys`　`polDeptHit`　`polDeptList`　`polDeptTag`　`polDepts`　`polTimeBlock`　`polUser`
+`allDescs`　`attrEsc`　`cimKeys`　`polDeptHit`　`polDeptList`　`polDeptTag`　`polDepts`　`polEvidFiles`　`polEvidMaps`　`polModelBlock`　`polTimeBlock`　`polUser`
 
 ## 复用方式
 

@@ -731,6 +731,38 @@ table.proftab tr.pgroup td{background:var(--panel2);color:var(--tx);font-weight:
 .evbox .evc b{color:var(--pri);}
 .evbox .evx{font-size:11px;color:var(--tx2);line-height:1.7;margin-top:3px;}
 
+/* 政策详情第三段：模型怎么处理。变量名与翻译说明都来自描述符本身。 */
+.mtbox{background:var(--panel2);border-radius:7px;padding:10px 12px;margin-bottom:12px;}
+.mtbox .mtn{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;font-size:13px;margin-bottom:5px;}
+.mtbox .mtn b{color:var(--tx);}
+.mkind{font-size:11px;border-radius:4px;padding:1px 6px;font-weight:600;flex:none;}
+.mkind.in{background:var(--pri-s);color:var(--pri);}
+.mkind.par{background:var(--wn-s);color:var(--wn);}
+.mkind.out{background:var(--panel);color:var(--tx3);border:1px solid var(--line);}
+.mtbox .mtv{font-size:13px;color:var(--tx);line-height:1.8;}
+.mtbox .mtt{font-size:13px;color:var(--tx2);line-height:1.7;margin-top:5px;}
+
+/* 情景命名与并排对比 */
+.scnbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:14px 0 0;}
+.scnbar .sn{font-size:13px;color:var(--tx2);}
+.scnbar input.txt{max-width:220px;}
+.scnlist{margin-top:12px;}
+.scnrow{display:flex;align-items:center;gap:10px;padding:7px 10px;border:1px solid var(--line2);
+  border-radius:7px;margin-bottom:7px;font-size:13px;}
+.scnrow .scn0{flex:1 1 auto;min-width:0;}
+.scnrow .scn0 b{color:var(--tx);}
+.scnrow .scn0 .sct{color:var(--tx3);font-size:11px;margin-left:6px;}
+.scnrow .scn1{flex:none;display:flex;gap:6px;}
+.scnrow .mini{font-size:11px;color:var(--tx2);border:1px solid var(--line);border-radius:4px;padding:2px 8px;}
+.scnrow .mini:hover{border-color:var(--tx2);color:var(--tx);}
+.cmpwrap{overflow:auto;margin-top:12px;}
+table.cmptab{border-collapse:collapse;width:100%;font-size:13px;}
+table.cmptab th,table.cmptab td{border:1px solid var(--line);padding:6px 10px;text-align:left;}
+table.cmptab th{background:var(--panel2);color:var(--tx2);font-weight:600;}
+table.cmptab td.scn{color:var(--tx2);}
+table.cmptab td.same{color:var(--tx2);}
+table.cmptab td.diff{color:var(--tx);font-weight:600;}
+
 /* 稳健性检验 */
 .robbar{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:10px;}
 .robbar .rbl{font-size:13px;color:var(--tx2);margin-right:2px;}

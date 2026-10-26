@@ -123,7 +123,8 @@ console.log('  renderGenOut 调用它:', (renderGenOut.toString().indexOf('syncG
 
 console.log('=== 11. 快照与载入都带 gen 字段 ===');
 console.log('  snapshot 含 gen:', (snapshot.toString().indexOf('gen:genMode')>=0)?'✓':'✗');
-console.log('  loadCfg 恢复 gen:', (loadCfg.toString().indexOf('d.gen')>=0)?'✓':'✗');
+console.log('  loadCfg 恢复 gen:', ((loadCfg.toString()+applyCfg.toString()).indexOf('d.gen')>=0)?'✓':'✗');
+console.log('  applyCfg 为共用入口:', (loadCfg.toString().indexOf('applyCfg(')>=0)?'✓':'✗');
 
 console.log('=== 12. HTML 第 4 步恰有四个选项 ===');
 console.log('  data-gen 计数 4:', (HTMLDATA.match(/data-gen=/g)||[]).length===4?'✓':'✗ ('+((HTMLDATA.match(/data-gen=/g)||[]).length)+')');

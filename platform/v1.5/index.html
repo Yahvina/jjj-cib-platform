@@ -39,6 +39,7 @@
       <button role="menuitem" onclick="closeMenu();openDiscuss()">讨论日志</button>
       <button role="menuitem" onclick="closeMenu();openChangelog()">版本更新日志</button>
       <button role="menuitem" onclick="closeMenu();backToCmp()">回到概览</button>
+      <button role="menuitem" onclick="closeMenu();openScn()">情景库</button>
       <button role="menuitem" onclick="closeMenu();saveCfg()">保存配置</button>
       <button role="menuitem" onclick="closeMenu();loadCfg()">载入配置</button>
       <button role="menuitem" onclick="closeMenu();aboutApp()">关于</button>
@@ -649,6 +650,14 @@
       <p><b>最常用的一步</b>：第 5 步的两两打分。每格填 −3…+3，表示「一行取这个状态，会促进还是抑制一列」。填完自动筛出没有内部矛盾的情景簇。</p>
       <p><b>拿不准的地方</b>：文字带虚线下划线的，鼠标放上去有解释。</p>
     </div>
+  </div>
+</div>
+
+<div class="modal" id="scnModal" onclick="if(event.target===this)closeId('scnModal')">
+  <div class="mbox" style="max-width:820px;">
+    <div class="mhead"><b>情景库</b><div class="sp"></div>
+      <button class="btn sm" onclick="closeId('scnModal')">关闭</button></div>
+    <div class="mbody" id="scnBody" style="font-size:15px;line-height:1.85;"></div>
   </div>
 </div>
 

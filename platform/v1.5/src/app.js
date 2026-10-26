@@ -2104,43 +2104,130 @@ function saveCfg(){
   try{ localStorage.setItem('jjj-cib-v10', JSON.stringify(snapshot())); toast('配置已保存到本机'); }
   catch(e){ toast('保存失败：浏览器不允许本地存储'); }
 }
+/* 情景库：给一套配置起名存下、随时载入、并排对比。
+   「保存进度」仍是单槽覆盖（localStorage 的 jjj-cib-v10），情景库存多套（jjj-cib-scn-v1，数组）。
+   这里只存不依赖外部环境的快照，且都存在本机浏览器，不做云端同步。 */
+const SCN_KEY='jjj-cib-scn-v1';
+function scnAll(){
+  try{ const a=JSON.parse(localStorage.getItem(SCN_KEY)||'[]'); return Array.isArray(a)?a:[]; }
+  catch(e){ return []; }
+}
+function scnWrite(a){
+  try{ localStorage.setItem(SCN_KEY, JSON.stringify(a)); return true; }
+  catch(e){ return false; }
+}
+function scnTime(ts){
+  const d=new Date(ts||0);
+  const p=n=>('0'+n).slice(-2);
+  return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate())+' '+p(d.getHours())+':'+p(d.getMinutes());
+}
+function openScn(){ const m=document.getElementById('scnModal'); if(m)m.classList.add('on'); renderScn(); }
+function saveScn(){
+  const i0=document.getElementById('scnName');
+  const nm=(i0&&i0.value||'').trim();
+  if(!nm){ toast('先给这套情景起个名字'); return; }
+  const a=scnAll();
+  if(a.some(x=>x.name===nm)){ toast('已有同名情景，换个名字'); return; }
+  a.push({name:nm, ts:Date.now(), data:snapshot()});
+  if(!scnWrite(a)){ toast('保存失败：浏览器不允许本地存储'); return; }
+  toast('已保存情景「'+nm+'」');
+  if(i0) i0.value='';
+  renderScn();
+}
+function delScn(i){
+  const a=scnAll(); if(i<0||i>=a.length) return;
+  a.splice(i,1); scnWrite(a); renderScn(); toast('已删除');
+}
+function loadScn(i){
+  const a=scnAll(); const s2=a[i]; if(!s2) return;
+  applyCfg(s2.data);
+  closeId('scnModal');
+  toast('已载入情景「'+s2.name+'」');
+}
+/* 一套情景对某个描述符勾了哪些档位。一个都不勾＝不设限。 */
+function scnSelOf(d,nm){
+  const b=d&&d.desc&&d.desc[nm];
+  if(!b||!Array.isArray(b.states)||!b.states.length) return '不设限';
+  return b.states.join('、');
+}
+function scnCompare(a){
+  let h='<div class="cmpwrap"><div class="robsec">并排对比：各描述符勾选的状态</div>'
+    +'<table class="cmptab"><tr><th>描述符</th>'
+    +a.map(s2=>'<th>'+attrEsc(s2.name)+'</th>').join('')+'</tr>';
+  allDescs().forEach(d=>{
+    const vals=a.map(s2=>scnSelOf(s2.data,d.n));
+    const same=vals.every(v=>v===vals[0]);
+    h+='<tr><td class="scn">'+attrEsc(d.n)+'</td>'
+      +vals.map(v=>'<td class="'+(same?'same':'diff')+'">'+attrEsc(v)+'</td>').join('')+'</tr>';
+  });
+  return h+'</table></div>';
+}
+function renderScn(){
+  const box=document.getElementById('scnBody'); if(!box) return;
+  const a=scnAll();
+  let h='<div class="scnbar"><span class="sn">把当前配置存成一套情景：</span>'
+    +'<input class="txt" id="scnName" placeholder="例如：高电气化情景" onkeydown="if(event.key===\'Enter\')saveScn()">'
+    +'<button class="btn pri" onclick="saveScn()">保存当前情景</button></div>';
+  if(!a.length){
+    box.innerHTML=h+'<div class="dim" style="font-size:13px;margin-top:14px;line-height:1.8;">'
+      +'还没有保存的情景。先在向导里配好描述符与状态，再回到这里命名保存。'
+      +'保存的情景存在本机浏览器里，换设备不会同步。</div>';
+    return;
+  }
+  h+='<div class="scnlist">'+a.map((s2,i)=>
+    '<div class="scnrow"><div class="scn0"><b>'+attrEsc(s2.name)+'</b>'
+    +'<span class="sct">'+scnTime(s2.ts)+'</span></div>'
+    +'<div class="scn1"><button class="mini" onclick="loadScn('+i+')">载入</button>'
+    +'<button class="mini" onclick="delScn('+i+')">删除</button></div></div>').join('')+'</div>';
+  if(a.length>=2){
+    h+=scnCompare(a);
+  }else{
+    h+='<div class="dim" style="font-size:12px;margin-top:10px;line-height:1.8;">'
+      +'再保存一套，这里就会出现并排对比。</div>';
+  }
+  box.innerHTML=h;
+}
 function loadCfg(){
   try{
     const raw=localStorage.getItem('jjj-cib-v10');
     if(!raw){ toast('本机没有已保存的配置'); return; }
-    const d=JSON.parse(raw);
-    sel.desc=d.desc||{};
-    /* B 方案后多选有真实语义（＝划定可信范围，枚举只在范围内搜），
-       旧存档里的多档勾选要原样保留，不能再收敛成第一档。
-       兼容点只剩「存档里的状态名可能已被改掉」：过滤掉 ST 里找不到的。 */
-    Object.keys(sel.desc).forEach(nm=>{
-      const b=sel.desc[nm]; if(!b) return;
-      const st=b.states;
-      if(Array.isArray(st)) b.states=st.filter(x=>ST(nm).indexOf(x)>=0);
-    });
-    curModel=d.model||'gcam'; expertN=d.exp||1; useBayes=!!d.bayes;
-    // 旧存档没有 gen 字段：按 bayes 布尔回推成四选一里的一档
-    genMode=d.gen||(d.bayes?'bayes':'config');
-    pulled=!!d.pulled;
-    document.querySelectorAll('[data-scale]').forEach(x=>{
-      const on=(d.scales||[]).indexOf(x.dataset.scale)>=0;
-      x.classList.toggle('sel',on);
-      const c=x.querySelector('.chk'); c.classList.toggle('on',on); c.innerHTML=on?TICK:'';
-    });
-    // 打分矩阵与多专家状态
-    ens=d.ens||null; ensRes=d.ensRes||{}; anchors=d.anchors||{};
-    if(d.rngScope&&SCOPE_NAME[d.rngScope]) rngScope=d.rngScope;
-    Object.keys(scopedDefs).forEach(k=>delete scopedDefs[k]);
-    if(ens&&ens.people&&ens.people.length){
-      ens.active=(typeof ens.active==='number')?ens.active:0;
-      cim=(ens.active<0? ens.merged : ens.people[ens.active].cim)||{};
-    }else{ ens=null; cim=d.cim||{}; }
-    cimSelKey=null; cimResult=null; BAYES=null;
-    corrResult=null;
-    profResult=null;
-    layeredResult=null;
-    inCmp=false; render(); toast('配置已载入'); 
+    applyCfg(JSON.parse(raw));
+    toast('配置已载入');
   }catch(e){ toast('载入失败'); }
+}
+/* 把一份存档写回界面。顶栏「载入配置」和情景库「载入」都走这里，避免两套逻辑走偏。 */
+function applyCfg(d){
+  sel.desc=d.desc||{};
+  /* B 方案后多选有真实语义（＝划定可信范围，枚举只在范围内搜），
+     旧存档里的多档勾选要原样保留，不能再收敛成第一档。
+     兼容点只剩「存档里的状态名可能已被改掉」：过滤掉 ST 里找不到的。 */
+  Object.keys(sel.desc).forEach(nm=>{
+    const b=sel.desc[nm]; if(!b) return;
+    const st=b.states;
+    if(Array.isArray(st)) b.states=st.filter(x=>ST(nm).indexOf(x)>=0);
+  });
+  curModel=d.model||'gcam'; expertN=d.exp||1; useBayes=!!d.bayes;
+  // 旧存档没有 gen 字段：按 bayes 布尔回推成四选一里的一档
+  genMode=d.gen||(d.bayes?'bayes':'config');
+  pulled=!!d.pulled;
+  document.querySelectorAll('[data-scale]').forEach(x=>{
+    const on=(d.scales||[]).indexOf(x.dataset.scale)>=0;
+    x.classList.toggle('sel',on);
+    const c=x.querySelector('.chk'); c.classList.toggle('on',on); c.innerHTML=on?TICK:'';
+  });
+  // 打分矩阵与多专家状态
+  ens=d.ens||null; ensRes=d.ensRes||{}; anchors=d.anchors||{};
+  if(d.rngScope&&SCOPE_NAME[d.rngScope]) rngScope=d.rngScope;
+  Object.keys(scopedDefs).forEach(k=>delete scopedDefs[k]);
+  if(ens&&ens.people&&ens.people.length){
+    ens.active=(typeof ens.active==='number')?ens.active:0;
+    cim=(ens.active<0? ens.merged : ens.people[ens.active].cim)||{};
+  }else{ ens=null; cim=d.cim||{}; }
+  cimSelKey=null; cimResult=null; BAYES=null;
+  corrResult=null;
+  profResult=null;
+  layeredResult=null;
+  inCmp=false; render();
 }
 
 /* ================= 政策库与映射（v1.1 新增） ================= */
@@ -2234,21 +2321,29 @@ function pickPolicy(i){ polSel=i; renderPolicy(); }
 function polEvid(p){
   return (typeof POLICY_EVID!=='undefined' && POLICY_EVID[p.n]) ? POLICY_EVID[p.n] : null;
 }
-function polEvidBlock(p){
+/* 证据拆两片：文件与口径归「政策是什么」，数据侧对比归「为什么合理」。
+   polEvidBlock 仍是两片的组合，供逐条核对与测试调用。 */
+function polEvidFiles(p){
   const e=polEvid(p);
-  if(!e) return '<div class="slabel">政策依据</div>'
-    +'<div class="evbox none">该路径在数据集中<b>尚无工具级记录</b>——映射只能靠模型侧推断，'
+  if(!e) return '<div class="evbox none">该路径在数据集中<b>尚无工具级记录</b>——映射只能靠模型侧推断，'
     +'置信度按「中/低」处理。</div>';
+  let h='<div class="evbox">';
+  h+='<div class="evn">工具级记录 <b>'+e.n+'</b> 项'
+    +(e.p&&e.p.length?'　·　涉及 '+e.p.join(' / '):'')+'</div>';
+  if(e.f&&e.f.length) h+='<div class="evf">'+e.f.map(x=>'《'+x+'》').join('')+'</div>';
+  if(e.q&&e.q.length) h+='<div class="evq">“'+e.q[0]+'”</div>';
+  h+='</div>';
+  return h;
+}
+function polEvidMaps(p){
+  const e=polEvid(p);
+  if(!e) return '';
   const mine=p.m.map(x=>x[0]);
   const theirs=e.d||[];
   const both=mine.filter(x=>theirs.indexOf(x)>=0);
   const onlyMine=mine.filter(x=>theirs.indexOf(x)<0);
   const onlyTheirs=theirs.filter(x=>mine.indexOf(x)<0);
-  let h='<div class="slabel">政策依据（数据集 · 工具总览）</div><div class="evbox">';
-  h+='<div class="evn">工具级记录 <b>'+e.n+'</b> 项'
-    +(e.p&&e.p.length?'　·　涉及 '+e.p.join(' / '):'')+'</div>';
-  if(e.f&&e.f.length) h+='<div class="evf">'+e.f.map(x=>'《'+x+'》').join('')+'</div>';
-  if(e.q&&e.q.length) h+='<div class="evq">“'+e.q[0]+'”</div>';
+  let h='<div class="evbox">';
   if(theirs.length){
     h+='<div class="evd">数据侧已实证：'+theirs.join('、')+'</div>';
     h+='<div class="evc">与模型侧比对：一致 <b>'+both.length+'</b>'
@@ -2267,6 +2362,7 @@ function polEvidBlock(p){
   h+='</div>';
   return h;
 }
+function polEvidBlock(p){ return polEvidFiles(p)+polEvidMaps(p); }
 /* 政策实施时间线的字段壳。当前数据和代码里都还没有「起始年」「执行率」这两个字段，
    这里只把位置留出来，取值口径定下来之后再往里填，不先编数。 */
 function polTimeBlock(p){
@@ -2279,6 +2375,11 @@ function polTimeBlock(p){
     +'</div>'
     +'<div class="ptnote">这两个位置先留着——政策库里还没有年份与执行率，等口径定了再填。</div>';
 }
+/* ===== 政策详情，一条政策分三段讲 =====
+   一段「政策是什么」：数据集里的工具记录、对应文件与引用条款、实施时间线；
+   二段「为什么这么设置合理」：它挂到哪些描述符、为什么这么挂、有没有政策原文补证；
+   三段「模型怎么处理」：这些描述符在模型里落到哪个变量、要做什么翻译。
+   三段都用现成数据（工具总览、映射理由、描述符的翻译说明与变量名），不另编文案。 */
 function polSidePanel(){
   const el=document.getElementById('polSide'); if(!el) return;
   const all=PALLC();
@@ -2301,9 +2402,10 @@ function polSidePanel(){
    '<div class="shead">'+(p.a==='地方补充'||p.a==='自定义'?'京津冀地方补充':'CCPID 国家库')+'</div>'+
    '<div class="pname">'+p.n+'</div>'+
    '<div class="pmeta">'+p.c+' · '+p.g+(p.s?' · '+p.s:'')+(p.t?'　工具 '+p.t+' 项':'')+'</div>'+
+   '<div class="slabel">一　政策是什么</div>'+
+   polEvidFiles(p)+
    polTimeBlock(p)+
-   polEvidBlock(p)+
-   '<div class="slabel">对应到的描述符</div>'+
+   '<div class="slabel">二　为什么这么设置合理</div>'+
    (p.m.length? p.m.map(x=>{
      const v=POLICY_VERIF[p.n+'|'+x[0]];
      const up=!!(v&&v.st==='升高');
@@ -2315,7 +2417,27 @@ function polSidePanel(){
    }).join('')
    : '<div class="dim" style="font-size:13px;line-height:1.7;">这条路径与本模型的描述符没有直接对应。'
      +'原因多为：控的不是 CO₂（如消耗臭氧层物质、含氟气体、塑料），或属于无定量落点的制度安排'
-     +'（如信息披露、能力建设、宣传教育）。</div>');
+     +'（如信息披露、能力建设、宣传教育）。</div>')+
+   polEvidMaps(p)+
+   polModelBlock(p);
+}
+/* 第三段：模型怎么处理。翻译说明与变量名都取自描述符本身，
+   结果型单独标出「由模型算出、不作输入」，免得被当成待填参数。 */
+function polModelBlock(p){
+  let h='<div class="slabel">三　模型怎么处理</div>';
+  if(!p.m.length) return h+'<div class="evbox none">这条路径没有挂到本模型的描述符上，'
+    +'所以还没有可对照的模型变量与翻译动作。</div>';
+  h+=p.m.map(x=>{
+    const d=dOf(x[0])||{};
+    const t=d.t||'参数型';
+    const kind=t==='结果型'?'<span class="mkind out">结果型 · 由模型算出，不作输入</span>'
+      :(t==='输入型'?'<span class="mkind in">输入型 · 直接给定</span>'
+      :'<span class="mkind par">参数型 · 由政策值换算</span>');
+    return '<div class="mtbox"><div class="mtn"><b>'+x[0]+'</b>'+kind+'</div>'+
+      (d.v?'<div class="mtv">模型变量：'+d.v+'</div>':'')+
+      '<div class="mtt">'+(d.tr||'（该描述符未附翻译说明）')+'</div></div>';
+  }).join('');
+  return h;
 }
 /* 补证区块：2026-10-17 联网核实的政策原文（文号+关键条款+官方链接） */
 function verifBlock(v){
@@ -4430,6 +4552,8 @@ function renderBayes(){
    已有情景需要重新检验；省略 = 不动结果（只改界面、措辞、性能或新增旁路分析）。
    与 git 提交对应；此处只列入对外可讲、能被核对的事项。 */
 const CHANGELOG=[
+ {d:'2026-10-27',k:'功能',x:'政策详情改成三段讲：政策是什么、为什么这么设置合理、模型怎么处理',y:'点开一条政策，原先先给工具记录与补证，再给一行“对应到的描述符”，读起来像两张表拼在一起。现在按政策研究者看一条政策的顺序重排：一是“政策是什么”，放工具记录、文件名、引用条款与实施时间线；二是“为什么这么设置合理”，放映射理由、政策原文补证与数据侧实证比对；三是“模型怎么处理”，逐条给出描述符落到哪个模型变量、要做什么翻译；结果型描述符单独标“由模型算出、不作输入”，免得被当成待填参数。三段都用现成数据，不新编文案；打分、区间与枚举都不变。'},
+ {d:'2026-10-27',k:'功能',x:'情景可命名保存多套，并排对比各描述符的取值范围',y:'原先只有一个“保存进度”单槽，再保存就把上一套覆盖了——想把两套假设摆在一起看，只能手把两次的截图放到一起比。现在另开一个情景库：给当前配置起名存下，可存多套，随时载入、删除；存到两套以上时，自动按描述符逐行并排对比，两套一样的灰字、不一样的加粗，一眼看出差在哪几个描述符。情景库和“保存进度”都存在本机浏览器，不上传、也不跨设备同步；载入走的是和顶栏“载入配置”同一条逻辑，不会两套行为走偏。'},
  {d:'2026-10-26',k:'口径',x:'软著材料与当前代码对齐：说明书改四处过期口径、13 张截图重截、源程序按现成品重导',y:'10-24 定稿后代码又改过两批（撤演示模式与跨层一致性台账、数值锚定下沉改名「已知值」、概览页引文接上描述符、政策库加部门轴），但登记材料停在 10-24：13 张截图里有一张拍的是已经删掉的演示模式，说明书里还写着三类层级约束与最小修正建议（源码里没有这套）、「数值锚定」（已改名「已知值」）、5.5 整节讲的跨层表逐对档位差（台账已删）、第 7 步的主被动图（卡片已删）。本批把说明书四处改成本平台现在真在跑的算法：跨层约束只讲逐层求解里「上下级取值区间不相交的档位不进枚举」，数值锚定改叫已知值，主被动图从功能清单里去掉，演示模式删掉；13 张界面截图按当前成品重截（第 13 张从演示模式换成讨论日志页），源程序三件套按现成品重导（折行后 7713 行、原始 6949 行、仍 60 页）。申请表同步：开发完成日期改 10-26、源程序量改 7713/6949、技术特点与说明书 2.3 对齐。只改登记材料与本日志，平台本身没动，已有情景不必重算。'},
  {d:'2026-10-26',k:'功能',x:'政策库加部门轴：按部门筛，一条政策可同时属于多个部门',y:'政策条目里 s 字段是部门，106 条里有 35 条同时涉及两个以上部门（最多一条占 6 个），所以左侧不能做成「一条政策只归一个部门」的单选导航，否则跨部门那批会被迫归到某一类或塞进「其他」。改成按钮多选：默认「全部」，点一个或多个部门只留下命中任一部门的路径，按钮上直接标该部门条数。部门名一律取自数据本身（能源、工业、交通、建筑、农业林业其他土地利用、废弃物、跨部门共 7 类），数据里没有「电力」这一项——电力归在能源里，不另立。列表每条补一个部门标签：单部门显示名字，多部门显示「首个 +N」，完整部门串放在悬停里。只筛列表，不改任何映射与打分。'},
  {d:'2026-10-26',k:'功能',x:'政策侧栏补出「政策实施」的字段壳，值先留空',y:'按参照对象那种「选一个政策，能看到它在哪一年开始、执行到什么程度」的形态，在政策侧栏加两行：起始年、执行率。现在政策库和代码里都没有这两个字段，所以只把位置留出来，取不到值就写「待补」，不填假数；等和数据集侧把「哪一年、什么强度、按什么口径算」对齐之后再往里填。本轮只加位置，不进检算。'}, {d:'2026-10-26',k:'可用性',x:'概览页那段政策原文补上去向：原文 → 平台读作哪个描述符',y:'首页统计下面留着一整段政策原文，单看像是从文件里随手摘来的一句引文，看不出它和平台有什么关系。原文保留，上面加一行小字「示例 · 政策原文如何进入模型」，出处补上书名号，下面接一行「平台读作 → 排放交易体系（ETS） → 碳价水平与碳市场覆盖」——把「一段政策话」和「一个可判定的描述符」这一前一后接上。只动首页版式，不进检算也不改数据。'},
@@ -4644,7 +4768,9 @@ const DISCUSS=[
       '政策库加部门轴：按部门筛选，一条政策可同时属于多个部门（106 条里 35 条跨部门），部门名一律取自数据本身共 7 类，数据里没有「电力」、「电力」归在能源。',
       '政策侧栏补出「政策实施」字段壳（起始年、执行率两行），取不到值就写「待补」，不填假数，等口径对齐后再填。',
       '首页政策引文补上「平台读作 → 描述符」，把一段政策原文和它落到哪个描述符接起来。',
-      '软著材料刷新：13 张界面截图重截、说明书四处过期口径改掉、源程序三件套与申请表同步。'
+      '软著材料刷新：13 张界面截图重截、说明书四处过期口径改掉、源程序三件套与申请表同步。',
+      '政策详情改成三段讲：政策是什么、为什么这么设置合理、模型怎么处理；',
+      '情景可命名保存多套，并排对比各描述符的取值范围。',
     ]},
     {h:'待办',li:[
       '自己和导师把每次讨论补登进书院系统；今天这场也要补。',
@@ -4818,8 +4944,16 @@ const VERSIONS=[
     '源程序三件套按现成品重导：折行后 7713 行（原始 6949 行）、共 60 页、每页 50 行；折行口径不变（每行不超过 116 显示列，中文按 2 计）',
     '申请表同步三处：开发完成日期改 2026-10-26、源程序量改 7713/6949、技术特点与说明书 2.3 对齐',
     '只改登记材料，平台本身未动：打分、区间、枚举与导出都不变，已有情景不必重算'
+   ]},
+  {v:'v1.5.12',d:'2026-10-27',tag:'',sum:'政策详情改成三段讲；情景可命名保存多套、并排对比',ev:'本批提交',
+   items:[
+    '政策详情按政策研究者看一条政策的顺序重排成三段：一政策是什么（工具记录、文件与引用条款、实施时间线）、',
+    '二为什么这么设置合理（映射理由、政策原文补证、数据侧实证比对）、三模型怎么处理（变量名与翻译动作）；',
+    '结果型描述符在第三段单独标“由模型算出、不作输入”，避免被当成待填参数；三段都用现成数据，不新编文案',
+    '新增情景库（顶栏菜单进）：给当前配置起名存下，可存多套、随时载入或删除；存到两套以上时自动并排对比，逐行给出每个描述符各自取了哪几档，相同的不突出、不同的加粗',
+    '“保存进度”仍是单槽覆盖；情景库是另一个存储位（数组）。载入走和顶栏“载入配置”同一条逻辑（applyCfg），不会两套行为走偏；两者都存本机浏览器，不上传、不跨设备同步',
+    '本批不动打分、区间与枚举；新增一套自检覆盖情景库的命名保存、同名拦截、载入、并排对比与坏数据兼容'
    ]}
-
 ];
 /* 当前版本号只有一个来源：VERSIONS 的最后一条（数组按时间从旧到新排列）。
    2026-10-25 修：关于框里原先写死 v1.4，平台发到 v1.5.7 之后它还在对外显示旧版号。 */

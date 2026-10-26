@@ -193,39 +193,7 @@ function polEvid(p){
   return (typeof POLICY_EVID!=='undefined' && POLICY_EVID[p.n]) ? POLICY_EVID[p.n] : null;
 }
 
-function polEvidBlock(p){
-  const e=polEvid(p);
-  if(!e) return '<div class="slabel">政策依据</div>'
-    +'<div class="evbox none">该路径在数据集中<b>尚无工具级记录</b>——映射只能靠模型侧推断，'
-    +'置信度按「中/低」处理。</div>';
-  const mine=p.m.map(x=>x[0]);
-  const theirs=e.d||[];
-  const both=mine.filter(x=>theirs.indexOf(x)>=0);
-  const onlyMine=mine.filter(x=>theirs.indexOf(x)<0);
-  const onlyTheirs=theirs.filter(x=>mine.indexOf(x)<0);
-  let h='<div class="slabel">政策依据（数据集 · 工具总览）</div><div class="evbox">';
-  h+='<div class="evn">工具级记录 <b>'+e.n+'</b> 项'
-    +(e.p&&e.p.length?'　·　涉及 '+e.p.join(' / '):'')+'</div>';
-  if(e.f&&e.f.length) h+='<div class="evf">'+e.f.map(x=>'《'+x+'》').join('')+'</div>';
-  if(e.q&&e.q.length) h+='<div class="evq">“'+e.q[0]+'”</div>';
-  if(theirs.length){
-    h+='<div class="evd">数据侧已实证：'+theirs.join('、')+'</div>';
-    h+='<div class="evc">与模型侧比对：一致 <b>'+both.length+'</b>'
-      +(onlyMine.length?'　·　模型侧另有 <b>'+onlyMine.length+'</b> 个':'' )
-      +(onlyTheirs.length?'　·　数据侧另有 <b>'+onlyTheirs.length+'</b> 个':'')+'</div>';
-    if(onlyTheirs.length) h+='<div class="evx">数据侧另有：'+onlyTheirs.join('、')
-      +'　<span class="dim">（可能是绕一层的映射，也可能是口径差异，需人工核对）</span></div>';
-    if(onlyMine.length) h+='<div class="evx">模型侧另有：'+onlyMine.join('、')
-      +'　<span class="dim">（数据侧尚未建立该映射）</span></div>';
-  }else{
-    h+='<div class="evd dim">数据侧尚未为该路径建立描述符映射（409 条工具中仅 33 条已填）。</div>';
-  }
-  h+='<div class="dim" style="font-size:11px;margin-top:7px;line-height:1.7;">'
-    +'文件名与口径来自数据集，能证明「这条政策存在」，<b>不能单独证明映射关系成立</b>——'
-    +'映射仍需按「模型要什么 input」倒推判断。</div>';
-  h+='</div>';
-  return h;
-}
+function polEvidBlock(p){ return polEvidFiles(p)+polEvidMaps(p); }
 
 function polSidePanel(){
   const el=document.getElementById('polSide'); if(!el) return;
@@ -249,9 +217,10 @@ function polSidePanel(){
    '<div class="shead">'+(p.a==='地方补充'||p.a==='自定义'?'京津冀地方补充':'CCPID 国家库')+'</div>'+
    '<div class="pname">'+p.n+'</div>'+
    '<div class="pmeta">'+p.c+' · '+p.g+(p.s?' · '+p.s:'')+(p.t?'　工具 '+p.t+' 项':'')+'</div>'+
+   '<div class="slabel">一　政策是什么</div>'+
+   polEvidFiles(p)+
    polTimeBlock(p)+
-   polEvidBlock(p)+
-   '<div class="slabel">对应到的描述符</div>'+
+   '<div class="slabel">二　为什么这么设置合理</div>'+
    (p.m.length? p.m.map(x=>{
      const v=POLICY_VERIF[p.n+'|'+x[0]];
      const up=!!(v&&v.st==='升高');
@@ -263,7 +232,9 @@ function polSidePanel(){
    }).join('')
    : '<div class="dim" style="font-size:13px;line-height:1.7;">这条路径与本模型的描述符没有直接对应。'
      +'原因多为：控的不是 CO₂（如消耗臭氧层物质、含氟气体、塑料），或属于无定量落点的制度安排'
-     +'（如信息披露、能力建设、宣传教育）。</div>');
+     +'（如信息披露、能力建设、宣传教育）。</div>')+
+   polEvidMaps(p)+
+   polModelBlock(p);
 }
 
 function verifBlock(v){
