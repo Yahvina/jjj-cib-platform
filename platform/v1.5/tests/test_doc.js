@@ -244,7 +244,29 @@ const sameDayBad = vseq.filter((x, i) =>
   i > 0 && vseq[i - 1].d === x.d && cmpVer(vseq[i - 1].v, x.v) > 0);
 chk(sameDayBad.length === 0, '同一天内的小版本按版本号从旧到新排列',
   sameDayBad.map(x => vseq[vseq.indexOf(x) - 1].v + '>' + x.v).join(' '));
-chk(vseq[vseq.length - 1].v === 'v1.5.8', '末条即当前版本', vseq[vseq.length - 1].v);
+chk(vseq[vseq.length - 1].v === 'v1.5.9', '末条即当前版本', vseq[vseq.length - 1].v);
+
+console.log('=== 12. 首页引文接上了去向 ===');
+// 编辑器反馈：首页那段政策原文单看像随手摘的引文，看不出它跟平台有什么关系。
+// 现在它得同时交代三件事：这是示例、出处是哪份文件、这句话在模型里读作哪个描述符。
+// 只取真正的引文块。不能用「从 pcmp 到下一个 </section>」切——
+// pcmp 里第一个 <section class="hero"> 会提前收尾，而引文块在 hero 之后，压根没进切片。
+const qAt = html.indexOf('<blockquote class="quote">');
+const qEnd = qAt < 0 ? -1 : html.indexOf('</blockquote>', qAt);
+chk(qAt >= 0 && qEnd > qAt, '首页保留了引文块');
+const qb = (qAt >= 0 && qEnd > qAt) ? html.slice(qAt, qEnd) : '';
+// 顶栏也有个 class="steps"（左轨占位），要从引文块之后往下找三步流程那个。
+chk(html.indexOf('id="homeStats"') >= 0 && html.indexOf('id="homeStats"') < qAt
+  && qAt < html.indexOf('<div class="steps">', qAt), '引文块仍在统计行与三步流程之间');
+chk(qb.indexOf('示例') >= 0 && qb.indexOf('政策原文') >= 0, '引文块标明了这是示例');
+chk(qb.indexOf('《北京市碳排放权交易管理办法》') >= 0, '出处写成了书名');
+chk(qb.indexOf('平台读作') >= 0, '引文块有「平台读作」一行');
+chk(qb.indexOf('碳价水平与碳市场覆盖') >= 0, '平台读作落到具体描述符');
+// 这个描述符必须真在数据里，不能是页面上自己编的名字。
+chk(app.indexOf("n:'碳价水平与碳市场覆盖'") >= 0, '描述符名来自 app.js 数据');
+chk(app.indexOf("n:'排放交易体系（ETS）'") >= 0, '对应政策工具也在数据里');
+chk(css.indexOf('#pcmp .quote .qmap') >= 0, '「平台读作」有样式（不是裸文本堆着）');
+
 
 console.log('');
 console.log(bad === 0 ? '全部通过（0 项未通过）' : '未通过 ' + bad + ' 项');

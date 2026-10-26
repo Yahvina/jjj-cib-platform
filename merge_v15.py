@@ -127,9 +127,17 @@ for need in ['function appVer(', "'+appVer()+'"]:
 # 条目自己触发了断言——发布被自己的诚实记录挡住。栏目标题的消失由 test_doc.js
 # 在函数体范围内断言（那里不掺更新日志），这里只管数据与标记。
 for gone in ['id="chgModal"', 'id="chgBody"', 'function closeChangelog',
-             'DISCUSS_GAPS', 'VER_GAPS', 'class="doc-back"', "h:'存疑'",
-             "d:'2026-10-26'"]:
+             'DISCUSS_GAPS', 'VER_GAPS', 'class="doc-back"', "h:'存疑'"]:
     assert gone not in html, '旧日志模态复活：' + gone
+
+# 未发生的面谈不许留在讨论日志里。但讨论日志之外（版本日志、更新日志）
+# 可以正当地出现同一个日期——版本发布就发生在那一天。这里只在 DISCUSS
+# 数组范围内查，不把整份合并文件当作作用域。这是第三次踩同一个坑：
+# "2026-10-25 日志里如实写“删掉了这两类栏目”" 曾把自己的发布挡住。
+_d0 = html.find('const DISCUSS=[')
+_d1 = html.find('\n];', _d0)
+assert _d0 > 0 and _d1 > _d0, '讨论日志数组定位失败'
+assert "d:'2026-10-26'" not in html[_d0:_d1], '未发生的 10-26 面谈复活'
 
 # 亮点模块也必须跟着源码走。它们曾经是手工从 v1.0 切的，切完就没人管，
 # 一路引用着后来被删掉的函数（pullDB / applyFix / csvParam）和弃用的配色。

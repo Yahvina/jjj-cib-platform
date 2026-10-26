@@ -1074,6 +1074,14 @@ details.fold .foldbody{padding:10px 14px;margin-top:8px;border-left:2px solid va
   font-size:19px;line-height:2;color:var(--tx2);}
 #pcmp .quote cite{display:block;font-family:inherit;font-size:13px;color:var(--tx3);
   font-style:normal;margin-top:14px;}
+#pcmp .quote .qtag{font-family:ui-monospace,Consolas,monospace;font-size:11px;
+  letter-spacing:.14em;color:var(--tx3);margin-bottom:16px;}
+#pcmp .quote .qmap{display:flex;align-items:baseline;gap:10px;margin-top:18px;
+  padding-top:14px;border-top:1px solid var(--line2);max-width:520px;}
+#pcmp .quote .qfrom{font-family:ui-monospace,Consolas,monospace;font-size:11px;
+  letter-spacing:.12em;color:var(--tx3);flex:none;}
+#pcmp .quote .qarrow{font-size:13px;color:var(--wn);line-height:1;}
+#pcmp .quote .qto{font-size:13.5px;line-height:1.8;color:var(--tx2);}
 
 #pcmp .steps{display:grid;grid-template-columns:repeat(3,1fr);gap:0 44px;
   margin:92px 0 0;padding:30px 0 0;border-top:1px solid var(--line);
