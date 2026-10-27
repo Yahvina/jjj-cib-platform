@@ -1,6 +1,6 @@
 // test_v160.js -- v1.6.0 主界面三步流程冒烟
 // 锁住：三步 section 存在、m[1] 是映射把握不是政策档位、N/A 不等于 0、
-// 中档占比 >50% 拦截、区间口径不筛政策、政策主张壳与最终档人工可改。
+// 中档占比 >50% 拦截、区间口径不筛政策、政策主张壳与最终档人工可改，以及配置/研究模式 sel 快照往返。
 // 参数：index.html（app.js 从其同目录的 src/app.js 读）。
 const fs = require('fs');
 const path = require('path');
@@ -139,6 +139,29 @@ viewMode='config'; docPg=''; cimResult=null; cfgRunInfo=null;
 let ok=true; try{ renderConfigResult(); }catch(e){ ok=false; console.log(e.message); }
 chk(ok, '第三步空结果不抛异常');
 chk(document.getElementById('cfgResultSummary').innerHTML.indexOf('还没有生成结果') >= 0, '空结果有明确提示');
+
+console.log();
+console.log('=== 9. 配置流程与研究模式 sel 快照往返 ===');
+const roundNames = PALLC().reduce((acc,p)=>{ (p.m||[]).forEach(x=>{ const d=dOf(x[0]); if(d&&d.t!=='结果型'&&acc.indexOf(x[0])<0) acc.push(x[0]); }); return acc; }, []);
+const roundSnap = roundNames[0];
+sel.desc = {};
+sel.desc[roundSnap] = { states: [ST(roundSnap)[0]], src: '研究模式快照' };
+const roundBefore = JSON.stringify(sel.desc);
+cfgSaved=null; cfgSel={}; cfgPick={}; cfgClaim={}; cfgTouched={}; cfgDeptSel=[]; cim={};
+for(const p of PALLC()){ cfgSel[p.n]=1; if(cfgInputNames().length>=2) break; }
+chk(cfgInputNames().length>=2, '往返用例至少命中两个输入变量', cfgInputNames().length);
+const roundSel=JSON.stringify(cfgSel), roundPickBefore=JSON.stringify(cfgPick);
+let roundRun=true; try{ cfgRun(); }catch(e){ roundRun=false; console.log(e.message); }
+chk(roundRun && !!cfgSaved, '生成结果时保存研究模式 sel 快照');
+const roundCfg=JSON.stringify(sel.desc), roundPickAfter=JSON.stringify(cfgPick);
+chk(JSON.stringify(cfgSel)===roundSel, '配置选择在生成结果后不变');
+chk(roundPickAfter!==roundPickBefore, '生成结果写入最终档快照 cfgPick');
+let roundBack=true; try{ openResearch(); }catch(e){ roundBack=false; console.log(e.message); }
+chk(roundBack, '返回研究模式不抛异常');
+chk(JSON.stringify(sel.desc)===roundBefore, '返回研究模式恢复原 sel 快照');
+chk(cfgSaved===null, '快照恢复后清空，避免重复恢复');
+chk(JSON.stringify(cfgSel)===roundSel && JSON.stringify(cfgPick)===roundPickAfter, '配置流程数据不被研究模式恢复污染');
+chk(roundCfg!==JSON.stringify(sel.desc), '配置运行确实切换了 sel.desc（快照非空转）');
 
 console.log('');
 console.log(bad === 0 ? '全部通过' : bad + ' 项未通过');
