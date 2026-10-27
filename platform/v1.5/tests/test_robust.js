@@ -84,11 +84,11 @@ fill();
 computeRobust(10, 7);
 renderRobust();
 let h=document.getElementById('robBox').innerHTML||'';
-console.log('  初次无过期提示:', /对不上当前判断/.test(h)?'✗':'✓');
+console.log('  初次无过期提示:', /与当前判断不一致/.test(h)?'✗':'✓');
 cim[A+'>'+B].v=1;
 renderRobust();
 h=document.getElementById('robBox').innerHTML||'';
-console.log('  改动后出现过期提示:', /对不上当前判断/.test(h)?'✓':'✗');
+console.log('  改动后出现过期提示:', /与当前判断不一致/.test(h)?'✓':'✗');
 
 console.log();
 console.log('=== 6. 轮次上限钳制 ===');

@@ -72,13 +72,13 @@ function confList(){
   let head='';
   if(solo.length){
     head='<div class="soloBox"><b>孤立档位（'+solo.length+' 个）</b>：'
-      +'这些档位在任何自洽情景里都<b>没出现过</b>——不是和谁冲突，而是它自己就站不住。'
+      +'这些档位在任何自洽情景里都<b>没出现过</b>——不是与哪一档冲突，而是其自身与整体判断不相容。'
       +solo.map(x=>'<br>· '+(DSHORT[r.ds[x.i]]||r.ds[x.i])+'：'+ST(r.ds[x.i])[x.a]).join('')
       +'</div>';
   }
   if(!r.pairs.length){
     el('confList', head+'<div class="dim" style="line-height:1.9;">'
-      +'全部档位对都能共存，<b>没有互斥对</b>——这套判断体系里没有互相矛盾的要求。</div>');
+      +'全部档位对都能共存，<b>没有互斥对</b>——这套判断体系里没有相互冲突的要求。</div>');
     return;
   }
   el('confList', head
@@ -91,7 +91,7 @@ function confList(){
     return '<div class="conf">'
       +'<div class="h">互斥 '+(idx+1)+'：'+dA+'（'+sA+'）× '+dB+'（'+sB+'）</div>'
       +'<div>在本次检出的 '+r.nCons+' 组自洽情景里，这两档<b>各自都出现过，却从未同时出现</b>。'
-      +(r.sampled?'（结果来自抽样：可能把"没抽到"误判成"不可能"，档位对数量多时请以方向为准。）':'')+'</div>'
+      +(r.sampled?'（结果来自抽样：可能把"未抽到"误判成"不可能"，档位对数量多时请以方向为准。）':'')+'</div>'
       +(open?('<div class="sug"><b>可以这样改（点了会真的改状态并重算）：</b><br>'
         +(altA?('把「'+dA+'」改成：'+altA):('「'+dA+'」没有任何一档能与「'+sB+'」共存，需改另一边或复核打分'))
         +'<br>'

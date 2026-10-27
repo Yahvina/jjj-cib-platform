@@ -111,7 +111,7 @@ sel.desc[A].states=['低速'];
 const cf=ancConflicts();
 console.log('  不相交时冲突数:', cf.length, cf.length===1?'✓':'✗');
 console.log('  冲突描述:', cf.length?cf[0].nm+'「'+cf[0].st+'」':'—');
-console.log('  冲突提示块出现：', /你选中的状态与已知值不相交/.test(ancConflictHTML())?'✓':'✗');
+console.log('  冲突提示块出现：', /你选中的档与已知值不相容/.test(ancConflictHTML())?'✓':'✗');
 
 console.log('=== 9. 全部状态被排除 → 直接报错，不会静默跑空 ===');
 anchors[A]={lo:100,hi:110};

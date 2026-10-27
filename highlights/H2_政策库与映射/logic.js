@@ -240,7 +240,7 @@ function polSidePanel(){
 function verifBlock(v){
   const up=v.st==='升高';
   return '<div class="vfbox">'
-    +'<span class="vftag '+(up?'up':'keep')+'">'+(up?'补证成立 · 置信度升高':'已补证 · 维持原判')+'</span>'
+    +'<span class="vftag '+(up?'up':'keep')+'">'+(up?'补证成立 · 把握升高':'已补证 · 维持原判')+'</span>'
     +'<div class="vff">《'+v.f+'》（'+v.no+'，'+v.d+'）</div>'
     +'<div class="vfq">“'+v.q+'”</div>'
     +'<a class="vfl" href="'+v.u+'" target="_blank" rel="noopener">查看政策原文 ↗</a>'

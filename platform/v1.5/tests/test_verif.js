@@ -75,7 +75,7 @@ const pi=paths.findIndex(p=>p.n===upPath);
 polSel=pi; renderPolicy();
 const side=document.getElementById('polSide').innerHTML||'';
 console.log('  选中路径:', upPath);
-console.log('  含补证徽标:', /补证成立 · 置信度升高/.test(side)?'✓':'✗');
+console.log('  含补证徽标:', /补证成立 · 把握升高/.test(side)?'✓':'✗');
 console.log('  含文号:', side.indexOf(POLICY_VERIF[upKey].no.slice(0,8))>=0?'✓':'✗');
 console.log('  含原文链接:', /查看政策原文/.test(side)?'✓':'✗');
 

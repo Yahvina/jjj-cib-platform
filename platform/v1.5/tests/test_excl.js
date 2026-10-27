@@ -130,11 +130,11 @@ cimResult={ds:FIVE, sizes:FIVE.map(d=>ST(d).length), sampled:true,
   consistent:[[0,0,0,0,0],[1,1,1,1,1],[2,2,2,2,2]]};
 confList();
 const h10b=EL['confList'].innerHTML;
-console.log('  告警"可能把没抽到误判成不可能":', /可能把"没抽到"误判成"不可能"/.test(h10b)?'✓':'✗');
+console.log('  告警"可能把没抽到误判成不可能":', /可能把"未抽到"误判成"不可能"/.test(h10b)?'✓':'✗');
 cimResult={ds:FIVE, sizes:FIVE.map(d=>ST(d).length), sampled:false,
   consistent:[[0,0,0,0,0],[1,1,1,1,1],[2,2,2,2,2]]};
 confList();
-console.log('  精确抽样时不出现该告警:', !/可能把"没抽到"误判成"不可能"/.test(EL['confList'].innerHTML)?'✓':'✗');
+console.log('  精确抽样时不出现该告警:', !/可能把"未抽到"误判成"不可能"/.test(EL['confList'].innerHTML)?'✓':'✗');
 
 console.log('=== 11. 渲染在无自洽情景时给可操作指引 ===');
 cimResult={ds:[A,B], consistent:[], sampled:false, sizes:[ST(A).length,ST(B).length]};

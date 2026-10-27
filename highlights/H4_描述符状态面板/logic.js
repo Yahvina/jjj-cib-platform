@@ -496,7 +496,7 @@ function ancSummaryHTML(){
 function ancConflictHTML(){
   const cf=ancConflicts();
   if(!cf.length) return '';
-  return '<div class="pwarn"><b>你选中的状态与已知值不相交：</b>'
+  return '<div class="pwarn"><b>你选中的档与已知值不相容：</b>'
     +cf.map(x=>x.nm+'「'+x.st+' '+x.lo+'–'+x.hi+(x.u?' '+x.u:'')+'」vs 已知值 '+ancTxt(x.nm)).join('；')
     +'。检验时这些状态不会被考虑——请改选状态、放宽已知值，或确认已知值本身有误。</div>';
 }
