@@ -1,4 +1,4 @@
-# 自检脚本（31 套）
+# 自检脚本（33 套）
 
 对着**本目录上一级**的源码跑，不是对着仓库根的单文件成品。改动 `../src/` 后先跑这里，再重新打包。
 
@@ -7,7 +7,7 @@
 **用统一闸门跑，不要逐套手跑。**
 
 ```powershell
-powershell -File .\run_tests.ps1            # 源码级 30 套 + 成品级 1 套自动跳过
+powershell -File .\run_tests.ps1            # 源码级 32 套 + 成品级 1 套自动跳过
 powershell -File .\run_tests.ps1 -Prod      # 另含成品冒烟（要先打包出单文件）
 ```
 
@@ -36,9 +36,9 @@ node test_gen_smoke.js "..\京津冀政策情景快速评估平台_原型v1.5.ht
 
 ## 三个坑
 
-**漏传参数会伪装成「全线崩溃」。** 每套脚本开头都是 `fs.readFileSync(process.argv[2], 'utf8')`，不带参数时 31 套里有 25 套会同时报
+**漏传参数会伪装成「全线崩溃」。** 每套脚本开头都是 `fs.readFileSync(process.argv[2], 'utf8')`，不带参数时 33 套里有 26 套会同时报
 `TypeError [ERR_INVALID_ARG_TYPE]: The "path" argument must be of type string...`
-另有 6 套有默认值所以「活着」（`test_doc` / `test_gen` / `test_home` / `test_menu` / `test_term` / `test_tip`）——很容易误判成「改坏了 25 个功能」。看到这个错先检查调用姿势。
+另有 7 套有默认值所以「活着」（`test_doc` / `test_gen` / `test_home` / `test_menu` / `test_term` / `test_tip` / `test_v160`）——很容易误判成「改坏了 26 个功能」。看到这个错先检查调用姿势。
 
 **自检脚本自己吞掉崩溃。** 2026-10-24 修复：`test_anc` / `test_evid` / `test_layered` / `test_scope` 四套曾把断言包在 try/catch 里，捕获到异常只打一行「崩溃检测」就结束，退出码仍为 0——引用到不存在的函数时，脚本看起来还是「全部通过」。现在 catch 里补了 `process.exit(1)`。批量跑时不要只看「没报错」，要看退出码。
 
@@ -47,5 +47,5 @@ node test_gen_smoke.js "..\京津冀政策情景快速评估平台_原型v1.5.ht
 
 ## 与版本的关系
 
-这 31 套是 **v1.5 期**写的，覆盖 v1.5 的功能。对着 v1.4 源码跑会有 11 套失败（`test_anc` / `test_doc` / `test_excl` / `test_gen` /
+这 33 套是 **v1.5 期**写的，覆盖 v1.5 的功能。对着 v1.4 源码跑会有 11 套失败（`test_anc` / `test_doc` / `test_excl` / `test_gen` /
 `test_home` / `test_layered` / `test_menu` / `test_sel` / `test_term` / `test_tip` / `test_zerosem`；其中部分是断言不过、部分是引用到 v1.5 才有的函数而崩），**那是预期行为，不是回归**。历史版本因此不复制这份测试，统一挂在这里。

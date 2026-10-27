@@ -45,7 +45,7 @@ jjj-cib-platform/
 │       ├── index.html              ← 分文件源码入口（引用同目录 src/）
 │       ├── src/app.js
 │       ├── src/styles.css
-│       └── tests/                  ← 31 套自检 + 统一闸门 run_tests.ps1（跑法见其中 README）
+│       └── tests/                  ← 33 套自检 + 统一闸门 run_tests.ps1（跑法见其中 README）
 ├── highlights/                    ← 亮点模块（由 build_highlights.py 从源码切出）
 │   ├── index.html                 ← 亮点索引页（建议先看这个）
 │   ├── build_highlights.py        ← 切片器 + 一致性校验（改完源码要重跑）
@@ -124,7 +124,7 @@ python build_highlights.py --check  # 校验是否与源码一致（退出码 1 
 源码就在本仓库里：`platform/v1.5/`（`index.html` + `src/app.js` + `src/styles.css`）。改完按下面走，线上始终等于仓库里的成品。
 
 ```powershell
-# 1. 跑自检（31 套，全过才继续）
+# 1. 跑自检（33 套，全过才继续）
 powershell -ExecutionPolicy Bypass -File platform/v1.5/tests/run_tests.ps1 -Prod
 
 # 2. 若动了平台源码：重新生成亮点模块（忘了这步发布会被闸门挡住）
