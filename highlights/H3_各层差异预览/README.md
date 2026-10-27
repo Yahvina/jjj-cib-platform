@@ -6,17 +6,17 @@
 
 ## 代码位置（v1.5 工作副本）
 
-- HTML：`_src/v15/index.html` 第 105–131 行
+- HTML：`_src/v15/index.html` 第 111–137 行
 - 逻辑：`_src/v15/src/app.js`
 
 | 函数／常量 | 行号 |
 |---|---|
 | `LAYERS` | 255–260 |
-| `layerTable` | 358–379 |
-| `tglScale` | 1971–1977 |
-| `rngTxt` | 622–626 |
-| `ST` | 621–621 |
-| `defsOf` | 563–595 |
+| `layerTable` | 359–380 |
+| `tglScale` | 1972–1978 |
+| `rngTxt` | 623–627 |
+| `ST` | 622–622 |
+| `defsOf` | 564–596 |
 
 - 样式：本目录 `style.css`（摘录）；完整样式表见 `../_shared/base.css`
 

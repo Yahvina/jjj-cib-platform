@@ -19,6 +19,7 @@
   --sh2:0 2px 6px rgba(27,26,23,.06);
   --sh3:0 10px 30px rgba(27,26,23,.12);
   --ease:cubic-bezier(.2,.7,.3,1);
+  --warm:var(--wn);
 }
 
 .btn{height:32px;padding:0 13px;border-radius:4px;font-size:13px;
@@ -120,3 +121,5 @@ details.fold>summary{display:none;}
   font-size:13px;color:var(--tx3);}
 
 .rail-foot .btn:hover{color:var(--tx);border-bottom-color:var(--tx);}
+
+.cfgcard .btn{flex:none;}

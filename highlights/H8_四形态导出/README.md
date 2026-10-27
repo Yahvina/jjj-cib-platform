@@ -6,42 +6,42 @@
 
 ## 代码位置（v1.5 工作副本）
 
-- HTML：`_src/v15/index.html` 第 376–381 行
+- HTML：`_src/v15/index.html` 第 382–387 行
 - 逻辑：`_src/v15/src/app.js`
 
 | 函数／常量 | 行号 |
 |---|---|
-| `GEN_LABEL` | 273–273 |
-| `genOf` | 274–274 |
-| `genName` | 275–275 |
-| `expMode` | 1650–1654 |
-| `expRows` | 1655–1674 |
-| `expLabel` | 1675–1675 |
-| `multiPickNote` | 1678–1684 |
-| `csvCell` | 1685–1688 |
-| `paramOf` | 1651–1654 |
-| `paramsCSV` | 1722–1738 |
-| `setExpMode` | 1740–1740 |
-| `downloadParams` | 1739–1739 |
-| `downloadParamsBtn` | 1918–1918 |
-| `narrText` | 1743–1762 |
-| `bayesCSV` | 1763–1775 |
-| `curScenInfo` | 1780–1791 |
-| `tableCSV` | 1792–1815 |
-| `genMain` | 1816–1822 |
-| `genMainLabel` | 1823–1829 |
-| `genSubHTML` | 1830–1843 |
-| `renderOutBtns` | 1845–1848 |
-| `syncGenOpts` | 1850–1858 |
-| `renderGenOut` | 1859–1883 |
-| `preview` | 1689–1721 |
-| `xmlTag` | 1884–1900 |
-| `xmlFile` | 1901–1916 |
-| `download` | 1917–1917 |
-| `downloadAll` | 1919–1932 |
-| `dl` | 1933–1939 |
-| `fmtTag` | 1940–1940 |
-| `fmtNum` | 285–289 |
+| `GEN_LABEL` | 274–274 |
+| `genOf` | 275–275 |
+| `genName` | 276–276 |
+| `expMode` | 1651–1655 |
+| `expRows` | 1656–1675 |
+| `expLabel` | 1676–1676 |
+| `multiPickNote` | 1679–1685 |
+| `csvCell` | 1686–1689 |
+| `paramOf` | 1652–1655 |
+| `paramsCSV` | 1723–1739 |
+| `setExpMode` | 1741–1741 |
+| `downloadParams` | 1740–1740 |
+| `downloadParamsBtn` | 1919–1919 |
+| `narrText` | 1744–1763 |
+| `bayesCSV` | 1764–1776 |
+| `curScenInfo` | 1781–1792 |
+| `tableCSV` | 1793–1816 |
+| `genMain` | 1817–1823 |
+| `genMainLabel` | 1824–1830 |
+| `genSubHTML` | 1831–1844 |
+| `renderOutBtns` | 1846–1849 |
+| `syncGenOpts` | 1851–1859 |
+| `renderGenOut` | 1860–1884 |
+| `preview` | 1690–1722 |
+| `xmlTag` | 1885–1901 |
+| `xmlFile` | 1902–1917 |
+| `download` | 1918–1918 |
+| `downloadAll` | 1920–1933 |
+| `dl` | 1934–1940 |
+| `fmtTag` | 1941–1941 |
+| `fmtNum` | 286–290 |
 
 - 样式：本目录 `style.css`（摘录）；完整样式表见 `../_shared/base.css`
 

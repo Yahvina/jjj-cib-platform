@@ -6,17 +6,17 @@
 
 ## 代码位置（v1.5 工作副本）
 
-- HTML：`_src/v15/index.html` 第 55–102 行
+- HTML：`_src/v15/index.html` 第 61–108 行
 - 逻辑：`_src/v15/src/app.js`
 
 | 函数／常量 | 行号 |
 |---|---|
-| `HM_P` | 301–311 |
-| `homeStatData` | 290–300 |
-| `fmtNum` | 285–289 |
-| `renderCmp` | 344–355 |
-| `renderHomeGrid` | 312–343 |
-| `enterWizard` | 2007–2025 |
+| `HM_P` | 302–312 |
+| `homeStatData` | 291–301 |
+| `fmtNum` | 286–290 |
+| `renderCmp` | 345–356 |
+| `renderHomeGrid` | 313–344 |
+| `enterWizard` | 2008–2026 |
 
 - 样式：本目录 `style.css`（摘录）；完整样式表见 `../_shared/base.css`
 

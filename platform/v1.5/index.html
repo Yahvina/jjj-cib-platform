@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>京津冀政策情景快速评估平台 · 原型 v1.5</title>
+<title>京津冀政策情景快速评估平台 · 原型 v1.6.0</title>
   <link rel="stylesheet" href="src/styles.css">
 </head>
 <body>
@@ -15,7 +15,13 @@
       <rect class="cellmark" x="9" y="9" width="6" height="6" fill="#8C5A3C" stroke="none"/>
     </svg>
   </a>
-  <div class="brand">京津冀<i>·</i>CIB<em>SCENARIO</em></div>
+  <div class="brand">京津冀<i>·</i>政策情景<em>SCENARIO</em></div>
+  <nav class="mainnav" id="mainNav" aria-label="主导航">
+    <button data-nav="home" onclick="backToCmp()">概览</button>
+    <button data-nav="config" onclick="openConfig()">情景配置</button>
+    <button data-nav="research" onclick="openResearch()">研究模式</button>
+    <button data-nav="docs" onclick="openChangelog()">版本与讨论</button>
+  </nav>
   <div class="sp"></div>
   <span class="ctx" id="ctxNow">概览</span>
   <button class="iconbtn" onclick="openChangelog()" title="更新日志" aria-label="更新日志">
@@ -59,8 +65,8 @@
       <h1><span class="cib">CIB</span>：政策情景的<br>一致性检验</h1>
       <p class="lead">交叉影响平衡是平台的核心方法：政策文本转为描述符取值，两两判定影响方向，枚举组合后只保留自洽者；通过检验的情景再转译为 GCAM-China 与 CHEER 的输入参数。</p>
       <div class="go">
-        <a href="#" onclick="enterWizard(event);return false;">开始配置情景<span class="ar">→</span></a>
-        <a class="go2" href="#" onclick="openDoc();return false;">使用说明</a>
+        <a href="#" onclick="openConfig();return false;">开始配置情景<span class="ar">→</span></a>
+        <a class="go2" href="#" onclick="openResearch(event);return false;">研究模式</a>
       </div>
     </div>
 
@@ -423,12 +429,84 @@
 </section>
 
 
+<!-- ============ v1.6.0 三步情景配置 ============ -->
+<section class="pane" id="cfg0">
+  <div class="cfg-kicker">情景配置 · 01</div>
+  <h2 class="pt">选政策</h2>
+  <p class="pd">从政策库中选出本次要评估的政策组合。平台只展示政策已经映射到的变量；“映射把握”表示这条对应关系有多确定，不是政策本身的档位。</p>
+  <div id="cfgStepper0"></div>
+  <div class="cfg-rule">
+    <div class="cfg-r1"><b>区间口径</b><span id="cfgScopeText"></span></div>
+    <div class="cfg-r2" id="cfgScopeBtns"></div>
+  </div>
+  <div class="cfg-tools">
+    <div class="cfg-tools-l"><span class="cfglab">部门</span><div id="cfgDepts"></div></div>
+    <div class="cfg-tools-r">
+      <button class="btn sm" onclick="cfgClearPolicies()">清空已选</button>
+      <button class="btn sm" onclick="cfgSelectAll()">全选当前</button>
+    </div>
+  </div>
+  <div class="cfg-statline" id="cfgPolicyStat"></div>
+  <div class="cfgwrap">
+    <div class="cfglist" id="cfgPolicyList"></div>
+    <aside class="cfgside" id="cfgPolicySide"></aside>
+  </div>
+  <div class="cfgfoot">
+    <span class="hiline" id="cfg0Hint"></span>
+    <div class="sp"></div>
+    <button class="btn pri" onclick="cfgGo(1)">确认设定 →</button>
+  </div>
+</section>
+
+<section class="pane" id="cfg1">
+  <div class="cfg-kicker">情景配置 · 02</div>
+  <h2 class="pt">确认设定</h2>
+  <p class="pd">只展开被选中政策命中的变量。政策主张先保留“提高 / 维持 / 降低 / 未指定”，默认未指定；最终档位需要人工确认，平台不自动推断，也不把映射把握当作档位。</p>
+  <div id="cfgStepper1"></div>
+  <div id="cfgSettingStat"></div>
+  <div id="cfgSettingList"></div>
+  <div class="cfgfoot">
+    <button class="btn" onclick="cfgGo(0)">← 返回选政策</button>
+    <div class="sp"></div>
+    <span class="hiline" id="cfg1Hint"></span>
+    <button class="btn pri" onclick="cfgRun()">生成结果 →</button>
+  </div>
+</section>
+
+<section class="pane" id="cfg2">
+  <div class="cfg-kicker">情景配置 · 03</div>
+  <h2 class="pt">看结果并导出</h2>
+  <p class="pd">这里给出平台在当前设定与当前判断下算出的结果，不预测未来，也不推荐某一套方案。导出的是下游模型可读的情景配置文件。</p>
+  <div id="cfgStepper2"></div>
+  <div class="card">
+    <h3>结果摘要</h3>
+    <div id="cfgResultSummary"></div>
+  </div>
+  <div class="card">
+    <h3>你选的那组</h3>
+    <div id="cfgPick"></div>
+  </div>
+  <div class="card">
+    <h3>差异对比</h3>
+    <div id="cfgDiff"></div>
+  </div>
+  <div class="card">
+    <h3>导出</h3>
+    <div id="cfgExport"></div>
+  </div>
+  <div class="cfgfoot">
+    <button class="btn" onclick="cfgGo(1)">← 返回确认设定</button>
+    <div class="sp"></div>
+    <button class="btn" onclick="cfgGo(0)">重新选政策</button>
+  </div>
+</section>
+
 <!-- ============ 使用说明（独立页） ============ -->
 <section class="pane docpg" id="pdoc">
   <div class="doc-h">
     <div class="doc-k">MANUAL　使用说明</div>
     <h1>平台使用说明</h1>
-    <p>按七步流程走完一遍，就能产出可交付的情景配置。本页集中说明每一步在做什么、参数怎么定、结果怎么读——界面上不再重复这些文字，把版面留给操作本身。</p>
+    <p>主界面三步：选政策 → 确认设定 → 看结果并导出。需要逐项核对判断链时，再进「研究模式」走原来的七步流程。本页集中说明每一步在做什么、参数怎么定、结果怎么读。</p>
   </div>
 
   <div class="doc-cols">
@@ -436,7 +514,7 @@
       <div class="dn-g">简介</div>
       <a href="#d1"><span>01</span>平台做什么</a>
       <div class="dn-g">使用手册</div>
-      <a href="#d2"><span>02</span>七步流程</a>
+      <a href="#d2"><span>02</span>研究模式七步</a>
       <div class="dn-g">算法说明</div>
       <a href="#d3"><span>03</span>判定与算法</a>
       <a href="#d4"><span>04</span>跨层与锚定</a>
@@ -460,7 +538,7 @@
       </table>
 
       <div class="dgrp">使用手册</div>
-      <h2 id="d2">二　七步流程</h2>
+      <h2 id="d2">二　研究模式七步流程</h2>
       <h3>第 1 步　选择尺度</h3>
       <p>勾选本次情景覆盖的层级。<b>国家级是「给定层」</b>，取值来自国家政策目标，属于外部条件；区域、省、市三层才是需要探索的变量。</p>
       <p>勾选两层以上才会启用跨层核对：相邻层级之间按取值区间核对，上级某档与下级某档的区间完全不相交时，该下级档不进枚举。只勾一层时，平台等同于在单层内做一致性检验。</p>
@@ -646,8 +724,8 @@
       <button class="btn sm" onclick="closeId('helpModal')">关闭</button></div>
     <div class="mbody" style="font-size:15px;line-height:1.9;">
       <p><b>它做什么</b>：把政策组合筛成不互相打架的情景，再翻译成 GCAM-China / CHEER 能用的参数。<b>它不算减排量</b>，那是下游模型的活。</p>
-      <p><b>七步</b>：选尺度 → 映射政策 → 定状态 → 定校验方式 → 两两打分 → 选目标模型 → 检验与导出。左侧竖排就是这七步，随时可跳。</p>
-      <p><b>最常用的一步</b>：第 5 步的两两打分。每格填 −3…+3，表示「一行取这个状态，会促进还是抑制一列」。填完自动筛出没有内部矛盾的情景簇。</p>
+      <p><b>主界面三步</b>：选政策 → 确认设定 → 看结果并导出。点顶部「情景配置」进入。</p>
+      <p><b>研究模式</b>：原七步流程整体收在这里，左侧竖排随时可跳；需要逐项核对判断链时用它。</p>
       <p><b>拿不准的地方</b>：文字带虚线下划线的，鼠标放上去有解释。</p>
     </div>
   </div>

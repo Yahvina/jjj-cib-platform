@@ -56,6 +56,7 @@ renderLay=function(){}; renderFilt=function(){}; renderTableau=function(){}; ren
 confList=function(){}; timeline=function(){}; renderImpact=function(){}; renderPath=function(){}; renderAP=function(){};
 renderProf=function(){}; renderCorr=function(){}; renderEnsPanel=function(){}; renderRobust=function(){}; renderFW=function(){};
 renderBayes=function(){}; finalSum=function(){}; p6Apply=function(){}; p6Status=function(){};
+renderConfigPolicy=function(){}; renderConfigSetting=function(){}; renderConfigResult=function(){};
 document.getElementById('pcmp').classList.toggle=function(){};
 
 let bad=0;

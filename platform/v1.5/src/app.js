@@ -264,6 +264,7 @@ const sel={desc:{}};
 const collapsed=new Set();
 const expanded=new Set();
 let inCmp=true, cur=0, curModel='gcam', expertN=1, useBayes=false, pulled=false;
+let viewMode='home';
 let searchQ='', openScen=null, openConf=null;
 
 /* 参数生成方式四选一（v1.5 第 4 步）。useBayes 只管「后验要不要参与检算」，
@@ -2003,9 +2004,9 @@ function renderSteps(){
 }
 function goto(i){ cur=Math.max(0,Math.min(6,i)); render(); window.scrollTo({top:0,behavior:'smooth'}); }
 function go(d){ goto(cur+d); }
-function nextStep(){ if(cur===6){ inCmp=true; render(); window.scrollTo({top:0,behavior:'smooth'}); } else goto(cur+1); }
+function nextStep(){ if(cur===6){ docPg=''; viewMode='home'; inCmp=true; render(); window.scrollTo({top:0,behavior:'smooth'}); } else goto(cur+1); }
 function enterWizard(ev){
-  const go=()=>{ docPg=''; inCmp=false; cur=0; render(); window.scrollTo({top:0,behavior:'smooth'}); };
+  const go=()=>{ docPg=''; viewMode='research'; inCmp=false; cur=0; render(); window.scrollTo({top:0,behavior:'smooth'}); };
   if(!ev||!ev.currentTarget||matchMedia('(prefers-reduced-motion:reduce)').matches){ go(); return; }
   const b=ev.currentTarget.getBoundingClientRect();
   const cx=b.left+b.width/2, cy=b.top+b.height/2;
@@ -2023,7 +2024,7 @@ function enterWizard(ev){
     setTimeout(()=>cover.remove(),400);
   },380);
 }
-function backToCmp(){ docPg=''; inCmp=true; render(); window.scrollTo({top:0,behavior:'smooth'}); }
+function backToCmp(){ docPg=''; viewMode='home'; inCmp=true; render(); window.scrollTo({top:0,behavior:'smooth'}); }
 /* 三个说明类页面共用一套版式：使用说明 / 讨论日志 / 版本更新日志。
    docPg 记「现在开着哪一页」，''＝没开。原先只有一个 docOpen 布尔，
    加第二、第三页时再堆布尔就会互相打架（同时开着两页）。 */
@@ -2227,7 +2228,407 @@ function applyCfg(d){
   corrResult=null;
   profResult=null;
   layeredResult=null;
-  inCmp=false; render();
+  viewMode='research'; inCmp=false; render();
+}
+
+/* ================= v1.6.0 情景配置（三步主界面） =================
+   主界面只做三件事：选政策 → 确认设定 → 看结果并导出。
+   CIB、交叉影响、打分矩阵、枚举这些词只在研究模式里出现。
+   这里不改 expandV，不自动推断政策档位，也不把「没判」当成 0。 */
+let cfgStep=0, cfgDeptSel=[], cfgSel={}, cfgOpen=null;
+let cfgClaim={}, cfgPick={}, cfgTouched={}, cfgRunInfo=null, cfgSaved=null;
+const CFG_CLAIMS=['未指定','提高','维持','降低'];
+function cfgRk(c){ return c==='高'?3:(c==='中'?2:(c==='低'?1:0)); }
+function cfgConfCls(c){ return c==='高'?'ok':(c==='中'?'wn':'rd'); }
+function cfgBestConf(ms){
+  let best='';
+  (ms||[]).forEach(x=>{ if(cfgRk(x&&x[1])>cfgRk(best)) best=x[1]; });
+  return best;
+}
+function cfgChosen(){ return PALLC().filter(p=>cfgSel[p.n]); }
+function cfgArr(){ return PALLC().filter(p=>!cfgDeptSel.length||polDeptHit(p,cfgDeptSel)); }
+function cfgCov(){
+  const c={};
+  cfgChosen().forEach(p=>(p.m||[]).forEach(x=>{
+    if(!c[x[0]]) c[x[0]]=[];
+    c[x[0]].push({p:p,m:x});
+  }));
+  return c;
+}
+function cfgHitNames(){ return Object.keys(cfgCov()).filter(nm=>!!dOf(nm)); }
+function cfgInputNames(){
+  return cfgHitNames().filter(nm=>{ const d=dOf(nm); return d&&d.t!=='结果型'; });
+}
+function cfgResultNames(){
+  return cfgHitNames().filter(nm=>{ const d=dOf(nm); return d&&d.t==='结果型'; });
+}
+function cfgHasScores(){ return Object.keys(cim).some(k=>!!cim[k]); }
+function cfgJudgedN(){ return Object.keys(cim).filter(k=>!!cim[k]).length; }
+function cfgStepper(n){
+  const NM=['选政策','确认设定','看结果并导出'];
+  let h='<div class="cfg-steps">';
+  NM.forEach((t,i)=>{
+    const cls=i<n?'done':(i===n?'on':'');
+    h+='<button type="button" class="cfg-step '+cls+'"'+(i<n?' onclick="cfgGo('+i+')"':'')+'>'
+      +'<span class="cnum">'+(i<n?'✓':(i+1))+'</span><span class="ct">'+t+'</span></button>';
+  });
+  return h+'</div>';
+}
+function restoreCfgSel(){
+  if(!cfgSaved) return;
+  sel.desc=cfgSaved; cfgSaved=null;
+  cimResult=null; BAYES=null; layeredResult=null; corrResult=null; profResult=null;
+}
+function openConfig(){
+  docPg=''; viewMode='config'; inCmp=false; cfgStep=0;
+  render(); window.scrollTo({top:0,behavior:'smooth'});
+}
+function openResearch(){
+  restoreCfgSel();
+  docPg=''; viewMode='research'; inCmp=false; cur=0;
+  render(); window.scrollTo({top:0,behavior:'smooth'});
+}
+function cfgGo(n){
+  if(n>=1&&!cfgChosen().length){ toast('先在第一步选至少一条政策'); return; }
+  cfgStep=Math.max(0,Math.min(2,n));
+  docPg=''; viewMode='config';
+  render(); window.scrollTo({top:0,behavior:'smooth'});
+}
+function cfgTglDeptIdx(i){
+  const d=polDeptList()[i]; if(d===undefined) return;
+  const k=cfgDeptSel.indexOf(d);
+  if(k>=0) cfgDeptSel.splice(k,1); else cfgDeptSel.push(d);
+  cfgOpen=null; renderConfigPolicy();
+}
+function cfgClearDepts(){ cfgDeptSel=[]; cfgOpen=null; renderConfigPolicy(); }
+function cfgTglPolicyIdx(i,ev){
+  if(ev&&ev.stopPropagation) ev.stopPropagation();
+  const p=PALLC()[i]; if(!p) return;
+  if(cfgSel[p.n]) delete cfgSel[p.n]; else cfgSel[p.n]=1;
+  renderConfigPolicy();
+}
+function cfgOpenPolicyIdx(i,ev){
+  if(ev&&ev.stopPropagation) ev.stopPropagation();
+  const p=PALLC()[i]; if(!p) return;
+  cfgOpen=(cfgOpen===p.n?null:p.n);
+  renderConfigPolicy();
+}
+function cfgCloseDetail(){ cfgOpen=null; renderConfigPolicy(); }
+function cfgClearPolicies(){
+  cfgSel={}; cfgOpen=null; renderConfigPolicy(); toast('已清空已选政策');
+}
+function cfgSelectAll(){
+  const arr=cfgArr();
+  arr.forEach(p=>{ cfgSel[p.n]=1; });
+  renderConfigPolicy(); toast('已选中当前筛选下的 '+arr.length+' 条政策');
+}
+function cfgFinalOf(nm){
+  const st=ST(nm);
+  if(!st.length) return '';
+  if(cfgPick[nm]&&st.indexOf(cfgPick[nm])>=0) return cfgPick[nm];
+  return st[Math.floor((st.length-1)/2)];
+}
+function cfgSetPick(nm,idx){
+  const st=ST(nm), s=st[idx]; if(s===undefined) return;
+  cfgPick[nm]=s; cfgTouched[nm]=1; renderConfigSetting();
+}
+function cfgSetClaim(nm,v){ cfgClaim[nm]=v; renderConfigSetting(); }
+/* 中档＝三档描述符里的中间档。默认展开下它的系数恒为 0，所以只提供基准，
+   不提供判定力度；占比过半就说明这一版结果没有判定力。 */
+function cfgMidInfo(){
+  let n=0, t=0; const list=[];
+  cfgInputNames().forEach(nm=>{
+    const st=ST(nm);
+    if(st.length!==3) return;
+    t++;
+    if(cfgFinalOf(nm)===st[1]){ n++; list.push(nm); }
+  });
+  return {n:n, t:t, list:list, ratio:(t?n/t:0)};
+}
+function cfgWhyText(claim,pick,touched,conf){
+  if(touched) return '用户手动设定为「'+pick+'」。映射把握 '+conf+' 只表示政策与变量这条对应关系有多确定，不是政策档位。';
+  if(claim!=='未指定') return '按政策主张「'+claim+'」预置「'+pick+'」，仍需人工确认。';
+  return '政策主张未指定，平台按基准档预置「'+pick+'」，尚未人工确认。';
+}
+function cfgSideHTML(){
+  const all=PALLC();
+  if(cfgOpen){
+    const p=all.filter(x=>x.n===cfgOpen)[0];
+    if(p){
+      let h='<div class="shead">政策详情</div>'
+        +'<div class="pname">'+attrEsc(p.n)+'</div>'
+        +'<div class="pmeta">'+attrEsc(p.c)+' · '+attrEsc(p.g||'')
+        +(p.s?' · '+attrEsc(p.s):'')+(p.t?'　工具 '+p.t+' 项':'')+'</div>'
+        +'<div class="cfgback"><button class="btn sm" onclick="cfgCloseDetail()">← 返回覆盖统计</button></div>'
+        +'<div class="slabel">一　政策是什么</div>'
+        +polEvidFiles(p)+polTimeBlock(p)
+        +'<div class="slabel">二　为什么这么设置合理</div>';
+      if((p.m||[]).length){
+        h+=(p.m||[]).map(x=>{
+          const v=POLICY_VERIF[p.n+'|'+x[0]];
+          return '<div class="maprow"><div class="mr1"><b>'+attrEsc(x[0])+'</b>'
+            +'<span class="conf '+cfgConfCls(x[1])+'">映射把握 '+attrEsc(x[1])+'</span></div>'
+            +'<div class="mr2">'+attrEsc(x[2])+'</div>'
+            +(v?verifBlock(v):'')+'</div>';
+        }).join('');
+      }else{
+        h+='<div class="ptnote">这条政策没有挂到本模型的变量上。没有映射本身是一条结论——它落在当前的变量口径之外。</div>';
+      }
+      h+=polEvidMaps(p)+polModelBlock(p);
+      return h;
+    }
+  }
+  const cov=cfgCov(), chosen=cfgChosen();
+  const zero=allDescs().filter(d=>!cov[d.n]);
+  let h='<div class="shead">本次选择</div>'
+    +kv('已选政策', chosen.length+' 条')
+    +kv('覆盖变量', Object.keys(cov).length+' / '+allDescs().length+' 个')
+    +kv('可作为设定输入', cfgInputNames().length+' 个')
+    +'<div class="slabel">没有政策覆盖的变量</div>';
+  h+=zero.length
+    ? zero.map(d=>'<div class="covrow"><span class="cvd">'+attrEsc(d.n)+'</span><span class="cvc zero">无政策覆盖</span></div>').join('')
+    : '<div class="ptnote">全部变量都有政策覆盖。</div>';
+  h+='<div class="ptnote" style="margin-top:11px;">经济增长速度、人口空间分布这类外生变量没有政策工具覆盖是正常的。'
+    +'覆盖统计只说明政策库挂到了哪些变量，不代表这些档位已经定下来。</div>';
+  return h;
+}
+function renderConfigPolicy(){
+  if(viewMode!=='config'||docPg) return;
+  const st=document.getElementById('cfgStepper0'); if(st) st.innerHTML=cfgStepper(0);
+  const txt=document.getElementById('cfgScopeText');
+  if(txt) txt.innerHTML='当前口径：<b>'+SCOPE_NAME[rngScope]+'</b>。区间口径只改各档的数值区间和最终导出的取值，'
+    +'<b>不筛选政策</b>，也不表示政策只适用于该地区。';
+  const sb=document.getElementById('cfgScopeBtns');
+  if(sb) sb.innerHTML=Object.keys(SCOPE_NAME).map(k=>
+    '<button class="sbtn'+(rngScope===k?' on':'')+'" onclick="setScope(\''+k+'\')">'+SCOPE_NAME[k]+'</button>').join('');
+  const dep=document.getElementById('cfgDepts');
+  if(dep){
+    const all=PALLC(), depts=polDeptList();
+    dep.innerHTML='<button class="dpbtn'+(cfgDeptSel.length?'':' on')+'" onclick="cfgClearDepts()">全部 '+all.length+'</button>'
+      +depts.map((d,i)=>{
+        const n=all.filter(p=>polDeptHit(p,[d])).length;
+        return '<button class="dpbtn'+(cfgDeptSel.indexOf(d)>=0?' on':'')+'" onclick="cfgTglDeptIdx('+i+')">'
+          +attrEsc(d)+' '+n+'</button>';
+      }).join('');
+  }
+  const list=document.getElementById('cfgPolicyList');
+  if(list){
+    const arr=cfgArr();
+    if(!arr.length){ list.innerHTML='<div class="empty">没有符合条件的政策</div>'; }
+    else{
+      let h='', last='';
+      arr.forEach(p=>{
+        const i=PALLC().indexOf(p);
+        if(p.c!==last){ h+='<div class="pgh">'+attrEsc(p.c)+'</div>'; last=p.c; }
+        const on=!!cfgSel[p.n], conf=cfgBestConf(p.m), n=(p.m||[]).length;
+        h+='<div class="cfgcard'+(on?' on':'')+'" onclick="cfgTglPolicyIdx('+i+')">'
+          +'<span class="chk'+(on?' on':'')+'">'+(on?TICK:'')+'</span>'
+          +'<span class="cfgn">'+attrEsc(p.n)+'</span>'
+          +polDeptTag(p.s)
+          +'<span class="cfgnum">关联变量 '+n+'</span>'
+          +(conf?'<span class="conf '+cfgConfCls(conf)+'">映射把握 '+conf+'</span>'
+                :'<span class="cfgnum">无映射</span>')
+          +'<button class="btn sm" onclick="cfgOpenPolicyIdx('+i+',event)">详情</button>'
+          +'</div>';
+      });
+      list.innerHTML=h;
+    }
+  }
+  const side=document.getElementById('cfgPolicySide');
+  if(side) side.innerHTML=cfgSideHTML();
+  const stat=document.getElementById('cfgPolicyStat');
+  if(stat){
+    const cov=cfgCov();
+    stat.innerHTML='<span class="kv"><span>当前筛选</span><span>'+cfgArr().length+' 条（全部 '+PALLC().length+' 条）</span></span>'
+      +'<span class="kv"><span>已选政策</span><span><b>'+cfgChosen().length+'</b> 条</span></span>'
+      +'<span class="kv"><span>覆盖变量</span><span>'+Object.keys(cov).length+' / '+allDescs().length+' 个</span></span>';
+  }
+  const hint=document.getElementById('cfg0Hint');
+  if(hint) hint.innerHTML=cfgChosen().length
+    ? ('已选 <b>'+cfgChosen().length+'</b> 条政策，覆盖 <b>'+Object.keys(cfgCov()).length+'</b> 个变量。')
+    : '还没有选择政策。选中政策后，右侧会实时给出覆盖统计。';
+}
+function renderConfigSetting(){
+  if(viewMode!=='config'||docPg) return;
+  const stp=document.getElementById('cfgStepper1'); if(stp) stp.innerHTML=cfgStepper(1);
+  const host=document.getElementById('cfgSettingList');
+  const stat=document.getElementById('cfgSettingStat');
+  const hint=document.getElementById('cfg1Hint');
+  const chosen=cfgChosen(), cov=cfgCov(), inputs=cfgInputNames(), res=cfgResultNames();
+  const mid=cfgMidInfo();
+  if(stat) stat.innerHTML='<div class="cfgstatline">'
+    +'<span class="kv"><span>已选政策</span><span>'+chosen.length+' 条</span></span>'
+    +'<span class="kv"><span>需要确认的变量</span><span>'+inputs.length+' 个</span></span>'
+    +'<span class="kv"><span>中档占比</span><span>'+Math.round(mid.ratio*100)+'%（'+mid.n+' / '+mid.t+'）</span></span>'
+    +'<span class="kv"><span>判断矩阵</span><span>'+cfgJudgedN()+' 条判断</span></span>'
+    +'</div>'
+    +(mid.ratio>0.5?'<div class="note rd"><b>判定力不足：</b>最终档里中档占 '+Math.round(mid.ratio*100)
+      +'%，超过一半。中档按基准处理、不提供判定力度，这样的结果不能当正常结论用。</div>':'');
+  if(!host) return;
+  if(!inputs.length){
+    host.innerHTML='<div class="empty">被选中政策命中的变量不足两个，请返回第一步补充政策。</div>';
+  }else{
+    let h='';
+    inputs.forEach(nm=>{
+      const d=dOf(nm)||{}, sts=ST(nm), pick=cfgFinalOf(nm);
+      const ms=cov[nm]||[], conf=cfgBestConf(ms.map(o=>o.m));
+      const claim=cfgClaim[nm]||'未指定', touched=!!cfgTouched[nm];
+      h+='<div class="cfgrow">'
+        +'<div class="cfgr1"><b>'+attrEsc(nm)+'</b>'
+        +'<span class="pill">'+attrEsc(d.t||'')+'</span>'
+        +'<span class="conf '+cfgConfCls(conf)+'">映射把握 '+conf+'</span>'
+        +(claim==='未指定'?'<span class="cfgtag u">政策主张未指定</span>':'')
+        +(touched?'<span class="cfgtag m">手动设定</span>':'<span class="cfgtag b">按基准档</span>')
+        +'</div>'
+        +'<div class="cfgsub">影响这条变量的政策：'
+        +ms.map(o=>'<span class="pill">'+attrEsc(o.p.n)+'</span>').join('')+'</div>'
+        +'<div class="cfgctl">'
+        +'<label class="cfgf"><span>政策主张</span><select class="txt" onchange="cfgSetClaim(\''+nm+'\',this.value)">'
+        +CFG_CLAIMS.map(v=>'<option value="'+v+'"'+(claim===v?' selected':'')+'>'+v+'</option>').join('')
+        +'</select></label>'
+        +'<label class="cfgf"><span>最终档</span><select class="txt" onchange="cfgSetPick(\''+nm+'\',this.selectedIndex)">'
+        +sts.map((s,i)=>'<option value="'+i+'"'+(s===pick?' selected':'')+'>'+attrEsc(s)+'</option>').join('')
+        +'</select></label>'
+        +'<div class="cfgwhy">'+cfgWhyText(claim,pick,touched,conf)+'</div>'
+        +'</div></div>';
+    });
+    const cold=allDescs().filter(x=>!cov[x.n]&&x.t!=='结果型');
+    h+='<div class="ptnote" style="margin-bottom:10px;">区间口径见第一步，它只影响数值区间，不影响这次的政策集合。</div>';
+    h+='<details class="cfgcold"><summary>本次未涉及，按基准档处理（'+cold.length+' 个变量）</summary>'
+      +'<div class="cfgcoldb">'
+      +(cold.length?cold.map(x=>'<span class="pill">'+attrEsc(x.n)+'</span>').join(''):'<span class="ptnote">没有</span>')
+      +'</div></details>';
+    const resN=cfgResultNames();
+    h+='<div class="ptnote" style="margin-top:10px;">结果型变量'
+      +(resN.length?('（'+resN.map(attrEsc).join('、')+'）'):'')
+      +'由模型算出，不作为政策输入，不在这里设档。</div>';
+    host.innerHTML=h;
+  }
+  if(hint){
+    hint.innerHTML=cfgHasScores()
+      ? ('当前判断矩阵已有 '+cfgJudgedN()+' 条判断；未验证的格保持留空，不按 0 处理。')
+      : '当前判断矩阵还没有判断，生成结果后结果页会说明这一点。';
+  }
+}
+function cfgRun(){
+  const chosen=cfgChosen();
+  if(!chosen.length){ toast('先在第一步选至少一条政策'); cfgStep=0; render(); return; }
+  const inputs=cfgInputNames();
+  if(inputs.length<2){ toast('被政策命中的变量不足两个，结果无法生成'); return; }
+  if(!cfgSaved) cfgSaved=JSON.parse(JSON.stringify(sel.desc));
+  const pick={};
+  inputs.forEach(nm=>{ pick[nm]=cfgFinalOf(nm); cfgPick[nm]=pick[nm]; });
+  sel.desc={};
+  Object.keys(pick).forEach(nm=>{ sel.desc[nm]={states:[pick[nm]],src:'情景配置 · 政策组合取值'}; });
+  cimResult=null; BAYES=null; layeredResult=null; corrResult=null; profResult=null;
+  cfgRunInfo={ts:nowStr(), mid:cfgMidInfo(), scored:cfgJudgedN(), nPol:chosen.length, pick:pick};
+  cfgStep=2; viewMode='config'; docPg='';
+  if(cfgRunInfo.scored&&prepErr(Object.keys(sel.desc))===null) runCIM();
+  else cimResult=null;
+  render(); window.scrollTo({top:0,behavior:'smooth'});
+}
+function cfgUnverifiedCount(){
+  const ds=(cimResult&&cimResult.ds)||Object.keys(sel.desc);
+  let n=0;
+  ds.forEach(s=>ds.forEach(t=>{ if(s!==t&&!cim[s+'>'+t]) n++; }));
+  return n;
+}
+function cfgEdgeHTML(){
+  const mid=(cfgRunInfo&&cfgRunInfo.mid)||{n:0,t:0,ratio:0};
+  const bad=cfgUnverifiedCount();
+  return '<div class="ptnote" style="margin-top:12px;">'
+    +'边界说明：本页只给平台在当前判断下算出的自洽检验结果，不预测未来，也不推荐某一套方案。<br>'
+    +'· 判断矩阵来源：研究模式下的人工与 AI 判断，本次参与 '+cfgJudgedN()+' 条。'
+    +(cimResult?(bad?('参与组合里还有 '+bad+' 条判断没有填写——<b>留空是还没查，不等于没关系</b>，平台不会把它当成 0。')
+                :'参与组合的判断没有空格。'):'')
+    +'<br>· 中档：本次 '+mid.t+' 个三档变量里有 '+mid.n+' 个取到中档。中档按基准处理、不提供判定力度；'
+    +'占比超过一半时，平台会直接提示判定力不足。'
+    +'</div>';
+}
+function cfgSetExp(v){ if(v!=='low'&&v!=='mid'&&v!=='high') return; expMode=v; render(); }
+function cfgOpenReport(){ if(!cimResult){ toast('还没有生成结果'); return; } openReport(); }
+function renderConfigResult(){
+  if(viewMode!=='config'||docPg) return;
+  const stp=document.getElementById('cfgStepper2'); if(stp) stp.innerHTML=cfgStepper(2);
+  const mid=(cfgRunInfo&&cfgRunInfo.mid)||cfgMidInfo();
+  const sum=document.getElementById('cfgResultSummary');
+  const pick=document.getElementById('cfgPick');
+  const diff=document.getElementById('cfgDiff');
+  const exp=document.getElementById('cfgExport');
+  const r=cimResult;
+  if(sum){
+    if(!cfgRunInfo){ sum.innerHTML='<div class="empty">还没有生成结果，回到第二步点「生成结果」。</div>'; }
+    else if(!r){
+      sum.innerHTML='<div class="note rd"><b>这次没有生成结论。</b>'
+        +'可能的原因：当前判断矩阵是空的，或参与变量之间缺少判断。平台不会用 0 代替还没查的格，'
+        +'所以先到「研究模式」第 5 步把这些变量的判断补齐，再回来生成结果。</div>'
+        +cfgEdgeHTML();
+    }else{
+      sum.innerHTML=kv('参与检验的变量', r.ds.length+' 个')
+        +kv('组合空间', r.total.toLocaleString()+' 种')
+        +kv('本次检查', r.sampled?('抽查 '+r.checked.toLocaleString()+' 种（本次检验了其中一部分，结果是下限）')
+                              :(r.checked.toLocaleString()+' 种，全部枚举'))
+        +kv('互不冲突的设定', '<b>'+r.consistent.length+(r.consistent.length>=200?'+':'')+' 组</b>')
+        +kv('取到中档的变量', mid.n+' / '+mid.t+' 个（'+Math.round(mid.ratio*100)+'%）')
+        +(mid.ratio>0.5?'<div class="note rd" style="margin-top:12px;"><b>判定力不足：</b>中档占 '
+          +Math.round(mid.ratio*100)+'%，超过一半。中档按基准处理、不提供判定力度，这一版不能当正常结论用。</div>':'')
+        +cfgEdgeHTML();
+    }
+  }
+  if(pick){
+    if(!r){ pick.innerHTML='<div class="empty">还没有可核对的设定。</div>'; }
+    else{
+      const sc=checkSelected(r.ds);
+      let h='';
+      if(sc.missing){
+        h+='<div class="note">还有 '+sc.missing+' 个变量没有取到档位，无法核对「你选的那组」。</div>';
+      }else if(sc.ok){
+        h+='<div class="note ok"><b>你选的那组不冲突。</b>每个变量取到的档位，都是它在当前判断下平衡值最高的一档。</div>';
+      }else{
+        const bad=sc.rows.filter(x=>x.gap>1e-6).sort((a,b)=>b.gap-a.gap);
+        h+='<div class="note"><b>你选的那组有冲突。</b>冲突在 '+bad.length+' 个变量上：<br>'
+          +bad.map(x=>'· '+attrEsc(x.d)+'：取「'+attrEsc(ST(x.d)[x.at])+'」平衡 '+x.pick.toFixed(1)
+            +'，而「'+attrEsc(ST(x.d)[x.best])+'」为 '+x.max.toFixed(1)
+            +'（差 '+x.gap.toFixed(1)+'）').join('<br>')
+          +'</div>';
+      }
+      h+='<div class="cfgpick">'+r.ds.map(d=>'<span class="pill">'+attrEsc(d)+'＝'+attrEsc(cfgFinalOf(d))+'</span>').join('')+'</div>';
+      pick.innerHTML=h;
+    }
+  }
+  if(diff){
+    if(!r||!r.consistent.length) diff.innerHTML='<div class="empty">还没有互不冲突的设定可以对比。</div>';
+    else{
+      const show=r.consistent.slice(0,Math.min(8,r.consistent.length));
+      const rows=r.ds.map((d,i)=>{
+        const vals=show.map(cb=>ST(d)[cb[i]]||'?');
+        const uniq=[];
+        vals.forEach(v=>{ if(uniq.indexOf(v)<0) uniq.push(v); });
+        return uniq.length>1?('<div class="covrow"><span class="cvd">'+attrEsc(d)+'</span>'
+          +'<span class="cvc">'+uniq.map(v=>attrEsc(v)).join(' / ')+'</span></div>'):'';
+      }).filter(Boolean);
+      diff.innerHTML='<div class="ptnote" style="margin-bottom:8px;">列出前 '+show.length
+        +' 组设定之间的差别；取值完全一致的变量不列。</div>'
+        +(rows.length?rows.join(''):'<div class="ptnote">这几组在这几个变量上取值完全一致。</div>');
+    }
+  }
+  if(exp){
+    if(!r){ exp.innerHTML='<div class="empty">先有结果再导出。</div>'; }
+    else{
+      exp.innerHTML='<div class="cfgctl"><span class="cfgf"><span>取档方式</span>'
+        +'<select class="txt" onchange="cfgSetExp(this.value)">'
+        +[['low','区间下界（保守）'],['mid','区间中点'],['high','区间上界（加码）']].map(x=>
+          '<option value="'+x[0]+'"'+(expMode===x[0]?' selected':'')+'>'+x[1]+'</option>').join('')
+        +'</select></span></div>'
+        +'<div class="cfgbtns">'
+        +'<button class="btn pri" onclick="downloadParams()">导出参数表（CSV）</button>'
+        +'<button class="btn" onclick="genMain()">导出'+genMainLabel()+'</button>'
+        +'<button class="btn" onclick="cfgOpenReport()">生成情景报告</button>'
+        +'</div>'
+        +'<div class="ptnote" style="margin-top:10px;">同一组设定可以按下界 / 中点 / 上界导出；数值只覆盖 2035 锚点，'
+        +'2025 与 2030 需要按政策里程碑插值。结构化参数表每一行都带情景标识，跨情景混用会破坏一致性。</div>';
+    }
+  }
 }
 
 /* ================= 政策库与映射（v1.1 新增） ================= */
@@ -4552,6 +4953,7 @@ function renderBayes(){
    已有情景需要重新检验；省略 = 不动结果（只改界面、措辞、性能或新增旁路分析）。
    与 git 提交对应；此处只列入对外可讲、能被核对的事项。 */
 const CHANGELOG=[
+ {d:'2026-10-28',k:'功能',x:'主界面改三步，原七步流程收进研究模式',y:'顶部导航收成概览、情景配置、研究模式、版本与讨论四栏，主界面统一用变量、档、设定、结果、导出，CIB、交叉影响、打分矩阵等术语只留在研究模式与方法说明。第一步选政策：按部门多选筛选，卡片给出关联变量数、映射把握与选中状态，右侧实时统计已选条数、覆盖变量与无政策覆盖变量，点开仍是政策是什么、为什么这么设置、模型怎么处理三段。第二步确认设定：只展开被命中变量，逐条给出影响它的政策、映射把握、政策主张、最终档与取档依据，结果型变量不进设定区，未指定与手动设定都单独标出。第三步看结果并导出：只放结果摘要、你选的那组、差异对比、导出四块，不出现推荐情景、2030 达峰、减排量这类平台产不出的结论。政策库 m 的第二位统一写成映射把握 高/中/低，点明它不是政策档位；政策主张只留提高、维持、降低、未指定，默认未指定、可人工改、不自动推。未判的格留空，未验证数按 cim[k] 不存在计，界面写明留空是还没查、不等于没关系，平台不会当成 0。中档按基准处理、不改 expandV；三档变量的中档取 st[1]，最终档里中档占比超过一半时提示判定力不足。第一步的地区选项改名区间口径，写明它只影响数值区间与导出取值、不筛选政策，也不表示政策只适用于该地区。变量—参数对照表补到 19 个描述符，并给全部行加换算方法、取档方式两列；查不到原始模型变量的标 N/A 或待核。原七步流程整体收进研究模式，STEP_NM、renderSteps、goto/go 与全部研究内核保留；内部源码文件名与归档路径仍是 v1.5，对外显示版本升到 v1.6.0。本批不动打分、区间与枚举，已有情景不必重算。'},
  {d:'2026-10-27',k:'可用性',x:'主界面文案正式化收口',y:'把主界面偏口语的提示收成正式、平实的用户语言，例如「站不住」改为「与已知值不相容」、「信不信」改为「可信度」、「拿走」改为「导出结果」、「最要命」改为「影响最大、最需要复核」、「没抽到」改为「未抽到」、「置信度升高」改为「把握升高」。只改主界面与测试里的文案断言，方法说明页、术语表与历史日志保持原样；判定输入、输出与枚举都不变，已有情景不必重算。'},
  {d:'2026-10-27',k:'功能',x:'政策详情改成三段讲：政策是什么、为什么这么设置合理、模型怎么处理',y:'点开一条政策，原先先给工具记录与补证，再给一行“对应到的描述符”，读起来像两张表拼在一起。现在按政策研究者看一条政策的顺序重排：一是“政策是什么”，放工具记录、文件名、引用条款与实施时间线；二是“为什么这么设置合理”，放映射理由、政策原文补证与数据侧实证比对；三是“模型怎么处理”，逐条给出描述符落到哪个模型变量、要做什么翻译；结果型描述符单独标“由模型算出、不作输入”，免得被当成待填参数。三段都用现成数据，不新编文案；打分、区间与枚举都不变。'},
  {d:'2026-10-27',k:'功能',x:'情景可命名保存多套，并排对比各描述符的取值范围',y:'原先只有一个“保存进度”单槽，再保存就把上一套覆盖了——想把两套假设摆在一起看，只能手把两次的截图放到一起比。现在另开一个情景库：给当前配置起名存下，可存多套，随时载入、删除；存到两套以上时，自动按描述符逐行并排对比，两套一样的灰字、不一样的加粗，一眼看出差在哪几个描述符。情景库和“保存进度”都存在本机浏览器，不上传、也不跨设备同步；载入走的是和顶栏“载入配置”同一条逻辑，不会两套行为走偏。'},
@@ -4960,7 +5362,20 @@ const VERSIONS=[
     '把主界面偏口语的提示收成正式、平实的用户语言：站不住→与已知值不相容、信不信→可信度、拿走→导出结果、最要命→影响最大、最需要复核、没抽到→未抽到、置信度升高→把握升高',
     '只改动主界面文案与对应测试断言；方法说明页、术语表与 CHANGELOG/VERSIONS/DISCUSS 的历史条目保持原样',
     '判定输入、输出与枚举均不变，已有情景不必重算'
-   ]}
+   ]},
+   {v:'v1.6.0',d:'2026-10-28',tag:'',sum:'主界面改三步：选政策 → 确认设定 → 看结果并导出，原七步流程整体收进研究模式',ev:'本批提交',
+    items:[
+     '顶部导航四栏：概览｜情景配置｜研究模式｜版本与讨论；主界面不再出现 CIB、交叉影响、打分矩阵、枚举、锚定、后验，统一用变量、档、设定、结果、导出',
+     '第一步选政策：按部门多选筛选，卡片给出关联变量数、映射把握与选中状态，右侧实时统计已选条数、覆盖变量与无政策覆盖的变量；点开仍是政策是什么、为什么这么设置、模型怎么处理三段',
+     '第二步确认设定：只展开被命中变量，逐条给出影响它的政策、映射把握、政策主张、最终档与取档依据；结果型变量不进设定区；未指定与手动设定都单独标出',
+     '第三步看结果并导出：只放结果摘要、你选的那组、差异对比、导出四块，不出现推荐情景、2030 达峰、减排量这类平台产不出的结论',
+     '政策库 m 的第二位统一写成「映射把握 高/中/低」，并点明它不是政策档位；政策主张只留提高/维持/降低/未指定，默认未指定、可人工改、不自动推',
+     '未判的格留空：未验证数按 cim[k] 不存在计，界面写明留空是还没查、不等于没关系，平台不会当成 0',
+     '中档按基准处理、不改 expandV；三档变量的中档取 st[1]，最终档里中档占比超过一半时直接提示判定力不足',
+     '第一步的地区选项改名「区间口径」，写明它只影响数值区间与导出取值、不筛选政策，也不表示政策只适用于该地区',
+     '变量—参数对照表补到 19 个描述符，并给全部行加「换算方法」「取档方式」两列；查不到原始模型变量的标 N/A 或待核',
+     '原七步流程整体收进研究模式，STEP_NM、renderSteps、goto/go 与全部研究内核保留；内部源码文件名与归档路径仍是 v1.5，对外显示版本升到 v1.6.0'
+    ]}
 ];
 /* 当前版本号只有一个来源：VERSIONS 的最后一条（数组按时间从旧到新排列）。
    2026-10-25 修：关于框里原先写死 v1.4，平台发到 v1.5.7 之后它还在对外显示旧版号。 */
@@ -5085,25 +5500,34 @@ function render(){
   finalSum();
   renderChangelog();
   p6Apply(); p6Status();
+  renderConfigPolicy(); renderConfigSetting(); renderConfigResult();
 
-  document.getElementById('pcmp').classList.toggle('on', inCmp && !docPg);
+  const isResearch=viewMode==='research'&&!docPg;
+  const isConfig=viewMode==='config'&&!docPg;
+  const isDocs=!!docPg;
+  const pc=document.getElementById('pcmp'); if(pc) pc.classList.toggle('on', viewMode==='home'&&!docPg);
   document.querySelectorAll('main .pane').forEach(p=>{
     if(p.id==='pcmp') return;
     if(p.id==='pdoc'||p.id==='pdis'||p.id==='pver'){ p.classList.toggle('on', p.id===DOCPG_ID[docPg]); return; }
-    p.classList.toggle('on', !inCmp && !docPg && p.id==='p'+cur);
+    if(p.id==='cfg0'||p.id==='cfg1'||p.id==='cfg2'){ p.classList.toggle('on', isConfig&&p.id==='cfg'+cfgStep); return; }
+    p.classList.toggle('on', isResearch&&p.id==='p'+cur);
   });
   /* docSpy 必须排在 pdoc 显隐之后：它要量各节位置，量的是隐藏元素就只能得到 0，
      于是所有 top 都是 0、最后一节永远胜出（实测高亮卡在末节）。 */
   docSpy();
-  document.body.classList.toggle('wizard', !inCmp);
-  document.getElementById('steps').style.display='';
-  document.getElementById('ctxNow').textContent = docPg ? DOCPG_NM[docPg] : (inCmp ? '概览' : `第 ${cur+1} 步 · ${STEP_NM[cur]}`);
-  document.querySelector('.footbar').style.display=inCmp?'none':'flex';
-
-  document.getElementById('prevBtn').disabled=cur===0;
-  document.getElementById('nextBtn').textContent=cur===6?'重新开始':'下一步';
-  document.getElementById('footCnt').textContent=
-    `第 ${cur+1} / 7 步　·　已选描述符 ${nSel()} 个　·　目标模型 ${curModel==='gcam'?'GCAM-China':'CHEER-CGE'}`;
+  document.body.classList.toggle('wizard', isResearch);
+  const nav=isDocs?'docs':viewMode;
+  document.querySelectorAll('#mainNav [data-nav]').forEach(b=>b.classList.toggle('on', b.dataset.nav===nav));
+  const stepEl=document.getElementById('steps'); if(stepEl) stepEl.style.display='';
+  const cNow=document.getElementById('ctxNow');
+  if(cNow) cNow.textContent=docPg?DOCPG_NM[docPg]
+    :(viewMode==='config'?('情景配置 · 第 '+(cfgStep+1)+' 步')
+      :(viewMode==='research'?('第 '+(cur+1)+' 步 · '+STEP_NM[cur]):'概览'));
+  const fb=document.querySelector('.footbar'); if(fb) fb.style.display=isResearch?'flex':'none';
+  const pb=document.getElementById('prevBtn'), nb=document.getElementById('nextBtn'), fc=document.getElementById('footCnt');
+  if(pb) pb.disabled=cur===0;
+  if(nb) nb.textContent=cur===6?'重新开始':'下一步';
+  if(fc) fc.textContent=`第 ${cur+1} / 7 步　·　已选描述符 ${nSel()} 个　·　目标模型 ${curModel==='gcam'?'GCAM-China':'CHEER-CGE'}`;
 }
 /* 顶栏菜单与帮助 */
 function closeId(id){const m=document.getElementById(id); if(m)m.classList.remove('on');}

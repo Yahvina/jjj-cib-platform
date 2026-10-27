@@ -79,7 +79,7 @@ function renderHomeGrid(){
 }
 
 function enterWizard(ev){
-  const go=()=>{ docPg=''; inCmp=false; cur=0; render(); window.scrollTo({top:0,behavior:'smooth'}); };
+  const go=()=>{ docPg=''; viewMode='research'; inCmp=false; cur=0; render(); window.scrollTo({top:0,behavior:'smooth'}); };
   if(!ev||!ev.currentTarget||matchMedia('(prefers-reduced-motion:reduce)').matches){ go(); return; }
   const b=ev.currentTarget.getBoundingClientRect();
   const cx=b.left+b.width/2, cy=b.top+b.height/2;

@@ -249,7 +249,7 @@ const sameDayBad = vseq.filter((x, i) =>
   i > 0 && vseq[i - 1].d === x.d && cmpVer(vseq[i - 1].v, x.v) > 0);
 chk(sameDayBad.length === 0, '同一天内的小版本按版本号从旧到新排列',
   sameDayBad.map(x => vseq[vseq.indexOf(x) - 1].v + '>' + x.v).join(' '));
-chk(vseq[vseq.length - 1].v === 'v1.5.13', '末条即当前版本', vseq[vseq.length - 1].v);
+chk(vseq[vseq.length - 1].v === 'v1.6.0', '末条即当前版本', vseq[vseq.length - 1].v);
 
 console.log('=== 12. 首页引文接上了去向 ===');
 // 编辑器反馈：首页那段政策原文单看像随手摘的引文，看不出它跟平台有什么关系。
