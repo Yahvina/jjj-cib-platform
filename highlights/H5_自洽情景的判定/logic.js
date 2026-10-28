@@ -190,7 +190,7 @@ function runCIM(){
   const total=ds.reduce((a,d)=>a*ST(d).length,1);
   const anchored=ds.filter(d=>ancOf(d)).length;
   cimResult={ds:ds.slice(), sizes:r.sizes.slice(), total:total, space:r.space, anchored:anchored,
-    checked:r.checked, sampled:r.sampled,
+    checked:r.checked, count:r.count, sampled:r.sampled,
     consistent:r.consistent, inconsistent:r.inconsistent, ts:nowStr()};
   toast('检验完成：'+(r.sampled?'抽样 ':'')+r.checked.toLocaleString()+' 个组合，自洽 '+r.consistent.length+' 组'
     +(anchored?('（锚定已把空间收窄到 '+r.space.toLocaleString()+' 种）'):''));
@@ -417,8 +417,6 @@ function impactVal(fd,fi,td,ti){
     const ov=r.st[fi+'_'+ti];
     if(typeof ov==='number') return ov;
   }
-  if(useBayes && BAYES && typeof BAYES.matrix[fd+'>'+td]==='number')
-    return BAYES.matrix[fd+'>'+td];
   return expandV(r.v, ST(fd).length, fi, ST(td).length, ti);
 }
 

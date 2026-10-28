@@ -187,3 +187,5 @@ body.wizard .steps{display:none;}
 body.wizard .steps{background:var(--bg);}
 
 .cfgfoot .sp{flex:1;}
+
+.chosen-h .sp{flex:1;}

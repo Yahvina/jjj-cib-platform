@@ -48,17 +48,17 @@
 | `tglState` | 455–464 |
 | `selIdxOf` | 474–478 |
 | `rangeSize` | 480–482 |
-| `ancOf` | 854–854 |
-| `ancTxt` | 855–858 |
-| `parseAnc` | 859–867 |
-| `setAnc` | 868–876 |
-| `clearAnc` | 877–877 |
-| `ancAllowed` | 883–893 |
-| `ancConflicts` | 896–910 |
-| `selRangeHTML` | 913–919 |
-| `ancRowHTML` | 921–935 |
-| `ancSummaryHTML` | 937–953 |
-| `ancConflictHTML` | 956–962 |
+| `ancOf` | 852–852 |
+| `ancTxt` | 853–856 |
+| `parseAnc` | 857–865 |
+| `setAnc` | 866–874 |
+| `clearAnc` | 875–875 |
+| `ancAllowed` | 881–891 |
+| `ancConflicts` | 894–908 |
+| `selRangeHTML` | 911–917 |
+| `ancRowHTML` | 919–933 |
+| `ancSummaryHTML` | 935–951 |
+| `ancConflictHTML` | 954–960 |
 
 - 样式：本目录 `style.css`（摘录）；完整样式表见 `../_shared/base.css`
 
