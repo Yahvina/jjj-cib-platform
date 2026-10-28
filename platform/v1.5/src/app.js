@@ -2324,7 +2324,7 @@ function cfgFinalOf(nm){
   const st=ST(nm);
   if(!st.length) return '';
   if(cfgPick[nm]&&st.indexOf(cfgPick[nm])>=0) return cfgPick[nm];
-  return st[Math.floor((st.length-1)/2)];
+  return '';
 }
 function cfgSetPick(nm,idx){
   const st=ST(nm), s=st[idx]; if(s===undefined) return;
@@ -2513,9 +2513,10 @@ function cfgRun(){
   if(!chosen.length){ toast('先在第一步选至少一条政策'); cfgStep=0; render(); return; }
   const inputs=cfgInputNames();
   if(inputs.length<2){ toast('被政策命中的变量不足两个，结果无法生成'); return; }
+  const pick={}, undecided=[];
+  inputs.forEach(nm=>{ const s=cfgFinalOf(nm); if(s){ pick[nm]=s; } else undecided.push(nm); });
+  if(undecided.length){ toast('还有 '+undecided.length+' 个变量没定档'); return; }
   if(!cfgSaved) cfgSaved=JSON.parse(JSON.stringify(sel.desc));
-  const pick={};
-  inputs.forEach(nm=>{ pick[nm]=cfgFinalOf(nm); cfgPick[nm]=pick[nm]; });
   sel.desc={};
   Object.keys(pick).forEach(nm=>{ sel.desc[nm]={states:[pick[nm]],src:'情景配置 · 政策组合取值'}; });
   cimResult=null; BAYES=null; layeredResult=null; corrResult=null; profResult=null;

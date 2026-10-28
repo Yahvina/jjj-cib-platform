@@ -141,26 +141,43 @@ chk(ok, '第三步空结果不抛异常');
 chk(document.getElementById('cfgResultSummary').innerHTML.indexOf('还没有生成结果') >= 0, '空结果有明确提示');
 
 console.log();
-console.log('=== 9. 配置流程与研究模式 sel 快照往返 ===');
+console.log('=== 9. 缺档拦截 + 配置流程与研究模式 sel 快照往返 ===');
 const roundNames = PALLC().reduce((acc,p)=>{ (p.m||[]).forEach(x=>{ const d=dOf(x[0]); if(d&&d.t!=='结果型'&&acc.indexOf(x[0])<0) acc.push(x[0]); }); return acc; }, []);
 const roundSnap = roundNames[0];
 sel.desc = {};
 sel.desc[roundSnap] = { states: [ST(roundSnap)[0]], src: '研究模式快照' };
 const roundBefore = JSON.stringify(sel.desc);
-cfgSaved=null; cfgSel={}; cfgPick={}; cfgClaim={}; cfgTouched={}; cfgDeptSel=[]; cim={};
+cfgSaved=null; cfgSel={}; cfgPick={}; cfgClaim={}; cfgTouched={}; cfgDeptSel=[]; cim={}; cfgRunInfo=null;
 for(const p of PALLC()){ cfgSel[p.n]=1; if(cfgInputNames().length>=2) break; }
-chk(cfgInputNames().length>=2, '往返用例至少命中两个输入变量', cfgInputNames().length);
-const roundSel=JSON.stringify(cfgSel), roundPickBefore=JSON.stringify(cfgPick);
+const inputs9=cfgInputNames();
+chk(inputs9.length>=2, '往返用例至少命中两个输入变量', inputs9.length);
+
+console.log('--- 9a. 未定档不落首档、被拦 ---');
+const twoAll=allDescs().map(d=>d.n).filter(nm=>ST(nm).length===2&&dOf(nm)&&dOf(nm).t!=='结果型');
+chk(twoAll.length>=1, '存在两态变量', twoAll.join('/'));
+twoAll.slice(0,2).forEach(nm=>{ delete cfgPick[nm]; chk(cfgFinalOf(nm)==='', '两态变量未定档不取首档：'+nm, JSON.stringify(cfgFinalOf(nm))); });
+const threeAll=allDescs().map(d=>d.n).filter(nm=>ST(nm).length===3&&dOf(nm)&&dOf(nm).t!=='结果型');
+threeAll.slice(0,2).forEach(nm=>{ delete cfgPick[nm]; chk(cfgFinalOf(nm)==='', '三档变量未定档也不默认落中档：'+nm, JSON.stringify(cfgFinalOf(nm))); });
+const selBefore9=JSON.stringify(sel.desc), savedBefore9=cfgSaved;
+cfgRun();
+chk(cfgRunInfo===null, '还有变量没定档时不出结果');
+chk(JSON.stringify(sel.desc)===selBefore9, '缺档被拦时不改写 sel.desc');
+chk(cfgSaved===savedBefore9, '缺档被拦时不保存快照');
+
+console.log('--- 9b. 定档后正常生成 ---');
+inputs9.forEach(nm=>{ cfgPick[nm]=ST(nm)[0]; });
+const roundSel=JSON.stringify(cfgSel);
 let roundRun=true; try{ cfgRun(); }catch(e){ roundRun=false; console.log(e.message); }
 chk(roundRun && !!cfgSaved, '生成结果时保存研究模式 sel 快照');
-const roundCfg=JSON.stringify(sel.desc), roundPickAfter=JSON.stringify(cfgPick);
-chk(JSON.stringify(cfgSel)===roundSel, '配置选择在生成结果后不变');
-chk(roundPickAfter!==roundPickBefore, '生成结果写入最终档快照 cfgPick');
+const roundCfg=JSON.stringify(sel.desc);
+chk(cfgSel && JSON.stringify(cfgSel)===roundSel, '配置选择在生成结果后不变');
+const pickOk=inputs9.every(nm=>cfgPick[nm]===ST(nm)[0]);
+chk(pickOk, '生成结果写入最终档快照 cfgPick');
 let roundBack=true; try{ openResearch(); }catch(e){ roundBack=false; console.log(e.message); }
 chk(roundBack, '返回研究模式不抛异常');
 chk(JSON.stringify(sel.desc)===roundBefore, '返回研究模式恢复原 sel 快照');
 chk(cfgSaved===null, '快照恢复后清空，避免重复恢复');
-chk(JSON.stringify(cfgSel)===roundSel && JSON.stringify(cfgPick)===roundPickAfter, '配置流程数据不被研究模式恢复污染');
+chk(cfgSel && JSON.stringify(cfgSel)===roundSel, '配置流程数据不被研究模式恢复污染');
 chk(roundCfg!==JSON.stringify(sel.desc), '配置运行确实切换了 sel.desc（快照非空转）');
 
 console.log('');
