@@ -1,4 +1,4 @@
-// 验证贝叶斯后验：先验+似然更新、置信度影响区间宽度、分歧导致翻转概率、后验矩阵真的参与 CIB
+// 验证贝叶斯后验：先验+似然更新、置信度影响区间宽度、分歧导致翻转概率、只用于展示与不确定性
 const fs = require('fs');
 
 const EL = {};
@@ -71,12 +71,13 @@ console.log('  条目数', R.n, '= 已打分', keys.length, R.n===keys.length?'�
 console.log('  矩阵含 A>B:', typeof R.matrix[A+'>'+B]==='number'?'✓':'✗');
 console.log('  均值落在 −3~3:', Object.values(R.matrix).every(v=>v>=-3.3&&v<=3.3)?'✓':'✗');
 
-console.log('=== 6. 开关真的改变 CIB 计算：impactVal 返回后验值 ===');
+console.log('=== 6. 贝叶斯不进检算：impactVal 始终用状态级精判或展开，与开关无关 ===');
 useBayes=false; BAYES=null;
 const raw=impactVal(A,0,B,0);
 useBayes=true; computeBayes();
 const post=impactVal(A,0,B,0);
-console.log('  关闭时', raw, '开启时', post.toFixed(2), Math.abs(post-R.matrix[A+'>'+B])<1e-9?'✓ 用的是后验':'✗');
+console.log('  关闭时', raw, '开启时', post, raw===post?'✓ 开关不改变检算':'✗',
+  post!==R.matrix[A+'>'+B]?'✓ 仍是状态级值':'✗');
 
 console.log('=== 7. 区间宽度排序与翻转计数 ===');
 fill(); computeBayes();

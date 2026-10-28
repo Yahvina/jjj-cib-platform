@@ -267,7 +267,7 @@ let inCmp=true, cur=0, curModel='gcam', expertN=1, useBayes=false, pulled=false;
 let viewMode='home';
 let searchQ='', openScen=null, openConf=null;
 
-/* 参数生成方式四选一（v1.5 第 4 步）。useBayes 只管「后验要不要参与检算」，
+/* 参数生成方式四选一（v1.5 第 4 步）。useBayes 只管「后验要不要展示与导出」，
    genMode 管「导出成什么形态」；贝叶斯这一档同时打开 useBayes。
    两者分开是为了让旧存档、旧测试里直接赋值 useBayes 仍能工作。 */
 let genMode='config';                 // config / table / narrative / bayes
@@ -842,8 +842,6 @@ function impactVal(fd,fi,td,ti){
     const ov=r.st[fi+'_'+ti];
     if(typeof ov==='number') return ov;
   }
-  if(useBayes && BAYES && typeof BAYES.matrix[fd+'>'+td]==='number')
-    return BAYES.matrix[fd+'>'+td];
   return expandV(r.v, ST(fd).length, fi, ST(td).length, ti);
 }
 /* ================= 数值锚定（v1.2 新增：让状态区间参与检算） =================
