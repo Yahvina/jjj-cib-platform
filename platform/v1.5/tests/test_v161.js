@@ -154,7 +154,7 @@ const fNm = twoAll[0];
 cfgPick = {}; delete cfgPick[fNm];
 chk(cfgFinalOf(fNm) === '', '两态变量未定档不落首档', JSON.stringify(cfgFinalOf(fNm)));
 // 用同时命中两个两态变量的政策组合，验证 cfgRun 被拦且报「还有 N 个变量没定档」
-let fMsg = ''; const realToast = toast; toast = (m) => { fMsg = String(m); };
+cfgNotice = '';
 const fUnion = {};
 P.forEach(p => (p.m||[]).forEach(x => { if(x[0] === '钢铁工艺路线' || x[0] === '碳移除规模') fUnion[p.n] = 1; }));
 resetCfg(Object.keys(fUnion));
@@ -168,9 +168,8 @@ cfgPick = {}; fInputs.forEach((nm, i) => { if(i !== 0) cfgPick[nm] = ST(nm)[0]; 
 const fSelBefore = JSON.stringify(sel.desc);
 cfgRun();
 chk(cfgRunInfo === null, '未定档时不出结果');
-chk(fMsg.indexOf('没定档') >= 0, '被拦时提示还有变量没定档', fMsg);
+chk(cfgNotice.indexOf('没定档') >= 0, '被拦时提示还有变量没定档', cfgNotice);
 chk(JSON.stringify(sel.desc) === fSelBefore, '被拦时不改写 sel.desc');
-toast = realToast;
 
 console.log();
 console.log('=== G. 研究模式手动设过的变量，进出配置 -> 不丢 ===');

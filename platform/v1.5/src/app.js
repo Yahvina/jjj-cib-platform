@@ -2233,7 +2233,7 @@ function applyCfg(d){
    主界面只做三件事：选政策 → 确认设定 → 看结果并导出。
    CIB、交叉影响、打分矩阵、枚举这些词只在研究模式里出现。
    这里不改 expandV，不自动推断政策档位，也不把「没判」当成 0。 */
-let cfgStep=0, cfgDeptSel=[], cfgSel={}, cfgOpen=null;
+let cfgStep=0, cfgDeptSel=[], cfgSel={}, cfgOpen=null, cfgChosenFold=false, cfgNotice='';
 let cfgClaim={}, cfgPick={}, cfgTouched={}, cfgRunInfo=null, cfgSaved=null, cfgGateInfo=null, cfgResearchBase=null;
 const CFG_CLAIMS=['未指定','提高','维持','降低'];
 function cfgRk(c){ return c==='高'?3:(c==='中'?2:(c==='低'?1:0)); }
@@ -2244,6 +2244,43 @@ function cfgBestConf(ms){
   return best;
 }
 function cfgChosen(){ return PALLC().filter(p=>cfgSel[p.n]); }
+function cfgRemovePolicy(nm){ delete cfgSel[nm]; if(cfgOpen===nm) cfgOpen=null; cfgNotice=''; renderConfigPolicy(); }
+function cfgDrawerHTML(){
+  if(!cfgOpen) return '';
+  const p=PALLC().filter(x=>x.n===cfgOpen)[0]; if(!p) return '';
+  const conf=cfgBestConf(p.m), n=(p.m||[]).length;
+  let h='<div class="drawer-h"><div><div class="drawer-k">政策详情</div><b>'+attrEsc(p.n)+'</b></div>'
+    +'<button class="btn sm" onclick="cfgCloseDetail()">关闭</button></div>'
+    +'<div class="cfgdrawer-meta">'+attrEsc(p.c)+' · '+attrEsc(p.g||'')+(p.s?' · '+attrEsc(p.s):'')
+    +' · 影响几项 '+n+(conf?' · 依据强度 '+attrEsc(conf):'')+'</div>';
+  h+='<details class="cfgfold"><summary>政策是什么</summary>'+polEvidFiles(p)+polTimeBlock(p)+'</details>';
+  h+='<details class="cfgfold"><summary>为什么这么设置合理</summary>';
+  if((p.m||[]).length){
+    h+=(p.m||[]).map(x=>{
+      const v=POLICY_VERIF[p.n+'|'+x[0]];
+      return '<div class="maprow"><div class="mr1"><b>'+attrEsc(x[0])+'</b>'
+        +'<span class="conf '+cfgConfCls(x[1])+'">依据强度 '+attrEsc(x[1])+'</span></div>'
+        +'<div class="mr2">'+attrEsc(x[2])+'</div>'+(v?verifBlock(v):'')+'</div>';
+    }).join('');
+  }else h+='<div class="ptnote">这条政策没有挂到本模型的变量上。没有映射本身是一条结论——它落在当前的变量口径之外。</div>';
+  h+=polEvidMaps(p)+'</details>';
+  h+='<details class="cfgfold"><summary>模型怎么处理</summary>'+polModelBlock(p)+'</details>';
+  return h;
+}
+function cfgChosenHTML(){
+  const chosen=cfgChosen();
+  const btn=chosen.length?'<button class="btn sm chosen-fold" onclick="cfgToggleChosenFold()">'+(cfgChosenFold?'展开':'收起')+'</button>':'';
+  let h='<div class="chosen-h"><b>已选政策</b><span>'+chosen.length+' 条</span><div class="sp"></div>'+btn+'</div>';
+  if(cfgChosenFold||!chosen.length) return h;
+  return h+'<div class="chosen-list">'+chosen.map((p,i)=>'<span class="chosen-item">'+attrEsc(p.n)
+    +'<button class="chosen-x" title="移除" onclick="cfgRemovePolicyIdx('+i+')">×</button></span>').join('')+'</div>';
+}
+function cfgToggleChosenFold(){ cfgChosenFold=!cfgChosenFold; renderConfigPolicy(); }
+function cfgRemovePolicyIdx(i){
+  const p=cfgChosen()[i]; if(!p) return;
+  delete cfgSel[p.n]; if(cfgOpen===p.n) cfgOpen=null;
+  renderConfigPolicy();
+}
 function cfgArr(){ return PALLC().filter(p=>!cfgDeptSel.length||polDeptHit(p,cfgDeptSel)); }
 function cfgCov(){
   const c={};
@@ -2277,7 +2314,7 @@ function cfgStepper(n){
   let h='<div class="cfg-steps">';
   NM.forEach((t,i)=>{
     const cls=i<n?'done':(i===n?'on':'');
-    h+='<button type="button" class="cfg-step '+cls+'"'+(i<n?' onclick="cfgGo('+i+')"':'')+'>'
+    h+='<button type="button" class="cfg-step '+cls+'" onclick="cfgGo('+i+')">'
       +'<span class="cnum">'+(i<n?'✓':(i+1))+'</span><span class="ct">'+t+'</span></button>';
   });
   return h+'</div>';
@@ -2380,37 +2417,10 @@ function cfgWhyText(claim,pick,touched,conf){
   return '政策主张未指定，平台按基准档预置「'+pick+'」，尚未人工确认。';
 }
 function cfgSideHTML(){
-  const all=PALLC();
-  if(cfgOpen){
-    const p=all.filter(x=>x.n===cfgOpen)[0];
-    if(p){
-      let h='<div class="shead">政策详情</div>'
-        +'<div class="pname">'+attrEsc(p.n)+'</div>'
-        +'<div class="pmeta">'+attrEsc(p.c)+' · '+attrEsc(p.g||'')
-        +(p.s?' · '+attrEsc(p.s):'')+(p.t?'　工具 '+p.t+' 项':'')+'</div>'
-        +'<div class="cfgback"><button class="btn sm" onclick="cfgCloseDetail()">← 返回覆盖统计</button></div>'
-        +'<div class="slabel">一　政策是什么</div>'
-        +polEvidFiles(p)+polTimeBlock(p)
-        +'<div class="slabel">二　为什么这么设置合理</div>';
-      if((p.m||[]).length){
-        h+=(p.m||[]).map(x=>{
-          const v=POLICY_VERIF[p.n+'|'+x[0]];
-          return '<div class="maprow"><div class="mr1"><b>'+attrEsc(x[0])+'</b>'
-            +'<span class="conf '+cfgConfCls(x[1])+'">映射把握 '+attrEsc(x[1])+'</span></div>'
-            +'<div class="mr2">'+attrEsc(x[2])+'</div>'
-            +(v?verifBlock(v):'')+'</div>';
-        }).join('');
-      }else{
-        h+='<div class="ptnote">这条政策没有挂到本模型的变量上。没有映射本身是一条结论——它落在当前的变量口径之外。</div>';
-      }
-      h+=polEvidMaps(p)+polModelBlock(p);
-      return h;
-    }
-  }
-  const cov=cfgCov(), chosen=cfgChosen();
+  const cov=cfgCov();
   const zero=allDescs().filter(d=>!cov[d.n]);
   let h='<div class="shead">本次选择</div>'
-    +kv('已选政策', chosen.length+' 条')
+    +kv('已选政策', cfgChosen().length+' 条')
     +kv('覆盖变量', Object.keys(cov).length+' / '+allDescs().length+' 个')
     +kv('可作为设定输入', cfgInputNames().length+' 个')
     +'<div class="slabel">没有政策覆盖的变量</div>';
@@ -2454,28 +2464,29 @@ function renderConfigPolicy(){
           +'<span class="chk'+(on?' on':'')+'">'+(on?TICK:'')+'</span>'
           +'<span class="cfgn">'+attrEsc(p.n)+'</span>'
           +polDeptTag(p.s)
-          +'<span class="cfgnum">关联变量 '+n+'</span>'
-          +(conf?'<span class="conf '+cfgConfCls(conf)+'">映射把握 '+conf+'</span>'
-                :'<span class="cfgnum">无映射</span>')
+          +'<span class="cfgnum">影响几项 '+n+'</span>'
+          +(conf?'<span class="conf '+cfgConfCls(conf)+'">依据强度 '+conf+'</span>'
+                :'<span class="cfgnum">无依据</span>')
           +'<button class="btn sm" onclick="cfgOpenPolicyIdx('+i+',event)">详情</button>'
           +'</div>';
       });
       list.innerHTML=h;
     }
   }
-  const side=document.getElementById('cfgPolicySide');
-  if(side) side.innerHTML=cfgSideHTML();
+  const chosen=document.getElementById('cfgChosen'); if(chosen) chosen.innerHTML=cfgChosenHTML();
+  const side=document.getElementById('cfgPolicySide'); if(side) side.innerHTML=cfgSideHTML();
+  const drawer=document.getElementById('cfgDrawer');
+  if(drawer){ drawer.className='cfgdrawer'+(cfgOpen?' on':''); drawer.innerHTML=cfgDrawerHTML(); }
   const stat=document.getElementById('cfgPolicyStat');
   if(stat){
     const cov=cfgCov();
     stat.innerHTML='<span class="kv"><span>当前筛选</span><span>'+cfgArr().length+' 条（全部 '+PALLC().length+' 条）</span></span>'
-      +'<span class="kv"><span>已选政策</span><span><b>'+cfgChosen().length+'</b> 条</span></span>'
       +'<span class="kv"><span>覆盖变量</span><span>'+Object.keys(cov).length+' / '+allDescs().length+' 个</span></span>';
   }
   const hint=document.getElementById('cfg0Hint');
-  if(hint) hint.innerHTML=cfgChosen().length
+  if(hint) hint.innerHTML=cfgNotice||(cfgChosen().length
     ? ('已选 <b>'+cfgChosen().length+'</b> 条政策，覆盖 <b>'+Object.keys(cfgCov()).length+'</b> 个变量。')
-    : '还没有选择政策。选中政策后，右侧会实时给出覆盖统计。';
+    : '还没有选择政策。点政策行右侧「详情」可查看依据。');
 }
 function renderConfigSetting(){
   if(viewMode!=='config'||docPg) return;
@@ -2600,16 +2611,17 @@ function cfgGate(ds){
   return {ok:true, part:part, count:r.count, checked:r.checked, unjudged:part.unjudged};
 }
 function cfgRun(){
+  cfgNotice='';
   const chosen=cfgChosen();
-  if(!chosen.length){ toast('先在第一步选至少一条政策'); cfgStep=0; render(); return; }
+  if(!chosen.length){ cfgNotice='先在第一步选至少一条政策'; cfgStep=0; viewMode='config'; docPg=''; render(); return; }
   const inputs=cfgInputNames();
-  if(inputs.length<2){ toast('被政策命中的变量不足两个，结果无法生成'); return; }
+  if(inputs.length<2){ cfgNotice='被政策命中的变量不足两个，结果无法生成'; cfgStep=1; viewMode='config'; docPg=''; render(); return; }
   const gate=cfgGate(inputs);
   if(!gate.ok){ cfgGateInfo=gate; cfgStep=2; viewMode='config'; docPg=''; render(); return; }
   cfgGateInfo=null;
   const pick={}, undecided=[];
   inputs.forEach(nm=>{ const s=cfgFinalOf(nm); if(s){ pick[nm]=s; } else undecided.push(nm); });
-  if(undecided.length){ toast('还有 '+undecided.length+' 个变量没定档'); return; }
+  if(undecided.length){ cfgNotice='还有 '+undecided.length+' 个变量没定档'; cfgStep=1; viewMode='config'; docPg=''; render(); return; }
   if(!cfgSaved) cfgSaved=JSON.parse(JSON.stringify(sel.desc));
   inputs.forEach(nm=>{ cfgPick[nm]=pick[nm]; });
   cfgSyncToResearch();
@@ -2639,7 +2651,7 @@ function cfgGateHelpHTML(g){
       +'</div>';
   }
   if(g.flat&&g.flat.length){
-    h+='<div style="margin-top:10px;"><b>这些变量还没被任何判断约束：</b><br>'
+    h+='<div style="margin-top:10px;"><b>某变量档位未被约束：</b><br>'
       +g.flat.map(nm=>'· '+attrEsc(nm)).join('<br>')+'</div>';
   }
   if(typeof g.ratio==='number'){
@@ -2684,7 +2696,7 @@ function renderConfigResult(){
       sum.innerHTML=kv('参与检验的变量', r.ds.length+' 个')
         +kv('组合空间', r.total.toLocaleString()+' 种')
         +kv('本次检查', r.sampled?('抽查 '+r.checked.toLocaleString()+' 种（本次检验了其中一部分，结果是下限）')
-                              :(r.checked.toLocaleString()+' 种，全部枚举'))
+                              :(r.checked.toLocaleString()+' 种，全部穷举'))
         +kv('互不冲突的设定', '<b>'+r.consistent.length+(r.consistent.length>=200?'+':'')+' 组</b>')
         +kv('取到中档的变量', mid.n+' / '+mid.t+' 个')
         +(mid.list&&mid.list.length?('<div class="note" style="margin-top:12px;"><b>这几个变量的入边源变量全落中档，本版对它们没有判定力：</b><br>'
@@ -2738,8 +2750,11 @@ function renderConfigResult(){
           '<option value="'+x[0]+'"'+(expMode===x[0]?' selected':'')+'>'+x[1]+'</option>').join('')
         +'</select></span></div>'
         +'<div class="cfgbtns">'
-        +'<button class="btn pri" onclick="downloadParams()">导出参数表（CSV）</button>'
-        +'<button class="btn" onclick="genMain()">导出'+genMainLabel()+'</button>'
+        +'<button class="btn pri" onclick="download()">导出模型配置文件</button>'
+        +'<button class="btn" onclick="downloadParams()">导出参数表（CSV）</button>'
+        +'<button class="btn" onclick="downloadTableBtn()">导出结构化参数表</button>'
+        +'<button class="btn" onclick="dl(narrText(),\'txt\',\'JJJ-CIB-情景叙事\')">导出情景叙事</button>'
+        +'<button class="btn" onclick="dl(bayesCSV(),\'csv\',\'JJJ-CIB-贝叶斯不确定性\')">导出贝叶斯不确定性</button>'
         +'<button class="btn" onclick="cfgOpenReport()">生成情景报告</button>'
         +'</div>'
         +'<div class="ptnote" style="margin-top:10px;">同一组设定可以按下界 / 中点 / 上界导出；数值只覆盖 2035 锚点，'

@@ -433,7 +433,7 @@
 <section class="pane" id="cfg0">
   <div class="cfg-kicker">情景配置 · 01</div>
   <h2 class="pt">选政策</h2>
-  <p class="pd">从政策库中选出本次要评估的政策组合。平台只展示政策已经映射到的变量；“映射把握”表示这条对应关系有多确定，不是政策本身的档位。</p>
+  <p class="pd">从政策库中选出本次要评估的政策组合。平台只展示政策已经映射到的变量；“依据强度”表示这条对应关系有多确定，不是政策本身的档位。</p>
   <div id="cfgStepper0"></div>
   <div class="cfg-rule">
     <div class="cfg-r1"><b>区间口径</b><span id="cfgScopeText"></span></div>
@@ -447,10 +447,12 @@
     </div>
   </div>
   <div class="cfg-statline" id="cfgPolicyStat"></div>
+  <div class="cfgchosen" id="cfgChosen"></div>
   <div class="cfgwrap">
     <div class="cfglist" id="cfgPolicyList"></div>
     <aside class="cfgside" id="cfgPolicySide"></aside>
   </div>
+  <div class="cfgdrawer" id="cfgDrawer"></div>
   <div class="cfgfoot">
     <span class="hiline" id="cfg0Hint"></span>
     <div class="sp"></div>
@@ -461,7 +463,7 @@
 <section class="pane" id="cfg1">
   <div class="cfg-kicker">情景配置 · 02</div>
   <h2 class="pt">确认设定</h2>
-  <p class="pd">只展开被选中政策命中的变量。政策主张先保留“提高 / 维持 / 降低 / 未指定”，默认未指定；最终档位需要人工确认，平台不自动推断，也不把映射把握当作档位。</p>
+  <p class="pd">只展开被选中政策命中的变量。政策主张先保留“提高 / 维持 / 降低 / 未指定”，默认未指定；最终档位需要人工确认，平台不自动推断，也不把依据强度当作档位。</p>
   <div id="cfgStepper1"></div>
   <div id="cfgSettingStat"></div>
   <div id="cfgSettingList"></div>
