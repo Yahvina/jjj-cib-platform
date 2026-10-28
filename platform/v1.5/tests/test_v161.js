@@ -186,6 +186,11 @@ chk(cfgPick && JSON.stringify(cfgPick) === gPickSnap, '进配置后手动档位�
 openResearch();
 chk(JSON.stringify(sel.desc) === gSelSnap, '回研究模式恢复原 sel 快照');
 chk(cfgPick && JSON.stringify(cfgPick) === gPickSnap, '往返后 cfgPick 仍在');
+const gMerge = gInputs.filter(nm => ST(nm).length > 1)[0];
+sel.desc[gMerge] = { states: [ST(gMerge)[ST(gMerge).length - 1]], src: '研究模式手改' };
+openConfig();
+chk(cfgFinalOf(gMerge) === ST(gMerge)[ST(gMerge).length - 1], '研究模式改档合并回 cfgFinal', cfgFinalOf(gMerge));
+chk(cfgTouched[gMerge] === 1, '合并回 cfgFinal 时标记手动设定');
 
 console.log();
 console.log(bad === 0 ? '全部通过' : bad + ' 项未通过');

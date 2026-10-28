@@ -2234,7 +2234,7 @@ function applyCfg(d){
    CIB、交叉影响、打分矩阵、枚举这些词只在研究模式里出现。
    这里不改 expandV，不自动推断政策档位，也不把「没判」当成 0。 */
 let cfgStep=0, cfgDeptSel=[], cfgSel={}, cfgOpen=null;
-let cfgClaim={}, cfgPick={}, cfgTouched={}, cfgRunInfo=null, cfgSaved=null, cfgGateInfo=null;
+let cfgClaim={}, cfgPick={}, cfgTouched={}, cfgRunInfo=null, cfgSaved=null, cfgGateInfo=null, cfgResearchBase=null;
 const CFG_CLAIMS=['未指定','提高','维持','降低'];
 function cfgRk(c){ return c==='高'?3:(c==='中'?2:(c==='低'?1:0)); }
 function cfgConfCls(c){ return c==='高'?'ok':(c==='中'?'wn':'rd'); }
@@ -2287,12 +2287,32 @@ function restoreCfgSel(){
   sel.desc=cfgSaved; cfgSaved=null;
   cimResult=null; BAYES=null; layeredResult=null; corrResult=null; profResult=null;
 }
+/* 配置->研究：把本轮 cfgFinal 只写进政策命中变量，不动 sel.desc 里的其它变量。 */
+function cfgSyncToResearch(){
+  cfgInputNames().forEach(nm=>{
+    const s=cfgFinalOf(nm); if(!s) return;
+    sel.desc[nm]={states:[s],src:'情景配置 · 政策组合取值'};
+  });
+}
+/* 研究->配置：只合并本轮研究模式真改动过的变量，没进过研究模式就不动 cfgFinal。 */
+function cfgSyncFromResearch(){
+  if(!cfgResearchBase) return;
+  cfgInputNames().forEach(nm=>{
+    const b=sel.desc[nm], sts=(b&&b.states)||[];
+    if(sts.length!==1) return;
+    const st=ST(nm), s=sts[0], base=((cfgResearchBase[nm]||{}).states||[])[0];
+    if(!s||st.indexOf(s)<0||s===base) return;
+    cfgPick[nm]=s; cfgTouched[nm]=1;
+  });
+}
 function openConfig(){
+  cfgSyncFromResearch();
   docPg=''; viewMode='config'; inCmp=false; cfgStep=0;
   render(); window.scrollTo({top:0,behavior:'smooth'});
 }
 function openResearch(){
   restoreCfgSel();
+  cfgResearchBase=JSON.parse(JSON.stringify(sel.desc));
   docPg=''; viewMode='research'; inCmp=false; cur=0;
   render(); window.scrollTo({top:0,behavior:'smooth'});
 }
@@ -2591,8 +2611,8 @@ function cfgRun(){
   inputs.forEach(nm=>{ const s=cfgFinalOf(nm); if(s){ pick[nm]=s; } else undecided.push(nm); });
   if(undecided.length){ toast('还有 '+undecided.length+' 个变量没定档'); return; }
   if(!cfgSaved) cfgSaved=JSON.parse(JSON.stringify(sel.desc));
-  sel.desc={};
-  Object.keys(pick).forEach(nm=>{ sel.desc[nm]={states:[pick[nm]],src:'情景配置 · 政策组合取值'}; });
+  inputs.forEach(nm=>{ cfgPick[nm]=pick[nm]; });
+  cfgSyncToResearch();
   cimResult=null; BAYES=null; layeredResult=null; corrResult=null; profResult=null;
   cfgRunInfo={ts:nowStr(), mid:cfgMidInfo(), scored:cfgJudgedIn(inputs), nPol:chosen.length, pick:pick};
   cfgStep=2; viewMode='config'; docPg='';
