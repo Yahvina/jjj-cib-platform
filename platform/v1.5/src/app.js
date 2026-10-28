@@ -1066,7 +1066,7 @@ function runCIM(){
   const total=ds.reduce((a,d)=>a*ST(d).length,1);
   const anchored=ds.filter(d=>ancOf(d)).length;
   cimResult={ds:ds.slice(), sizes:r.sizes.slice(), total:total, space:r.space, anchored:anchored,
-    checked:r.checked, sampled:r.sampled,
+    checked:r.checked, count:r.count, sampled:r.sampled,
     consistent:r.consistent, inconsistent:r.inconsistent, ts:nowStr()};
   toast('检验完成：'+(r.sampled?'抽样 ':'')+r.checked.toLocaleString()+' 个组合，自洽 '+r.consistent.length+' 组'
     +(anchored?('（锚定已把空间收窄到 '+r.space.toLocaleString()+' 种）'):''));
@@ -2234,7 +2234,7 @@ function applyCfg(d){
    CIB、交叉影响、打分矩阵、枚举这些词只在研究模式里出现。
    这里不改 expandV，不自动推断政策档位，也不把「没判」当成 0。 */
 let cfgStep=0, cfgDeptSel=[], cfgSel={}, cfgOpen=null;
-let cfgClaim={}, cfgPick={}, cfgTouched={}, cfgRunInfo=null, cfgSaved=null;
+let cfgClaim={}, cfgPick={}, cfgTouched={}, cfgRunInfo=null, cfgSaved=null, cfgGateInfo=null;
 const CFG_CLAIMS=['未指定','提高','维持','降低'];
 function cfgRk(c){ return c==='高'?3:(c==='中'?2:(c==='低'?1:0)); }
 function cfgConfCls(c){ return c==='高'?'ok':(c==='中'?'wn':'rd'); }
@@ -2262,6 +2262,16 @@ function cfgResultNames(){
 }
 function cfgHasScores(){ return Object.keys(cim).some(k=>!!cim[k]); }
 function cfgJudgedN(){ return Object.keys(cim).filter(k=>!!cim[k]).length; }
+/* 本次参与变量之间的判断条数——不是全矩阵的判断条数。
+   研究模式里给别的变量打的分，不该算进这一次的判定力。 */
+function cfgJudgedIn(ds){
+  const list=ds||cfgInputNames();
+  let n=0;
+  list.forEach(s=>list.forEach(t=>{ if(s!==t&&cim[s+'>'+t]) n++; }));
+  return n;
+}
+/* 基准档＝每个变量自己的默认档（三档取 st[1]，两态取首档）。 */
+function cfgMidOf(nm){ const st=ST(nm); return st.length?st[Math.floor((st.length-1)/2)]:''; }
 function cfgStepper(n){
   const NM=['选政策','确认设定','看结果并导出'];
   let h='<div class="cfg-steps">';
@@ -2331,16 +2341,17 @@ function cfgSetPick(nm,idx){
   cfgPick[nm]=s; cfgTouched[nm]=1; renderConfigSetting();
 }
 function cfgSetClaim(nm,v){ cfgClaim[nm]=v; renderConfigSetting(); }
-/* 中档＝三档描述符里的中间档。默认展开下它的系数恒为 0，所以只提供基准，
-   不提供判定力度；占比过半就说明这一版结果没有判定力。 */
+/* 中档按变量个体判：某变量的全部入边源变量都落在各自的中档上，它才算「取到中档」。
+   不再按全局比例，也不再跳过长度不是 3 的变量——钢铁工艺路线、碳移除规模
+   这两个两态变量正是会静默落首档的两个。 */
 function cfgMidInfo(){
-  let n=0, t=0; const list=[];
-  cfgInputNames().forEach(nm=>{
-    const st=ST(nm);
-    if(st.length!==3) return;
-    t++;
-    if(cfgFinalOf(nm)===st[1]){ n++; list.push(nm); }
+  const inputs=cfgInputNames(), list=[];
+  inputs.forEach(nm=>{
+    const srcs=inputs.filter(o=>o!==nm&&!!cim[o+'>'+nm]);
+    if(!srcs.length) return;
+    if(srcs.every(o=>cfgFinalOf(o)&&cfgFinalOf(o)===cfgMidOf(o))) list.push(nm);
   });
+  const n=list.length, t=inputs.length;
   return {n:n, t:t, list:list, ratio:(t?n/t:0)};
 }
 function cfgWhyText(claim,pick,touched,conf){
@@ -2508,11 +2519,74 @@ function renderConfigSetting(){
       : '当前判断矩阵还没有判断，生成结果后结果页会说明这一点。';
   }
 }
+/* 本次参与变量范围内的判定力。拒出结论当且仅当命中三条之一：
+   ① 本次参与变量两两之间一条判断都没有；
+   ② 某个参与变量的 acc 向量在自己各档位上恒定（等于它完全没被约束，全自由）；
+   ③ count/checked >= 0.999（几乎是全空间自洽，等于没筛）。
+   不用入度、不用连通性——实测入度会误杀 A→B 单向 55.6% 与双分量 30.9% 的真结论。
+   enumCore 的 consistent 有 200 组上限，所以计数一律读 count，不读 consistent.length。 */
+function cfgParticipation(ds){
+  const list=ds||cfgInputNames();
+  const pairs=[];
+  list.forEach((s,i)=>list.forEach((t,j)=>{ if(i<j) pairs.push([s,t]); }));
+  const unjudged=pairs.filter(pr=>!cim[pr[0]+'>'+pr[1]]&&!cim[pr[1]+'>'+pr[0]]);
+  const judged=n=>{
+    let k=0;
+    list.forEach(s=>list.forEach(t=>{ if(s!==t&&cim[s+'>'+t]) k++; }));
+    return k;
+  };
+  return {ds:list.slice(), pairs:pairs, unjudged:unjudged, judged:judged(), pairN:pairs.length};
+}
+/* 「全自由」判据：某个参与变量，无论其它参与变量取什么档位，它自己各档位拿到的
+   累计影响都一模一样——这时它的取档完全没被判断约束。 */
+function cfgFlatVars(ds){
+  const list=(ds||cfgInputNames()).slice(), out=[];
+  list.forEach(nm=>{
+    const srcs=list.filter(o=>o!==nm&&!!cim[o+'>'+nm]);
+    if(!srcs.length) return;
+    const sizes=srcs.map(o=>ST(o).length);
+    let total=1; sizes.forEach(x=>{ total*=x; });
+    if(total>20000){ out.push(nm); return; }
+    const tn=ST(nm).length;
+    let flat=true;
+    for(let c=0;c<total&&flat;c++){
+      let y=c; const idx=[];
+      srcs.forEach(o=>{ const k=ST(o).length; idx.push(y%k); y=Math.floor(y/k); });
+      let first=null;
+      for(let ti=0;ti<tn;ti++){
+        let acc=0;
+        srcs.forEach((o,si)=>{ acc+=impactVal(o,idx[si],nm,ti); });
+        if(first===null) first=acc; else if(Math.abs(acc-first)>1e-9){ flat=false; break; }
+      }
+    }
+    if(flat) out.push(nm);
+  });
+  return out;
+}
+function cfgGate(ds){
+  const list=(ds||cfgInputNames()).slice();
+  const part=cfgParticipation(list);
+  if(part.pairN===0) return {ok:false, why:'本次参与变量不足两个，判断不了', part:part, unjudged:part.unjudged};
+  if(part.judged===0)
+    return {ok:false, why:'本次参与变量之间一条判断都没有', part:part, unjudged:part.unjudged};
+  const flat=cfgFlatVars(list);
+  if(flat.length)
+    return {ok:false, why:'「'+flat[0]+'」在各档位上没有被任何判断约束', part:part, flat:flat, unjudged:part.unjudged};
+  const r=enumCore(list,null,null);
+  if(r.bad||r.dead>=0) return {ok:false, why:'变量的可用档位不完整', part:part, unjudged:part.unjudged};
+  if(r.checked>0&&r.count/r.checked>=0.999)
+    return {ok:false, why:'检算空间几乎全部自洽，这版判断没有筛出任何信息',
+      part:part, ratio:r.count/r.checked, count:r.count, checked:r.checked, unjudged:part.unjudged};
+  return {ok:true, part:part, count:r.count, checked:r.checked, unjudged:part.unjudged};
+}
 function cfgRun(){
   const chosen=cfgChosen();
   if(!chosen.length){ toast('先在第一步选至少一条政策'); cfgStep=0; render(); return; }
   const inputs=cfgInputNames();
   if(inputs.length<2){ toast('被政策命中的变量不足两个，结果无法生成'); return; }
+  const gate=cfgGate(inputs);
+  if(!gate.ok){ cfgGateInfo=gate; cfgStep=2; viewMode='config'; docPg=''; render(); return; }
+  cfgGateInfo=null;
   const pick={}, undecided=[];
   inputs.forEach(nm=>{ const s=cfgFinalOf(nm); if(s){ pick[nm]=s; } else undecided.push(nm); });
   if(undecided.length){ toast('还有 '+undecided.length+' 个变量没定档'); return; }
@@ -2520,7 +2594,7 @@ function cfgRun(){
   sel.desc={};
   Object.keys(pick).forEach(nm=>{ sel.desc[nm]={states:[pick[nm]],src:'情景配置 · 政策组合取值'}; });
   cimResult=null; BAYES=null; layeredResult=null; corrResult=null; profResult=null;
-  cfgRunInfo={ts:nowStr(), mid:cfgMidInfo(), scored:cfgJudgedN(), nPol:chosen.length, pick:pick};
+  cfgRunInfo={ts:nowStr(), mid:cfgMidInfo(), scored:cfgJudgedIn(inputs), nPol:chosen.length, pick:pick};
   cfgStep=2; viewMode='config'; docPg='';
   if(cfgRunInfo.scored&&prepErr(Object.keys(sel.desc))===null) runCIM();
   else cimResult=null;
@@ -2532,16 +2606,39 @@ function cfgUnverifiedCount(){
   ds.forEach(s=>ds.forEach(t=>{ if(s!==t&&!cim[s+'>'+t]) n++; }));
   return n;
 }
+/* 闸门拦住时，把"还差哪几对"逐条列出来，而不是只给一句"判断不足"。
+   这是验收用例 B 要的清单：本次参与变量两两之间还没判断的那些对。 */
+function cfgGateHelpHTML(g){
+  if(!g) return '';
+  const p=g.part||{};
+  let h='';
+  if(p.unjudged&&p.unjudged.length){
+    h+='<div style="margin-top:10px;"><b>还差 '+p.unjudged.length+' 对没判断：</b><br>'
+      +p.unjudged.slice(0,40).map(pr=>'· '+attrEsc(pr[0])+' → '+attrEsc(pr[1])).join('<br>')
+      +(p.unjudged.length>40?('<br>· 还有 '+(p.unjudged.length-40)+' 对未列'):'')
+      +'</div>';
+  }
+  if(g.flat&&g.flat.length){
+    h+='<div style="margin-top:10px;"><b>这些变量还没被任何判断约束：</b><br>'
+      +g.flat.map(nm=>'· '+attrEsc(nm)).join('<br>')+'</div>';
+  }
+  if(typeof g.ratio==='number'){
+    h+='<div style="margin-top:10px;">本次检算：'+g.checked.toLocaleString()+' 个组合，其中自洽 '
+      +g.count.toLocaleString()+' 个（'+Math.round(g.ratio*1000)/10+'%）。</div>';
+  }
+  return h;
+}
 function cfgEdgeHTML(){
-  const mid=(cfgRunInfo&&cfgRunInfo.mid)||{n:0,t:0,ratio:0};
+  const mid=(cfgRunInfo&&cfgRunInfo.mid)||cfgMidInfo();
   const bad=cfgUnverifiedCount();
+  const judged=(cfgRunInfo&&cfgRunInfo.scored!==undefined)?cfgRunInfo.scored:cfgJudgedIn();
   return '<div class="ptnote" style="margin-top:12px;">'
     +'边界说明：本页只给平台在当前判断下算出的自洽检验结果，不预测未来，也不推荐某一套方案。<br>'
-    +'· 判断矩阵来源：研究模式下的人工与 AI 判断，本次参与 '+cfgJudgedN()+' 条。'
+    +'· 判断矩阵来源：研究模式下的人工与 AI 判断，本次参与变量之间有 '+judged+' 条。'
     +(cimResult?(bad?('参与组合里还有 '+bad+' 条判断没有填写——<b>留空是还没查，不等于没关系</b>，平台不会把它当成 0。')
                 :'参与组合的判断没有空格。'):'')
-    +'<br>· 中档：本次 '+mid.t+' 个三档变量里有 '+mid.n+' 个取到中档。中档按基准处理、不提供判定力度；'
-    +'占比超过一半时，平台会直接提示判定力不足。'
+    +'<br>· 中档：本次 '+mid.t+' 个参与变量里有 '+mid.n+' 个的入边源变量全部落在中档'
+    +(mid.list&&mid.list.length?('（'+mid.list.join('、')+'）'):'')+'。中档按基准处理、不提供判定力度。'
     +'</div>';
 }
 function cfgSetExp(v){ if(v!=='low'&&v!=='mid'&&v!=='high') return; expMode=v; render(); }
@@ -2558,19 +2655,20 @@ function renderConfigResult(){
   if(sum){
     if(!cfgRunInfo){ sum.innerHTML='<div class="empty">还没有生成结果，回到第二步点「生成结果」。</div>'; }
     else if(!r){
-      sum.innerHTML='<div class="note rd"><b>这次没有生成结论。</b>'
-        +'可能的原因：当前判断矩阵是空的，或参与变量之间缺少判断。平台不会用 0 代替还没查的格，'
-        +'所以先到「研究模式」第 5 步把这些变量的判断补齐，再回来生成结果。</div>'
-        +cfgEdgeHTML();
+      const g=cfgGateInfo||cfgGate(Object.keys(sel.desc));
+      sum.innerHTML='<div class="note rd"><b>这次没有出结论。</b>'
+        +'原因：'+attrEsc(g.why||'判断不足')+'。平台不会用 0 代替还没查的格。'
+        +cfgGateHelpHTML(g)
+        +'</div>'+cfgEdgeHTML();
     }else{
       sum.innerHTML=kv('参与检验的变量', r.ds.length+' 个')
         +kv('组合空间', r.total.toLocaleString()+' 种')
         +kv('本次检查', r.sampled?('抽查 '+r.checked.toLocaleString()+' 种（本次检验了其中一部分，结果是下限）')
                               :(r.checked.toLocaleString()+' 种，全部枚举'))
         +kv('互不冲突的设定', '<b>'+r.consistent.length+(r.consistent.length>=200?'+':'')+' 组</b>')
-        +kv('取到中档的变量', mid.n+' / '+mid.t+' 个（'+Math.round(mid.ratio*100)+'%）')
-        +(mid.ratio>0.5?'<div class="note rd" style="margin-top:12px;"><b>判定力不足：</b>中档占 '
-          +Math.round(mid.ratio*100)+'%，超过一半。中档按基准处理、不提供判定力度，这一版不能当正常结论用。</div>':'')
+        +kv('取到中档的变量', mid.n+' / '+mid.t+' 个')
+        +(mid.list&&mid.list.length?('<div class="note" style="margin-top:12px;"><b>这几个变量的入边源变量全落中档，本版对它们没有判定力：</b><br>'
+          +mid.list.map(nm=>'· '+attrEsc(nm)).join('<br>')+'</div>'):'')
         +cfgEdgeHTML();
     }
   }

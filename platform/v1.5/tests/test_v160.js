@@ -94,17 +94,28 @@ chk(cfgUnverifiedCount() >= 1, '未判的格计为未验证', cfgUnverifiedCount
 chk(!cim[keys[0]+'>'+keys[1]], '未判的格不写 0');
 
 console.log();
-console.log('=== 5. 中档＝st[1]，占比 >50% 拦截 ===');
-sel.desc={}; ['经济增长速度','产业结构'].forEach(n=>{ sel.desc[n]={states:[ST(n)[0]],src:''}; });
-cfgSel={}; cfgSel[PALLC()[0].n]=1; cfgPick={}; cfgClaim={}; cfgTouched={};
-chk(cfgMidInfo().t >= 1, '至少一个三档变量进入中档统计', cfgMidInfo().t);
-const threeState = cfgInputNames().filter(nm => ST(nm).length===3);
-threeState.forEach(nm=>{ cfgPick[nm]=ST(nm)[1]; });
-const mid = cfgMidInfo();
-chk(mid.n === threeState.length, '三档变量全部取中档', mid.n + ' / ' + mid.t);
-chk(mid.ratio > 0.5, '中档占比过半数直接可判', Math.round(mid.ratio*100) + '%');
-threeState.forEach(nm=>{ chk(cfgFinalOf(nm) === ST(nm)[1], '中档取 st[1]：'+nm); });
-chk(code_has_expandV, 'expandV 仍在（未删）');
+console.log('=== 5. 中档按变量个体判（入边源全落中档），不按全局比例 ===');
+sel.desc={}; ['经济增长速度','产业结构','终端电气化率'].forEach(n=>{ sel.desc[n]={states:[ST(n)[0]],src:''}; });
+cfgSel={}; PALLC().forEach(p=>{ cfgSel[p.n]=1; });
+const inputs5=cfgInputNames();
+chk(inputs5.length>=2, '本次参与变量至少两个', inputs5.length);
+cfgPick={}; cfgClaim={}; cfgTouched={};
+inputs5.forEach(nm=>{ cfgPick[nm]=cfgMidOf(nm); });
+// 三条两两判断都是中档基准：每个变量对每个仍是中档 → 全部入中档统计
+cim={};
+inputs5.forEach(a=>inputs5.forEach(b=>{ if(a!==b) cim[a+'>'+b]={v:1,conf:'中',why:'',rev:false}; }));
+const mid=cfgMidInfo();
+chk(mid.t === inputs5.length, '本次参与变量全部进入中档统计', mid.n + ' / ' + mid.t);
+chk(mid.list.length === inputs5.length, '每条入边源全落中档的变量都被列出', mid.list.join('/'));
+// 把某一源变量挪开中档，它的目标就不该算中档
+const tgt=inputs5[0], src=inputs5.find(o=>o!==inputs5[0]);
+cfgPick[src]=ST(src)[0]===cfgMidOf(src)?ST(src)[ST(src).length-1]:ST(src)[0];
+const mid2=cfgMidInfo();
+chk(mid2.list.indexOf(tgt)<0, '源变量离开中档后目标不算中档：'+tgt, mid2.list.join('/'));
+// 两态变量也进统计（钢铁工艺路线/碳移除规模）
+const two5=allDescs().map(d=>d.n).filter(nm=>ST(nm).length===2&&dOf(nm)&&dOf(nm).t!=='结果型');
+chk(two5.length>=1, '两态变量存在且可进中档统计', two5.join('/'));
+chk(typeof cfgMidOf === 'function' && cfgMidOf(two5[0]) === ST(two5[0])[0], '两态变量的基准档有定义：'+two5[0]);chk(code_has_expandV, 'expandV 仍在（未删）');
 
 console.log();
 console.log('=== 6. 区间口径不筛政策 ===');
@@ -166,6 +177,7 @@ chk(cfgSaved===savedBefore9, '缺档被拦时不保存快照');
 
 console.log('--- 9b. 定档后正常生成 ---');
 inputs9.forEach(nm=>{ cfgPick[nm]=ST(nm)[0]; });
+const realGate=cfgGate; cfgGate=function(){ return {ok:true, part:{unjudged:[]}, count:1, checked:2}; };
 const roundSel=JSON.stringify(cfgSel);
 let roundRun=true; try{ cfgRun(); }catch(e){ roundRun=false; console.log(e.message); }
 chk(roundRun && !!cfgSaved, '生成结果时保存研究模式 sel 快照');
@@ -179,6 +191,7 @@ chk(JSON.stringify(sel.desc)===roundBefore, '返回研究模式恢复原 sel 快
 chk(cfgSaved===null, '快照恢复后清空，避免重复恢复');
 chk(cfgSel && JSON.stringify(cfgSel)===roundSel, '配置流程数据不被研究模式恢复污染');
 chk(roundCfg!==JSON.stringify(sel.desc), '配置运行确实切换了 sel.desc（快照非空转）');
+cfgGate=realGate;
 
 console.log('');
 console.log(bad === 0 ? '全部通过' : bad + ' 项未通过');
