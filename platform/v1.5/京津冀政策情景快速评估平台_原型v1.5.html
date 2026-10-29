@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>京津冀政策情景快速评估平台 · 原型 v1.7.4</title>
+<title>京津冀政策情景快速评估平台 · 原型 v1.7.5</title>
   <style>
 :root{
   /* 纸墨：暖白纸面 + 墨黑字 + 靛青结构色 + 赭石强调 */
@@ -1447,6 +1447,12 @@ main .stbox .hd{background:transparent;border-bottom:1px solid var(--line);}
 .cfgd-seg.s1{background:var(--wn);}
 .cfgd-seg.s2{background:var(--tx3);}
 
+/* 变量名可点：进去看「谁把它推到这里」 */
+.cfgmap-link{cursor:pointer;}
+.cfgmap-link:hover{text-decoration:underline;text-underline-offset:3px;}
+.cfgmap-btn{cursor:pointer;text-decoration:underline;text-underline-offset:3px;color:var(--tx3);}
+.cfgmap-btn:hover{color:var(--tx);}
+
 </style>
 </head>
 <body>
@@ -1896,7 +1902,6 @@ main .stbox .hd{background:transparent;border-bottom:1px solid var(--line);}
     <div class="cfglist" id="cfgPolicyList"></div>
     <aside class="cfgside" id="cfgPolicySide"></aside>
   </div>
-  <div class="cfgdrawer" id="cfgDrawer"></div>
   <div class="cfgfoot">
     <span class="hiline" id="cfg0Hint"></span>
     <div class="sp"></div>
@@ -2143,6 +2148,9 @@ main .stbox .hd{background:transparent;border-bottom:1px solid var(--line);}
 </section>
 
 </main>
+
+<!-- 政策详情 / 变量依据共用同一个抽屉：放在 main 之外，两个步骤都能拉出来 -->
+<div class="cfgdrawer" id="cfgDrawer"></div>
 
 <div class="footbar">
   <span class="cnt" id="footCnt"></span>
@@ -4521,7 +4529,7 @@ function applyCfg(d){
    主界面只做三件事：选政策 → 确认设定 → 看结果并导出。
    CIB、交叉影响、打分矩阵、枚举这些词只在研究模式里出现。
    这里不改 expandV，不自动推断政策档位，也不把「没判」当成 0。 */
-let cfgStep=0, cfgDeptSel=[], cfgSel={}, cfgOpen=null, cfgChosenFold=false, cfgNotice='';
+let cfgStep=0, cfgDeptSel=[], cfgSel={}, cfgOpen=null, cfgMapOpen=null, cfgChosenFold=false, cfgNotice='';
 let cfgClaim={}, cfgPick={}, cfgTouched={}, cfgSuggest={}, cfgDefault={}, cfgRunInfo=null, cfgSaved=null, cfgGateInfo=null, cfgResearchBase=null;
 const CFG_CLAIMS=['未指定','提高','维持','降低'];
 function cfgRk(c){ return c==='高'?3:(c==='中'?2:(c==='低'?1:0)); }
@@ -4534,6 +4542,8 @@ function cfgBestConf(ms){
 function cfgChosen(){ return PALLC().filter(p=>cfgSel[p.n]); }
 function cfgRemovePolicy(nm){ delete cfgSel[nm]; if(cfgOpen===nm) cfgOpen=null; cfgNotice=''; renderConfigPolicy(); }
 function cfgDrawerHTML(){
+  /* 同一个抽屉两种视角：政策视角（从第 1 步点政策卡进来）与变量视角（从第 2 步点变量名进来）。 */
+  if(cfgMapOpen) return cfgMapDrawerHTML(cfgMapOpen);
   if(!cfgOpen) return '';
   const p=PALLC().filter(x=>x.n===cfgOpen)[0]; if(!p) return '';
   const conf=cfgBestConf(p.m), n=(p.m||[]).length;
@@ -4555,6 +4565,44 @@ function cfgDrawerHTML(){
   h+='<details class="cfgfold"><summary>模型怎么处理</summary>'+polModelBlock(p)+'</details>';
   return h;
 }
+/* 变量视角：从「这条变量」往回看——谁把它推到这里、依据是什么、能取哪几档。
+   政策视角回答"这条政策影响什么"，变量视角回答"这个变量凭什么进来"，两个方向都要有。 */
+function cfgMapDrawerHTML(nm){
+  const d=dOf(nm)||{}, ms=cfgCov()[nm]||[], conf=cfgBestConf(ms.map(o=>o.m));
+  const pick=cfgFinalOf(nm), sts=ST(nm);
+  let h='<div class="drawer-h"><div><div class="drawer-k">变量依据</div><b>'+attrEsc(nm)+'</b></div>'
+    +'<button class="btn sm" onclick="closeMapDrawer()">关闭</button></div>'
+    +'<div class="cfgdrawer-meta">'+attrEsc(d.t||'—')
+    +(d.v?' · 模型对应 '+attrEsc(d.v):'')
+    +' · 命中 '+ms.length+' 条政策'
+    +(conf?' · 依据强度 '+attrEsc(conf):'')+'</div>';
+  h+='<details class="cfgfold" open><summary>谁把它推到这里</summary>';
+  if(!ms.length){
+    h+='<div class="ptnote">没有政策命中这个变量。它能出现在本次参与集里，是因为它被互相影响的变量带了进来。</div>';
+  }
+  ms.forEach(o=>{
+    const v=POLICY_VERIF[o.p.n+'|'+nm];
+    h+='<div class="maprow"><div class="mr1"><b>'+attrEsc(o.p.n)+'</b>'
+      +'<span class="conf '+cfgConfCls(o.m[1])+'">依据强度 '+attrEsc(o.m[1])+'</span></div>'
+      +'<div class="mr2">'+attrEsc(o.m[2])+'</div>'+(v?verifBlock(v):'')+'</div>';
+  });
+  h+='</details>';
+  h+='<details class="cfgfold"><summary>这条变量能取哪几档</summary>'
+    +'<div class="cfgpick">'+sts.map(s=>'<span class="pill">'+attrEsc(s)
+      +(s===pick?'　←　当前':'')+'</span>').join('')+'</div>'
+    +'<div class="ptnote">当前取「'+attrEsc(pick||'未定')+'」。档位是枚举空间，取哪一档在确认设定里定。</div>'
+    +'</details>';
+  h+='<details class="cfgfold"><summary>依据来源类型</summary>'
+    +'<div class="ptnote">政策库现在只标了「政策↔变量」这条对应关系有多确定（依据强度），'
+    +'没有标每条依据属于政策原文、论文实证还是历史数据。这一栏待数据集侧补字段后再显示，不代填。</div></details>';
+  return h;
+}
+function openMapDrawer(nm){
+  cfgMapOpen=(cfgMapOpen===nm?null:nm);
+  if(cfgMapOpen) cfgOpen=null;
+  render();
+}
+function closeMapDrawer(){ cfgMapOpen=null; render(); }
 function cfgChosenHTML(){
   const chosen=cfgChosen();
   const btn=chosen.length?'<button class="btn sm chosen-fold" onclick="cfgToggleChosenFold()">'+(cfgChosenFold?'展开':'收起')+'</button>':'';
@@ -4674,7 +4722,9 @@ function cfgOpenPolicyIdx(i,ev){
   if(ev&&ev.stopPropagation) ev.stopPropagation();
   const p=PALLC()[i]; if(!p) return;
   cfgOpen=(cfgOpen===p.n?null:p.n);
+  if(cfgOpen) cfgMapOpen=null;      // 两个视角共用一个抽屉，后开的顶掉前一个
   renderConfigPolicy();
+  render();
 }
 function cfgCloseDetail(){ cfgOpen=null; renderConfigPolicy(); }
 function cfgClearPolicies(){
@@ -4806,8 +4856,7 @@ function renderConfigPolicy(){
   }
   const chosen=document.getElementById('cfgChosen'); if(chosen) chosen.innerHTML=cfgChosenHTML();
   const side=document.getElementById('cfgPolicySide'); if(side) side.innerHTML=cfgSideHTML();
-  const drawer=document.getElementById('cfgDrawer');
-  if(drawer){ drawer.className='cfgdrawer'+(cfgOpen?' on':''); drawer.innerHTML=cfgDrawerHTML(); }
+  /* 抽屉挂到 main 之外，由 render 统一刷新：第 1 步看政策、第 2 步看变量，共用一个。 */
   const stat=document.getElementById('cfgPolicyStat');
   if(stat){
     const cov=cfgCov();
@@ -4931,7 +4980,11 @@ function renderConfigSetting(){
         +cfgWhyText(claim,pick,touched,conf));
       const scope=(sts.length===1?'1 档':('全部档位（'+sts.length+' 档）'));
       h+='<div class="cfgrow">'
-        +'<div class="cfgr1"><b class="tip" tabindex="0" data-tip="'+tip+'">'+attrEsc(nm)+'</b>'
+        +'<div class="cfgr1">'
+        +'<b class="tip cfgmap-link" tabindex="0" data-tip="'+tip+'" title="点变量名查看依据"'
+        +' onclick="openMapDrawer(\''+nm+'\')"'
+        +' onkeydown="if(event.key===\'Enter\'){openMapDrawer(\''+nm+'\')}">'+attrEsc(nm)+'</b>'
+        +'<span class="cfgnum cfgmap-btn" onclick="openMapDrawer(\''+nm+'\')">依据</span>'
         +'<span class="cfgnum">范围：'+attrEsc(scope)+'</span>'
         +(isDef?'<span class="cfgtag d">取现状</span>':'')
         +'</div>'
@@ -7608,6 +7661,7 @@ function renderBayes(){
    已有情景需要重新检验；省略 = 不动结果（只改界面、措辞、性能或新增旁路分析）。
    与 git 提交对应；此处只列入对外可讲、能被核对的事项。 */
 const CHANGELOG=[
+ {d:'2026-10-29',k:'功能',x:'确认设定页可查变量依据：点变量名，看是谁把它推到这里',y:'第 1 步点政策能看到「政策详情」，回答的是"这条政策影响什么"；但反过来"这个变量凭什么进来"没有入口——用户只能看到一个覆盖 12/19 的数字，不知道这 12 个是怎么来的。现在第 2 步每个变量名可点（后面另给一个「依据」链接），右侧滑出变量视角：模型对应、命中几条政策、依据强度、每条政策的名称与依据原文、数据侧核验块、这条变量能取哪几档、当前取哪档。抽屉原先挂在第 1 步的 pane 里，第 2 步时父元素隐藏、拉不出来，所以移到 main 之外，两个视角共用，开关与刷新统一交给 render。「依据来源类型」明确标为待补——政策库只标了政策↔变量这条对应关系有多确定，没标每条依据属于政策原文、论文实证还是历史数据，这一栏不代填。不动打分、区间与枚举。'},
  {d:'2026-10-29',k:'文案',x:'按钮与状态文案收回书面语',y:'「建好了，回情景配置 →」这种把完成语写进按钮的做法不合适：按钮只说动作，状态由页面自己表达。改为「回情景配置 →」。同一批把状态说明里的口语收回书面语——「还没建立矩阵」改「未建立独立矩阵」，下拉里的「（还没合并）」改「（未合并）」，取档提示「可再改」改「可修改」。只改界面文字，不动任何逻辑。'},
  {d:'2026-10-29',k:'体验',x:'建完独立矩阵就地给「回情景配置」，并去掉重复的多人说明',y:'从配置第 2 步点「去第 4 步建立」过来的人，建完矩阵后找不到回路——上一版把入口放在左轨底部，是一行和「保存进度」同款的下划线小字，眼睛在页面中间的操作区扫不到。现在矩阵建立成功后，就在「重建独立矩阵／已建立 N 份」旁边给一个实底按钮「建好了，回情景配置 →」，只在选过政策时出现（从首页直接进来的没有配置可回）；左轨底部那个也改成实心块。顺带修掉一处重复：expDetail 与 ensBox 各渲染一段几乎一样的多人说明，页面上并排两条「N 人独立打分」，现在建立矩阵后只留 ensBox 一条，"应判 N 条"并入其中。新增 test_v164 第 7 组两条断言守这两个入口的显示条件。不动打分、区间与枚举。'},
  {d:'2026-10-29',k:'界面',x:'配置三步改到左轨，与研究模式共用一套骨架',y:'两个模式的骨架原先不一样：配置模式是顶部一条「选政策—确认设定—看结果」的横条，研究模式是左侧竖轨，每切一次模式，正文的起点、宽窄和导航位置全变一次；而且研究模式里没有回路——在建完多专家矩阵、或打完分之后想回去看结果，只能先点顶栏「情景配置」。现在左轨只有一条：配置模式下渲染三步、研究模式下渲染七步，样式与分组标题都一样，正文起点统一 212px。底部各给一个出口——配置侧「去研究模式」、研究侧「回情景配置」（后者只在选过政策时出现，从首页直接进来的没有配置可回）。顶部横条连同样式一起删掉，不再有第二套步骤指示。两个模式仍各自独立：配置不管打分，研究不管政策，但人可以在两处来回走。不动打分、区间与枚举。'},
@@ -8152,6 +8206,14 @@ const VERSIONS=[
     ,'「还没建立矩阵」改「未建立独立矩阵」；下拉里的「（还没合并）」改「（未合并）」'
     ,'取档 toast「可再改」改「可修改」，与界面其余措辞一致'
    ]}
+  ,{v:'v1.7.5',d:'2026-10-29',tag:'',sum:'确认设定页可查变量依据：点变量名，看是谁把它推到这里',ev:'本批提交',
+   items:[
+    '抽屉从第 1 步的 pane 里移到 main 之外，政策视角与变量视角共用一个，两个步骤都能拉出来'
+    ,'第 2 步每个变量名可点，后面另给一个「依据」链接；再点一次收起'
+    ,'变量视角给出：模型对应、命中几条政策、依据强度、每条政策的名称与依据原文、数据侧核验块、这条变量能取哪几档、当前取哪档'
+    ,'「依据来源类型」明确标为待补：政策库只标了对应关系有多确定，没标每条依据属于政策原文／论文／历史数据，不代填'
+    ,'抽屉的开关与刷新统一由 render 负责，不再挂在 renderConfigPolicy 里（否则第 2 步看不见）'
+   ]}
 ];
 /* 当前版本号只有一个来源：VERSIONS 的最后一条（数组按时间从旧到新排列）。
    2026-10-25 修：关于框里原先写死 v1.4，平台发到 v1.5.7 之后它还在对外显示旧版号。 */
@@ -8278,6 +8340,12 @@ function render(){
   renderChangelog();
   p6Apply(); p6Status();
   renderConfigPolicy(); renderCfgSrc(); renderConfigSetting(); renderConfigResult();
+  const cfgDrawerEl=document.getElementById('cfgDrawer');
+  if(cfgDrawerEl){
+    const dOn=(viewMode==='config'&&!docPg)&&(cfgOpen||cfgMapOpen);
+    cfgDrawerEl.className='cfgdrawer'+(dOn?' on':'');
+    cfgDrawerEl.innerHTML=dOn?cfgDrawerHTML():'';
+  }
 
   const isResearch=viewMode==='research'&&!docPg;
   const isConfig=viewMode==='config'&&!docPg;

@@ -1439,3 +1439,9 @@ main .stbox .hd{background:transparent;border-bottom:1px solid var(--line);}
 .cfgd-seg.s0{background:var(--pri);}
 .cfgd-seg.s1{background:var(--wn);}
 .cfgd-seg.s2{background:var(--tx3);}
+
+/* 变量名可点：进去看「谁把它推到这里」 */
+.cfgmap-link{cursor:pointer;}
+.cfgmap-link:hover{text-decoration:underline;text-underline-offset:3px;}
+.cfgmap-btn{cursor:pointer;text-decoration:underline;text-underline-offset:3px;color:var(--tx3);}
+.cfgmap-btn:hover{color:var(--tx);}

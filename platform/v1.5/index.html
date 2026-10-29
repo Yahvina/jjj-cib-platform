@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>京津冀政策情景快速评估平台 · 原型 v1.7.4</title>
+<title>京津冀政策情景快速评估平台 · 原型 v1.7.5</title>
   <link rel="stylesheet" href="src/styles.css">
 </head>
 <body>
@@ -453,7 +453,6 @@
     <div class="cfglist" id="cfgPolicyList"></div>
     <aside class="cfgside" id="cfgPolicySide"></aside>
   </div>
-  <div class="cfgdrawer" id="cfgDrawer"></div>
   <div class="cfgfoot">
     <span class="hiline" id="cfg0Hint"></span>
     <div class="sp"></div>
@@ -700,6 +699,9 @@
 </section>
 
 </main>
+
+<!-- 政策详情 / 变量依据共用同一个抽屉：放在 main 之外，两个步骤都能拉出来 -->
+<div class="cfgdrawer" id="cfgDrawer"></div>
 
 <div class="footbar">
   <span class="cnt" id="footCnt"></span>
