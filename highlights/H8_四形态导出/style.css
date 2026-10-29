@@ -57,6 +57,8 @@
 
 .opt .d{font-size:13px;color:var(--tx2);line-height:1.55;}
 
+.expstep .btn{padding:1px 8px;line-height:1.4;}
+
 .chk{width:15px;height:15px;border-radius:4px;border:1.5px solid var(--line);
   flex:none;display:flex;align-items:center;justify-content:center;background:#fff;cursor:pointer;}
 

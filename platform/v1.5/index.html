@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>京津冀政策情景快速评估平台 · 原型 v1.6.3</title>
+<title>京津冀政策情景快速评估平台 · 原型 v1.7.0</title>
   <link rel="stylesheet" href="src/styles.css">
 </head>
 <body>
@@ -65,8 +65,8 @@
       <h1><span class="cib">CIB</span>：政策情景的<br>一致性检验</h1>
       <p class="lead">交叉影响平衡是平台的核心方法：政策文本转为描述符取值，两两判定影响方向，枚举组合后只保留自洽者；通过检验的情景再转译为 GCAM-China 与 CHEER 的输入参数。</p>
       <div class="go">
-        <a href="#" onclick="openConfig();return false;">开始配置情景<span class="ar">→</span></a>
-        <a class="go2" href="#" onclick="openResearch(event);return false;">研究模式</a>
+        <a href="#" onclick="openConfig();return false;">评估一套政策组合<span class="ar">→</span></a>
+        <a class="go2" href="#" onclick="openResearch(event);return false;">做方法验证（7 步）</a>
       </div>
     </div>
 
@@ -216,18 +216,19 @@
 
   <div class="card">
     <h3>专家校验模式</h3>
-    <div class="grid3">
-      <div class="opt sel" onclick="pick(this,'exp')">
+    <div class="grid2">
+      <div class="opt sel" data-exp="1" onclick="pick(this,'exp')">
         <div class="t">单人判断 <span class="chk on"><span class="tick"></span></span></div>
         <div class="d">一人完成全部打分，速度最快</div>
       </div>
-      <div class="opt" onclick="pick(this,'exp')">
-        <div class="t">双人独立打分 <span class="chk"></span></div>
-        <div class="d">两人分别打分，系统自动比对分歧项</div>
-      </div>
-      <div class="opt" onclick="pick(this,'exp')">
-        <div class="t">三人打分并校验 <span class="chk"></span></div>
-        <div class="d">三人打分，系统给出一致性系数并标出争议项</div>
+      <div class="opt" data-exp="multi" onclick="pick(this,'exp')">
+        <div class="t">多人独立打分 <span class="chk"></span></div>
+        <div class="d">每人一份矩阵，可分别填写后比对合并</div>
+        <div class="expstep" onclick="event.stopPropagation()">
+          <button type="button" class="btn sm" onclick="stepExpertN(-1)">−</button>
+          <b id="expN">3</b><span>人</span>
+          <button type="button" class="btn sm" onclick="stepExpertN(1)">+</button>
+        </div>
       </div>
     </div>
     <div id="expDetail"></div>
@@ -433,7 +434,7 @@
 <section class="pane" id="cfg0">
   <div class="cfg-kicker">情景配置 · 01</div>
   <h2 class="pt">选政策</h2>
-  <p class="pd">从政策库中选出本次要评估的政策组合。平台只展示政策已经映射到的变量。<span class="tip" tabindex="0" data-tip="「依据强度」表示这条对应关系有多确定，不是政策本身的档位。">依据强度怎么看</span></p>
+  <p class="pd">这一步选的是这套评估包含哪些政策工具，不决定力度。<span class="tip" tabindex="0" data-tip="从政策库中选出本次要评估的政策组合。平台只展示政策已经映射到的变量。「依据强度」表示这条对应关系有多确定，不是政策本身的档位。">依据强度怎么看</span></p>
   <div id="cfgStepper0"></div>
   <div class="cfg-rule">
     <div class="cfg-r1"><b>区间口径</b><span id="cfgScopeText"></span></div>
@@ -463,8 +464,9 @@
 <section class="pane" id="cfg1">
   <div class="cfg-kicker">情景配置 · 02</div>
   <h2 class="pt">确认设定</h2>
-  <p class="pd">只展开被选中政策命中的变量。<span class="tip" tabindex="0" data-tip="政策主张先保留「提高 / 维持 / 降低 / 未指定」，默认未指定；最终档位需要人工确认，平台不自动推断，也不把依据强度当作档位。">这里要确认什么</span></p>
+  <p class="pd">这一步决定每条政策把哪个变量推到哪一档。<span class="tip" tabindex="0" data-tip="只展开被选中政策命中的变量。政策主张先保留「提高 / 维持 / 降低 / 未指定」，默认未指定；选了主张只会给一条建议档，点「按主张取」才落档。最终档位需要人工确认，平台不自动推断，也不把依据强度当作档位。">这里要确认什么</span></p>
   <div id="cfgStepper1"></div>
+  <div id="cfgSrcBar"></div>
   <div id="cfgSettingStat"></div>
   <div id="cfgScoreBar"></div>
   <div id="cfgSettingList"></div>
@@ -479,7 +481,7 @@
 <section class="pane" id="cfg2">
   <div class="cfg-kicker">情景配置 · 03</div>
   <h2 class="pt">看结果并导出</h2>
-  <p class="pd">这里给出平台在当前设定与当前判断下算出的结果。<span class="tip" tabindex="0" data-tip="平台只做自洽性检验，不做预测，也不推荐某一套方案。导出的是下游模型可读的情景配置文件。">结果怎么读</span></p>
+  <p class="pd">这一步判断这套设定摆在一起自不自洽。<span class="tip" tabindex="0" data-tip="这里给出平台在当前设定与当前判断下算出的结果。平台只做自洽性检验，不做预测，也不推荐某一套方案。导出的是下游模型可读的情景配置文件。">结果怎么读</span></p>
   <div id="cfgStepper2"></div>
   <div class="card">
     <h3>结果摘要</h3>
@@ -558,7 +560,7 @@
 
       <h3>第 4 步　校验方式</h3>
       <p>决定 342 对判断由谁来打：全部人工、全部 AI 预填，或 AI 预填后人工复核。三条路走的是同一套评分口径，区别只在效率与可追溯性。</p>
-      <p>选<b>双人</b>或<b>三人</b>时，平台为每位专家各建一份独立矩阵，再自动比对差异：一致的条目自动合并，分歧的条目列出来逐条裁定，裁定结果写回主矩阵。建立多份矩阵后，可以让人各填一版、再分人复核。只有一人打分时不产生分歧项，这一块是空的。</p>
+      <p>选<b>多人独立打分</b>并把人数设成 2–9 时，平台为每位专家各建一份独立矩阵，再自动比对差异：一致的条目自动合并，分歧的条目列出来逐条裁定，裁定结果写回主矩阵。建立多份矩阵后，可以让人各填一版、再分人复核。只有一人打分时不产生分歧项，这一块是空的。</p>
 
       <h3>第 5 步　交叉影响打分</h3>
       <p>逐个判断「一个描述符取某状态」会怎样影响「另一个描述符的状态」，取 −3 至 +3：正值表示促进，负值表示抑制，<b>0 表示两者之间没有直接关系</b>。19 个描述符两两组合共 342 对——方向有意义（甲影响乙与乙影响甲是两条），所以按<b>有序对</b>计。</p>

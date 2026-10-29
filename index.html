@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>京津冀政策情景快速评估平台 · 原型 v1.6.3</title>
+<title>京津冀政策情景快速评估平台 · 原型 v1.7.0</title>
   <style>
 :root{
   /* 纸墨：暖白纸面 + 墨黑字 + 靛青结构色 + 赭石强调 */
@@ -120,6 +120,15 @@ p.pd{color:var(--tx2);font-size:15px;line-height:1.75;margin-bottom:20px;max-wid
 .opt .t{font-weight:600;font-size:15px;margin-bottom:3px;display:flex;
   align-items:center;justify-content:space-between;gap:8px;}
 .opt .d{font-size:13px;color:var(--tx2);line-height:1.55;}
+.expstep{display:flex;align-items:center;gap:8px;margin-top:10px;font-size:13px;color:var(--tx2);}
+.expstep b{font-size:14px;color:var(--tx);min-width:16px;text-align:center;font-variant-numeric:tabular-nums;}
+.expstep .btn{padding:1px 8px;line-height:1.4;}
+.cfgsrc{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:13px;color:var(--tx3);
+  padding:8px 12px;background:var(--panel);border:1px solid var(--line);border-radius:var(--r);margin:0 0 12px;}
+.cfgsrc b{color:var(--tx);font-weight:600;}
+.cfgsrc select{padding:3px 6px;font-size:13px;}
+.cfgsrc .sp{flex:1;}
+.cfgsrc-hint{color:var(--tx3);}
 .chk{width:15px;height:15px;border-radius:4px;border:1.5px solid var(--line);
   flex:none;display:flex;align-items:center;justify-content:center;background:#fff;cursor:pointer;}
 .tick{width:7px;height:4px;border-left:2px solid #fff;border-bottom:2px solid #fff;
@@ -1395,6 +1404,7 @@ main .stbox .hd{background:transparent;border-bottom:1px solid var(--line);}
 .cfgtag.u{color:var(--wn);border-color:var(--wn-b);background:var(--wn-s);}
 .cfgtag.m{color:var(--pri);border-color:var(--pri-b);background:var(--pri-s);}
 .cfgtag.b{color:var(--tx3);background:var(--panel2);}
+.cfgtag.d{color:var(--tx3);border-style:dashed;}
 .cfgcold{margin-top:14px;background:var(--panel);border:1px solid var(--line);border-radius:var(--r);}
 .cfgcold summary{padding:10px 14px;font-size:13px;color:var(--tx2);cursor:pointer;}
 .cfgcoldb{padding:0 14px 12px;display:flex;gap:6px;flex-wrap:wrap;}
@@ -1484,8 +1494,8 @@ main .stbox .hd{background:transparent;border-bottom:1px solid var(--line);}
       <h1><span class="cib">CIB</span>：政策情景的<br>一致性检验</h1>
       <p class="lead">交叉影响平衡是平台的核心方法：政策文本转为描述符取值，两两判定影响方向，枚举组合后只保留自洽者；通过检验的情景再转译为 GCAM-China 与 CHEER 的输入参数。</p>
       <div class="go">
-        <a href="#" onclick="openConfig();return false;">开始配置情景<span class="ar">→</span></a>
-        <a class="go2" href="#" onclick="openResearch(event);return false;">研究模式</a>
+        <a href="#" onclick="openConfig();return false;">评估一套政策组合<span class="ar">→</span></a>
+        <a class="go2" href="#" onclick="openResearch(event);return false;">做方法验证（7 步）</a>
       </div>
     </div>
 
@@ -1635,18 +1645,19 @@ main .stbox .hd{background:transparent;border-bottom:1px solid var(--line);}
 
   <div class="card">
     <h3>专家校验模式</h3>
-    <div class="grid3">
-      <div class="opt sel" onclick="pick(this,'exp')">
+    <div class="grid2">
+      <div class="opt sel" data-exp="1" onclick="pick(this,'exp')">
         <div class="t">单人判断 <span class="chk on"><span class="tick"></span></span></div>
         <div class="d">一人完成全部打分，速度最快</div>
       </div>
-      <div class="opt" onclick="pick(this,'exp')">
-        <div class="t">双人独立打分 <span class="chk"></span></div>
-        <div class="d">两人分别打分，系统自动比对分歧项</div>
-      </div>
-      <div class="opt" onclick="pick(this,'exp')">
-        <div class="t">三人打分并校验 <span class="chk"></span></div>
-        <div class="d">三人打分，系统给出一致性系数并标出争议项</div>
+      <div class="opt" data-exp="multi" onclick="pick(this,'exp')">
+        <div class="t">多人独立打分 <span class="chk"></span></div>
+        <div class="d">每人一份矩阵，可分别填写后比对合并</div>
+        <div class="expstep" onclick="event.stopPropagation()">
+          <button type="button" class="btn sm" onclick="stepExpertN(-1)">−</button>
+          <b id="expN">3</b><span>人</span>
+          <button type="button" class="btn sm" onclick="stepExpertN(1)">+</button>
+        </div>
       </div>
     </div>
     <div id="expDetail"></div>
@@ -1852,7 +1863,7 @@ main .stbox .hd{background:transparent;border-bottom:1px solid var(--line);}
 <section class="pane" id="cfg0">
   <div class="cfg-kicker">情景配置 · 01</div>
   <h2 class="pt">选政策</h2>
-  <p class="pd">从政策库中选出本次要评估的政策组合。平台只展示政策已经映射到的变量。<span class="tip" tabindex="0" data-tip="「依据强度」表示这条对应关系有多确定，不是政策本身的档位。">依据强度怎么看</span></p>
+  <p class="pd">这一步选的是这套评估包含哪些政策工具，不决定力度。<span class="tip" tabindex="0" data-tip="从政策库中选出本次要评估的政策组合。平台只展示政策已经映射到的变量。「依据强度」表示这条对应关系有多确定，不是政策本身的档位。">依据强度怎么看</span></p>
   <div id="cfgStepper0"></div>
   <div class="cfg-rule">
     <div class="cfg-r1"><b>区间口径</b><span id="cfgScopeText"></span></div>
@@ -1882,8 +1893,9 @@ main .stbox .hd{background:transparent;border-bottom:1px solid var(--line);}
 <section class="pane" id="cfg1">
   <div class="cfg-kicker">情景配置 · 02</div>
   <h2 class="pt">确认设定</h2>
-  <p class="pd">只展开被选中政策命中的变量。<span class="tip" tabindex="0" data-tip="政策主张先保留「提高 / 维持 / 降低 / 未指定」，默认未指定；最终档位需要人工确认，平台不自动推断，也不把依据强度当作档位。">这里要确认什么</span></p>
+  <p class="pd">这一步决定每条政策把哪个变量推到哪一档。<span class="tip" tabindex="0" data-tip="只展开被选中政策命中的变量。政策主张先保留「提高 / 维持 / 降低 / 未指定」，默认未指定；选了主张只会给一条建议档，点「按主张取」才落档。最终档位需要人工确认，平台不自动推断，也不把依据强度当作档位。">这里要确认什么</span></p>
   <div id="cfgStepper1"></div>
+  <div id="cfgSrcBar"></div>
   <div id="cfgSettingStat"></div>
   <div id="cfgScoreBar"></div>
   <div id="cfgSettingList"></div>
@@ -1898,7 +1910,7 @@ main .stbox .hd{background:transparent;border-bottom:1px solid var(--line);}
 <section class="pane" id="cfg2">
   <div class="cfg-kicker">情景配置 · 03</div>
   <h2 class="pt">看结果并导出</h2>
-  <p class="pd">这里给出平台在当前设定与当前判断下算出的结果。<span class="tip" tabindex="0" data-tip="平台只做自洽性检验，不做预测，也不推荐某一套方案。导出的是下游模型可读的情景配置文件。">结果怎么读</span></p>
+  <p class="pd">这一步判断这套设定摆在一起自不自洽。<span class="tip" tabindex="0" data-tip="这里给出平台在当前设定与当前判断下算出的结果。平台只做自洽性检验，不做预测，也不推荐某一套方案。导出的是下游模型可读的情景配置文件。">结果怎么读</span></p>
   <div id="cfgStepper2"></div>
   <div class="card">
     <h3>结果摘要</h3>
@@ -1977,7 +1989,7 @@ main .stbox .hd{background:transparent;border-bottom:1px solid var(--line);}
 
       <h3>第 4 步　校验方式</h3>
       <p>决定 342 对判断由谁来打：全部人工、全部 AI 预填，或 AI 预填后人工复核。三条路走的是同一套评分口径，区别只在效率与可追溯性。</p>
-      <p>选<b>双人</b>或<b>三人</b>时，平台为每位专家各建一份独立矩阵，再自动比对差异：一致的条目自动合并，分歧的条目列出来逐条裁定，裁定结果写回主矩阵。建立多份矩阵后，可以让人各填一版、再分人复核。只有一人打分时不产生分歧项，这一块是空的。</p>
+      <p>选<b>多人独立打分</b>并把人数设成 2–9 时，平台为每位专家各建一份独立矩阵，再自动比对差异：一致的条目自动合并，分歧的条目列出来逐条裁定，裁定结果写回主矩阵。建立多份矩阵后，可以让人各填一版、再分人复核。只有一人打分时不产生分歧项，这一块是空的。</p>
 
       <h3>第 5 步　交叉影响打分</h3>
       <p>逐个判断「一个描述符取某状态」会怎样影响「另一个描述符的状态」，取 −3 至 +3：正值表示促进，负值表示抑制，<b>0 表示两者之间没有直接关系</b>。19 个描述符两两组合共 342 对——方向有意义（甲影响乙与乙影响甲是两条），所以按<b>有序对</b>计。</p>
@@ -3902,6 +3914,7 @@ function preview(){
 function paramsCSV(){
   const rows=expRows();
   let s='# 参数表 · 平台自动生成\n';
+  s+='# 判断来源：'+cfgSrcLabel()+'\n';
   s+='# 取档方式：'+expLabel()+'；值只覆盖 2035 锚点，2025/2030 需按政策里程碑插值\n';
   s+='descriptor,param,scope,year,value,low,high,unit,state,evidence,note\n';
   rows.forEach(r=>{
@@ -3925,7 +3938,8 @@ function narrText(){
   if(!rows.length) return '（还没有选描述符）';
   const sc=rows.map(r=>r.state).filter(Boolean);
   const note=multiPickNote();
-  let s='【情景特征】\n本情景在'+rows.length+'个描述符上取了'+sc.length+'档，构成一组自洽的政策情景假设。\n\n';
+  let s='【情景特征】\n本情景在'+rows.length+'个描述符上取了'+sc.length+'档，构成一组自洽的政策情景假设。'
+    +'判断来自：'+cfgSrcLabel()+'。\n\n';
   if(note) s+='【注意】'+note.replace(/<[^>]+>/g,'')+'\n\n';
   s+='【逐项特征】\n';
   rows.forEach(r=>{
@@ -3951,6 +3965,7 @@ function bayesCSV(){
     return names.indexOf(k.slice(0,i))>=0 && names.indexOf(k.slice(i+1))>=0;
   }):all;
   let s='# 贝叶斯后验 · 每条判断的后验分布\n';
+  s+='# 判断来源：'+cfgSrcLabel()+'\n';
   s+='# 先验 N(0, '+2.2+'²)，按置信度给噪声（高 .55 / 中 .85 / 低 1.25），网格积分得后验\n';
   s+='pair,observations,posterior_mean,sd,p05,p95,width,p_promote,p_suppress,p_flat\n';
   keys.forEach(k=>{
@@ -3980,6 +3995,7 @@ function tableCSV(){
   const rows=expRows();
   const info=curScenInfo();
   let s='# 结构化参数表 · 平台自动生成\n';
+  s+='# 判断来源：'+cfgSrcLabel()+'\n';
   s+='# 取档方式：'+expLabel()+'；值只覆盖 2035 锚点\n';
   s+='# 同一 scenario 内的参数构成一组自洽组合；跨 scenario 混用会破坏一致性。\n';
   if(info){
@@ -4152,8 +4168,36 @@ function pick(node,g){
     useBayes=(genMode==='bayes');
     if(useBayes) computeBayes();
   }
-  if(g==='exp') expertN=node.textContent.indexOf('单人')>=0?1:(node.textContent.indexOf('双人')>=0?2:3);
+  if(g==='exp'){
+    /* 卡片只区分「单人／多人」，具体几人在步进器里——不再从文案反推，
+       否则改一个字（双人→两人）人数就错了。 */
+    expertN = (node.dataset.exp==='1') ? 1 : (expertN>=2?expertN:3);
+  }
   render();
+}
+/* 人数步进：只改 expertN，不重建矩阵——用户只是看看人数，不该把已有矩阵冲掉。
+   已有份数多于新人数时数据保留，只是不参与合并（有效份数 effN 见 ensStat）。 */
+function stepExpertN(d){
+  const base=(expertN>=2?expertN:3);
+  const n=Math.max(2,Math.min(9,base+d));
+  if(n===expertN) return;
+  expertN=n;
+  if(ens&&ens.people&&ens.people.length>n)
+    toast('人数改为 '+n+'：第 '+(n+1)+' 份及之后的矩阵保留，但不参与合并');
+  render();
+}
+/* 卡片与人数显示统一由 expertN 驱动：点卡片、点步进器、载入存档都走这里 */
+function syncExpCard(){
+  const list=document.querySelectorAll('[data-exp]');
+  for(let i=0;i<list.length;i++){
+    const x=list[i], multi=x.dataset.exp==='multi';
+    const on=multi?(expertN>=2):(expertN===1);
+    x.classList.toggle('sel',on);
+    const c=x.querySelector('.chk');
+    if(c){ c.classList.toggle('on',on); c.innerHTML=on?TICK:''; }
+  }
+  const nEl=document.getElementById('expN');
+  if(nEl) nEl.textContent=String(expertN>=2?expertN:3);
 }
 function tglScale(node){
   layeredResult=null;
@@ -4422,7 +4466,7 @@ function applyCfg(d){
    CIB、交叉影响、打分矩阵、枚举这些词只在研究模式里出现。
    这里不改 expandV，不自动推断政策档位，也不把「没判」当成 0。 */
 let cfgStep=0, cfgDeptSel=[], cfgSel={}, cfgOpen=null, cfgChosenFold=false, cfgNotice='';
-let cfgClaim={}, cfgPick={}, cfgTouched={}, cfgRunInfo=null, cfgSaved=null, cfgGateInfo=null, cfgResearchBase=null;
+let cfgClaim={}, cfgPick={}, cfgTouched={}, cfgSuggest={}, cfgDefault={}, cfgRunInfo=null, cfgSaved=null, cfgGateInfo=null, cfgResearchBase=null;
 const CFG_CLAIMS=['未指定','提高','维持','降低'];
 function cfgRk(c){ return c==='高'?3:(c==='中'?2:(c==='低'?1:0)); }
 function cfgConfCls(c){ return c==='高'?'ok':(c==='中'?'wn':'rd'); }
@@ -4496,7 +4540,12 @@ function cfgJudgedIn(ds){
   return n;
 }
 /* 基准档＝每个变量自己的默认档（三档取 st[1]，两态取首档）。 */
-function cfgMidOf(nm){ const st=ST(nm); return st.length?st[Math.floor((st.length-1)/2)]:''; }
+/* 基准档＝该变量自己的"现状档"。19 个描述符的状态数组一律「强→弱」排列，
+   st[1] 读作现行／目标节奏／维持，所以三档取 st[1]、两档也取 st[1]。
+   旧写法 floor((len-1)/2) 对两档变量得 st[0]（最强档），会把「短流程为主」
+   「含工程化移除」误当成基准档——结果页就会指着取最强档的变量说"取到中档"。 */
+function cfgBaseOf(nm){ const st=ST(nm); return st.length>1?st[1]:(st[0]||''); }
+function cfgMidOf(nm){ return cfgBaseOf(nm); }
 function cfgStepper(n){
   const NM=['选政策','确认设定','看结果并导出'];
   let h='<div class="cfg-steps">';
@@ -4596,22 +4645,55 @@ function cfgFinalOf(nm){
   if(cfgPick[nm]&&st.indexOf(cfgPick[nm])>=0) return cfgPick[nm];
   return '';
 }
-function cfgSetPick(nm,idx){
-  const st=ST(nm), s=st[idx]; if(s===undefined) return;
-  cfgPick[nm]=s; cfgTouched[nm]=1; renderConfigSetting();
+/* 档位下拉用 value 传索引。原先用 this.selectedIndex，而第一项是「请选择」占位，
+   于是整体错一档：选「高速」存成「中速」。2026-10-29 修。 */
+function cfgSetPick(nm,v){
+  const st=ST(nm), i=parseInt(v,10);
+  if(isNaN(i)||i<0){ delete cfgPick[nm]; delete cfgTouched[nm]; delete cfgDefault[nm]; renderConfigSetting(); return; }
+  const s=st[i]; if(s===undefined) return;
+  cfgPick[nm]=s; cfgTouched[nm]=1; delete cfgDefault[nm];
+  renderConfigSetting();
 }
-function cfgSetClaim(nm,v){ cfgClaim[nm]=v; renderConfigSetting(); }
-/* 中档按变量个体判：某变量的全部入边源变量都落在各自的中档上，它才算「取到中档」。
-   不再按全局比例，也不再跳过长度不是 3 的变量——钢铁工艺路线、碳移除规模
-   这两个两态变量正是会静默落首档的两个。 */
+/* 政策主张 → 建议档：只算建议不写 cfgPick，用户点「按主张取」才落档。 */
+function cfgSuggestOf(nm,claim){
+  const st=ST(nm); if(!st.length) return '';
+  if(claim==='提高') return st[0];
+  if(claim==='降低') return st[st.length-1];
+  if(claim==='维持') return cfgBaseOf(nm);
+  return '';
+}
+function cfgSetClaim(nm,v){
+  cfgClaim[nm]=v;
+  const s=cfgSuggestOf(nm,v);
+  if(s) cfgSuggest[nm]=s; else delete cfgSuggest[nm];
+  renderConfigSetting();
+}
+function cfgAdoptSuggest(nm){
+  const s=cfgSuggest[nm]; if(!s) return;
+  cfgPick[nm]=s; cfgTouched[nm]=1; delete cfgDefault[nm];
+  renderConfigSetting();
+  toast('已按主张取「'+s+'」，可再改');
+}
+/* 未定档的一键取现状档：用户没说要改的变量＝政策不动。 */
+function cfgFillDefault(){
+  let n=0;
+  cfgInputNames().forEach(nm=>{
+    if(cfgFinalOf(nm)) return;
+    cfgPick[nm]=cfgBaseOf(nm); cfgDefault[nm]=1; n++;
+  });
+  renderConfigSetting();
+  toast(n?('已把 '+n+' 个未定档的变量取为现状档，请核对'):'没有未定档的变量');
+}
+/* 默认档按变量个体判：某变量的全部上游变量都落在各自的默认档上，它才算「取到默认档」。
+   两态变量没有中档，不进这个统计——否则它取最强档时会被说成"取到默认档"。 */
 function cfgMidInfo(){
-  const inputs=cfgInputNames(), list=[];
-  inputs.forEach(nm=>{
+  const inputs=cfgInputNames(), tri=inputs.filter(nm=>ST(nm).length>=3), list=[];
+  tri.forEach(nm=>{
     const srcs=inputs.filter(o=>o!==nm&&!!cim[o+'>'+nm]);
     if(!srcs.length) return;
-    if(srcs.every(o=>cfgFinalOf(o)&&cfgFinalOf(o)===cfgMidOf(o))) list.push(nm);
+    if(srcs.every(o=>cfgFinalOf(o)&&cfgFinalOf(o)===cfgBaseOf(o))) list.push(nm);
   });
-  const n=list.length, t=inputs.length;
+  const n=list.length, t=tri.length;
   return {n:n, t:t, list:list, ratio:(t?n/t:0)};
 }
 function cfgWhyText(claim,pick,touched,conf){
@@ -4702,6 +4784,51 @@ function renderConfigPolicy(){
     ? ('已选 <b>'+cfgChosen().length+'</b> 条政策，覆盖 <b>'+Object.keys(cfgCov()).length+'</b> 个变量。')
     : '还没有选择政策。点政策行右侧「详情」可查看依据。');
 }
+/* 配置模式第 2 步的「判断来源」：这份结果依据的是谁的矩阵。
+   有效份数 = min(人数设置, 已建立份数)——把没建立的份数算进去，等于谎报专家人数。 */
+function cfgEffN(){
+  if(typeof ens==='undefined'||!ens||!ens.people||!ens.people.length) return 0;
+  return Math.min(expertN, ens.people.length);
+}
+/* 结果与导出里写的「判断来源」：单人 / 专家 B / 合并（3 份）。
+   多人最常见的一句误读就是"我以为是大家的意见，其实是某一个人的"，所以必须写进结果。 */
+function cfgSrcLabel(){
+  if(typeof ens==='undefined'||!ens||!ens.people||!ens.people.length) return '单人';
+  const eff=Math.min(expertN, ens.people.length);
+  if(eff<2) return '单人';
+  if(ens.active<0) return '合并（'+eff+' 份）';
+  const p=ens.people[ens.active];
+  return p?p.name:'单人';
+}
+function renderCfgSrc(){
+  const box=document.getElementById('cfgSrcBar'); if(!box) return;
+  if(viewMode!=='config'||docPg){ box.innerHTML=''; return; }
+  const act='<div class="sp"></div>'
+    +'<button class="btn sm" onclick="cfgFillDefault()">未定档的取现状档</button>';
+  if(expertN<2){
+    box.innerHTML='<div class="cfgsrc"><span>打分来源</span><b>单人</b>'+act+'</div>';
+    return;
+  }
+  const eff=cfgEffN();
+  if(eff<2){
+    box.innerHTML='<div class="cfgsrc"><span>打分来源</span><b>多人（还没建立矩阵）</b>'
+      +'<button class="btn sm" onclick="openResearch(); cur=3; render();">去第 4 步建立</button>'+act+'</div>';
+    return;
+  }
+  let opts='';
+  for(let i=0;i<eff;i++)
+    opts+='<option value="'+i+'"'+(ens.active===i?' selected':'')+'>'+attrEsc(ens.people[i].name)+'</option>';
+  opts+='<option value="-1"'+(ens.active<0?' selected':'')+(ens.merged?'':' disabled')+'>'
+    +'合并结果'+(ens.merged?'':'（还没合并）')+'</option>';
+  box.innerHTML='<div class="cfgsrc"><span>打分来源</span><b>'+eff+' 份</b>'
+    +'<select class="txt" onchange="cfgSetSrc(this.value)">'+opts+'</select>'
+    +'<span class="cfgsrc-hint">'+(ens.active<0?'按合并后的矩阵算':'只按这一位的矩阵算')+'</span>'+act+'</div>';
+}
+function cfgSetSrc(v){
+  const i=parseInt(v,10); if(isNaN(i)) return;
+  setPerson(i);
+  render();
+}
 function renderConfigSetting(){
   if(viewMode!=='config'||docPg) return;
   const stp=document.getElementById('cfgStepper1'); if(stp) stp.innerHTML=cfgStepper(1);
@@ -4712,12 +4839,16 @@ function renderConfigSetting(){
   const mid=cfgMidInfo();
   const part2=cfgParticipation(inputs);
   if(stat){
-    const enough=(mid.ratio<=0.5);
+    /* "够不够"看的是本次参与的对有没有判完，不是默认档占比：
+       0 对判断却显示"够"会直接把用户送进闸门。 */
+    const enough=(part2.unjudged.length===0);
     const tip='已选 '+chosen.length+' 条政策，需要确认 '+inputs.length+' 个变量。'
       +'判断矩阵本次参与变量之间有 '+part2.judged+' 条判断（共 '+part2.pairN+' 对）。'
-      +'默认档占比 '+Math.round(mid.ratio*100)+'%（'+mid.n+' / '+mid.t+'）。'
+      +'三档变量里取默认档的占比 '+Math.round(mid.ratio*100)+'%（'+mid.n+' / '+mid.t+'）。'
       +'默认档不参与判定。';
-    stat.innerHTML='<div class="cfgstatline">'
+    /* 类名必须与 styles.css 的 .cfg-statline 一致：原先写成 cfgstatline，
+       第 2 步这条统计一直没吃到样式，每项各占一行。2026-10-29 修。 */
+    stat.innerHTML='<div class="cfg-statline">'
       +'<span class="kv"><span>本次参与</span><span>'+part2.pairN+' 对，已判 '+part2.judged+' 对</span></span>'
       +'<span class="kv"><span>需要确认的变量</span><span>'+inputs.length+' 个</span></span>'
       +'<span class="kv"><span>判断是否够用</span><span class="tip" tabindex="0" data-tip="'+attrEsc(tip)+'">'
@@ -4734,19 +4865,26 @@ function renderConfigSetting(){
       const d=dOf(nm)||{}, sts=ST(nm), pick=cfgFinalOf(nm);
       const ms=cov[nm]||[], conf=cfgBestConf(ms.map(o=>o.m));
       const claim=cfgClaim[nm]||'未指定', touched=!!cfgTouched[nm];
+      const sug=cfgSuggest[nm]||'', isDef=!!cfgDefault[nm];
       const tip=attrEsc('类型：'+(d.t||'—')+'；依据强度：'+(conf||'—')
         +'；政策主张：'+claim+'；影响这条变量的政策：'+(ms.map(o=>o.p.n).join('、')||'—')
-        +'。'+(touched?'档位由人工设定。':'档位待确认。')+cfgWhyText(claim,pick,touched,conf));
+        +'。'+(isDef?'取的是现状档（默认，可改）。':(touched?'档位由人工设定。':'档位待确认。'))
+        +cfgWhyText(claim,pick,touched,conf));
       const scope=(sts.length===1?'1 档':('全部档位（'+sts.length+' 档）'));
       h+='<div class="cfgrow">'
         +'<div class="cfgr1"><b class="tip" tabindex="0" data-tip="'+tip+'">'+attrEsc(nm)+'</b>'
         +'<span class="cfgnum">范围：'+attrEsc(scope)+'</span>'
+        +(isDef?'<span class="cfgtag d">取现状</span>':'')
         +'</div>'
         +'<div class="cfgctl">'
-        +'<label class="cfgf"><span>最终档</span><select class="txt" onchange="cfgSetPick(\''+nm+'\',this.selectedIndex)">'
+        +'<label class="cfgf"><span>政策主张</span><select class="txt" onchange="cfgSetClaim(\''+nm+'\',this.value)">'
+        +CFG_CLAIMS.map(v=>'<option value="'+v+'"'+(claim===v?' selected':'')+'>'+v+'</option>').join('')
+        +'</select></label>'
+        +'<label class="cfgf"><span>最终档</span><select class="txt" onchange="cfgSetPick(\''+nm+'\',this.value)">'
         +'<option value="-1"'+(pick?'':' selected')+'>— 请选择 —</option>'
         +sts.map((s,i)=>'<option value="'+i+'"'+(s===pick?' selected':'')+'>'+attrEsc(s)+'</option>').join('')
         +'</select></label>'
+        +(sug&&sug!==pick?'<button class="btn sm" onclick="cfgAdoptSuggest(\''+nm+'\')">按主张取「'+attrEsc(sug)+'」</button>':'')
         +'</div></div>';
     });
     const cold=allDescs().filter(x=>!cov[x.n]&&x.t!=='结果型');
@@ -4848,7 +4986,8 @@ function cfgRun(){
   inputs.forEach(nm=>{ const s=cfgFinalOf(nm); if(s){ pick[nm]=s; } else undecided.push(nm); });
   if(undecided.length){ cfgNotice='还有 '+undecided.length+' 个变量没定档'; cfgStep=1; viewMode='config'; docPg=''; render(); return; }
   cimResult=null; BAYES=null; layeredResult=null; corrResult=null; profResult=null;
-  cfgRunInfo={ts:nowStr(), mid:cfgMidInfo(), scored:cfgJudgedIn(inputs), nPol:chosen.length, pick:pick};
+  cfgRunInfo={ts:nowStr(), mid:cfgMidInfo(), scored:cfgJudgedIn(inputs), nPol:chosen.length, pick:pick,
+    src:cfgSrcLabel(), defN:inputs.filter(nm=>!!cfgDefault[nm]).length, nIn:inputs.length};
   cfgStep=2; viewMode='config'; docPg='';
   if(cfgRunInfo.scored&&prepErr(inputs)===null) runCIM(inputs, pick);
   else cimResult=null;
@@ -4893,6 +5032,11 @@ function cfgGotoFillMissing(g){
   const pairs=(part.unjudged||[]).slice();
   cfgFillMissing=pairs;
   openResearch();
+  /* 合并结果是一份只读的"结论矩阵"，不能拿它当草稿补判断：先落到某位专家再填。 */
+  if(ens&&ens.active<0&&ens.people&&ens.people.length){
+    setPerson(0);
+    toast('已切到「'+ens.people[0].name+'」填写；合并结果不能直接改');
+  }
   /* 把本次参与变量带进研究模式：只靠 openResearch 时 sel.desc 还是空的，
      第 5 步的矩阵一片空白，等于让用户到第 3 步重勾一遍。空 states＝全档，不设限。 */
   cfgSyncToResearch();
@@ -4909,7 +5053,7 @@ function cfgEdgeHTML(){
     +'判断矩阵来源：研究模式下的人工与 AI 判断，本次参与变量之间有 '+judged+' 条。'
     +(cimResult?(bad?('参与组合里还有 '+bad+' 条判断没有填写——留空是还没查，不等于没关系，平台不会把它当成 0。')
                 :'参与组合的判断没有空格。'):'')
-    +'默认档：本次 '+mid.t+' 个参与变量里有 '+mid.n+' 个的上游变量全部落在默认档，本版判断不出它们该取哪一档。'
+    +'默认档：本次 '+mid.t+' 个三档变量里有 '+mid.n+' 个的上游变量全部落在默认档，本版判断不出它们该取哪一档。'
     +(mid.list&&mid.list.length?('（'+mid.list.join('、')+'）'):'');
   return '<div class="ptnote" style="margin-top:12px;">这些结果是当前判断下的自洽范围，'
     +'<span class="tip" tabindex="0" data-tip="'+attrEsc(tip)+'">怎么读</span>。</div>';
@@ -4943,12 +5087,15 @@ function renderConfigResult(){
         +'</div>'+cfgEdgeHTML();
     }else{
       const gWeak=(cfgGateInfo&&cfgGateInfo.weak)||(r.checked>0&&r.count/r.checked>=0.999);
-      sum.innerHTML=kv('参与检验的变量', r.ds.length+' 个')
+      sum.innerHTML=kv('判断来源', cfgRunInfo.src
+          +((cfgRunInfo.src!=='单人'&&cfgRunInfo.src.indexOf('合并')<0)?'（尚未合并）':''))
+        +(cfgRunInfo.defN?kv('取现状档的变量', cfgRunInfo.defN+' / '+cfgRunInfo.nIn+' 个'):'')
+        +kv('参与检验的变量', r.ds.length+' 个')
         +kv('组合空间', r.space.toLocaleString()+' 种')
         +kv('本次检查', r.sampled?('抽查 '+r.checked.toLocaleString()+' 种（本次检验了其中一部分，结果是下限）')
                               :(r.checked.toLocaleString()+' 种，全部穷举'))
         +kv('互不冲突的设定', '<b>'+r.count+(r.count>=r.consistent.length&&r.consistent.length>=200?'+':'')+' 组</b>')
-        +kv('取到中档的变量', mid.n+' / '+mid.t+' 个')
+        +kv('判断不出取哪一档的变量', mid.n+' / '+mid.t+' 个（三档）')
         +(gWeak?('<div class="note" style="margin-top:12px;"><b>警示：</b>本次检算里 '
           +Math.round(r.count/(r.checked||1)*1000)/10+'% 的组合都自洽，这套判断筛掉的不多，结果区分度有限。</div>'):'')
         +(mid.list&&mid.list.length?('<div class="note" style="margin-top:12px;"><b>这几个变量的上游变量全落默认档，本版判断不出它们该取哪一档：</b><br>'
@@ -5392,6 +5539,9 @@ function resetCim(){ clearCim(); cimSelKey=null; toast('已清空打分矩阵');
 function pickCell(s,t){ cimSelKey=s+'>'+t; renderCim(); }
 function setV(v){
   if(!cimSelKey) return;
+  /* 合并矩阵是各专家 + 裁定算出来的结果，不能当草稿改：直接写会绕过 ensMerge，
+     而且界面上看不出"这一格是谁改的"。要改先落到某位专家。 */
+  if(ens&&ens.active<0){ toast('合并结果不能直接改：先在上方切到某位专家'); return; }
   if(!cim[cimSelKey]) cim[cimSelKey]={v:v,conf:'中',why:'',rev:false};   // 首次打分才算「已填」
   else { cim[cimSelKey].v=v; delete cim[cimSelKey].ai; }
   cimResult=null; BAYES=null; renderCim();
@@ -5404,6 +5554,7 @@ function setWhy(w){ if(cimSelKey&&cim[cimSelKey]){ cim[cimSelKey].why=w; } }
 function toggleRev(){ if(cimSelKey&&cim[cimSelKey]){ cim[cimSelKey].rev=!cim[cimSelKey].rev; renderCim(); } }
 function clearCell(){
   if(!cimSelKey) return;
+  if(ens&&ens.active<0){ toast('合并结果不能直接清：先在上方切到某位专家'); return; }
   delete cim[cimSelKey]; cimResult=null; BAYES=null;
   corrResult=null; profResult=null; layeredResult=null;
   renderCim(); toast('已清空这一格，回到「未判断」');
@@ -5986,12 +6137,13 @@ let ens=null;    // {people:[{name, cim}], active(-1 表示看合并结果), mer
 let ensRes={};   // 人工裁定记录：条目 -> 取值
 
 function buildEns(){
-  if(expertN<2){ toast('先在「校验方式」里把专家数设为 2 或 3'); return; }
-  const names=[]; for(let i=0;i<expertN;i++) names.push('专家 '+String.fromCharCode(65+i));
+  if(expertN<2){ toast('先在「校验方式」里选多人独立打分，人数设为 2 人以上'); return; }
+  const n=Math.max(2,Math.min(9,expertN));   // 命名用 A..I，超过 9 人 fromCharCode 会出乱码
+  const names=[]; for(let i=0;i<n;i++) names.push('专家 '+String.fromCharCode(65+i));
   ens={people:names.map((nm,i)=>({name:nm, cim:i===0?cim:{}})), active:0, merged:null};
   ensRes={};
   render();
-  toast('已建立 '+expertN+' 份独立矩阵，可在下一步分人打分');
+  toast('已建立 '+n+' 份独立矩阵，可在下一步分人打分');
 }
 function dropEns(){ ens=null; ensRes={}; render(); toast('已退出多专家模式'); }
 function setPerson(i){
@@ -7355,6 +7507,7 @@ function renderBayes(){
    已有情景需要重新检验；省略 = 不动结果（只改界面、措辞、性能或新增旁路分析）。
    与 git 提交对应；此处只列入对外可讲、能被核对的事项。 */
 const CHANGELOG=[
+ {d:'2026-10-29',k:'功能',x:'「选政策」接上力度：人数可填、主张给建议档、未定档一键取现状',y:'配置模式原先只做了筛选——选政策决定这次评估包含哪几条工具、哪几个变量参与，却不决定任何一个变量的取值；真正喂给 CIB 的档位全靠人一行行手点，5 个变量点 5 次、15 个点 15 次。而 v1.6.0 瘦身时又把「政策主张」下拉一起删了，cfgSetClaim 成了没有调用点的死函数，界面上只剩一句永远显示"未指定"的悬停文字。本批把这条链接回来：① 每行恢复政策主张（提高/维持/降低/未指定），选了只产生一条建议档（提高→首档、维持→基准档、降低→末档），点「按主张取」才落档——不自动填，避免用户没看就把未确认的档位写进结果。② 新增「未定档的取现状档」，一次把空档填成现状档并标「取现状」，已人工定过的不覆盖；现状档依据是 19 个描述符的状态数组一律「强→弱」排列，st[1] 在每个变量上都读作现行／目标节奏／维持。③ 基准档统一成 cfgBaseOf=st[1]：旧算法 floor((len-1)/2) 对两档变量取到 st[0]（最强档），会把「短流程为主」「含工程化移除」当成基准，结果页于是指着取最强档的变量说"取到中档"；cfgMidInfo 改为只统计三档变量。④ 专家人数从写死的 1/2/3 改成 2–9 任意填（第 4 步两张卡合成「多人独立打分」+ 步进器），配置模式加「打分来源」一行，可切专家或合并结果；有效份数取 min(人数设置, 已建份数)，不把没建立的份数算成专家人数。⑤ 结果摘要、参数表、结构化表、后验表、叙事都写明判断来源；合并矩阵改为只读（setV/clearCell 拒写），去补前自动切到专家 A。⑥ 档位下拉从 selectedIndex 改按 value 取档——第一项是「请选择」占位，原先选第一档会存成第二档。⑦ 三步页首各一句语义，首页两个入口改为「评估一套政策组合」「做方法验证（7 步）」；第 2 步统计条类名 cfgstatline→cfg-statline，此前一直没吃到样式。不动打分、区间与枚举，expandV 未改。'},
  {d:'2026-10-29',k:'体验',x:'模式来回切不再回到第一步，一键去补把参与变量直接带进研究模式',y:'两个毛病都出在入口函数把状态清零。openConfig 原先每次都写 cfgStep=0、openResearch 每次都写 cur=0，于是顶部导航来回一按就回到第一步，得重新翻；现在两个入口都不再重置，只有配置模式一条政策都没选时才回第一步。另一个更麻烦：在配置第 2 步点「一键去补这几对」只做了 openResearch 加 cur=4，参与变量从来没写进 sel.desc（配置模式的参与集是 cfgInputNames 按选中的政策现算的，不落库），所以跳到研究模式后第 5 步矩阵一片「等待描述符选择」，用户还得回第 3 步把变量重新勾一遍。现在去补前先 cfgSyncToResearch 把本次参与变量写进 sel.desc 并重设研究基线，带进去的是全档范围（空 states）、不预设档位、不写打分；研究模式里改档仍按原来的单向合并回配置。不动打分、区间与枚举。'},
  {d:'2026-10-29',k:'功能',x:'情景配置主路径打通：范围不再塌成一组、闸门有出口、生成方式搬进结果页',y:'配置模式原先先按多档范围过闸门，再同步到研究模式，同步时又把每个变量写成单档，导致结果页同时印「组合空间 243 种」与「本次检查 1 种」。现在顺序改成：参与集不足两个先拦，再存研究模式快照，再按原范围同步（空 states 就是全档，不再写单档），过闸门，最后只跑本次参与集。组合空间读枚举内核的 space，本次检查读 checked，互不冲突的设定读 count——都取真实枚举结果，不读有 200 组上限的自洽集合长度。闸门降级：两两之间一条判断都没有、或某变量各档累计影响恒定才拦；本次几乎全部自洽（自洽数/检查数不小于 0.999）只出结果并警示「这套判断筛掉的不多」，不再拦住。缺判断时闸门给「一键去补这几对」，点了直接进研究模式的判断步。第二步顶栏常驻「本次参与 X 对，已判 Y 对」和同一入口。第一步覆盖变量不足两个时标红。生成方式四选一（结构化参数表/叙事/模型配置/贝叶斯）搬进配置结果页，paramsCSV 与 tableCSV 两个 csv 入口合并成一个主按钮，取档方式下界/中点/上界独立成下拉。「按政策库载入相关变量」把政策库命中的非结果型变量加进本次参与集（15 个），只写来源与依据强度并标「档位待确认」，不写 states、不把政策库第二位当档位，已划范围不被覆盖；四种导出与叙事只覆盖本次参与集，不再把载入的 15 个变量写成本情景的 15 个描述符。确认设定页瘦身：每行可见只留变量名与最终档，类型、依据强度、政策主张、影响它的政策进悬停。词表统一：映射把握→依据强度、入边源变量→上游变量、判定力→判断完整性、按基准档→默认档。'},
  {d:'2026-10-29',k:'口径',x:'检算口径统一：贝叶斯只做导出与不确定性展示，不进检算',y:'交叉影响取值只有一条路：状态级精判 st 优先，其余按 expandV 展开。原先开了贝叶斯时，impactVal 会用后验均值矩阵顶掉整条打分——后验矩阵只有一个描述符级数、同一对变量下所有档位对拿到同一个数，等于把档位梯度压平。现删掉这条分支，检算统一走 expandV 加状态级精判；贝叶斯保留在后验导出与不确定性展示。连带把 test_bayes.js 的断言与 README 的旧说法改过来。'},
@@ -7850,6 +8003,19 @@ const VERSIONS=[
     ,'「一键去补这几对」把本次参与变量先同步进研究模式再跳第 5 步：原先 sel.desc 是空的，矩阵一片空白，用户还得回第 3 步重勾一遍描述符'
     ,'同步进来的是全档范围（空 states），不预设档位、不写打分；研究模式里改档仍按原单向合并回配置'
    ]}
+  ,{v:'v1.7.0',d:'2026-10-29',tag:'',sum:'"选政策"接上力度：人数可填、主张给建议档、未定档一键取现状；两档变量基准档修正',ev:'本批提交',
+   items:[
+    '专家人数改为 2–9 任意填：第 4 步两张卡合成「多人独立打分」+ 步进器，改人数不重建矩阵；命名固定 专家 A–I'
+    ,'情景配置第 2 步加「打分来源」：单人 / N 份｜当前专家 / 合并结果，可直接切换；有效份数取 min(人数设置, 已建份数)，不把没建立的份数算成专家人数'
+    ,'结果摘要、参数表、结构化表、贝叶斯表与叙事都写明判断来源；某位专家的单人结果未合并时会标注「尚未合并」'
+    ,'合并矩阵改为只读：setV / clearCell 在合并态拒写，去补前自动切到专家 A，不再让合并结果被手工污染'
+    ,'恢复「政策主张」并接上档位：提高→首档、维持→基准档、降低→末档，先给建议、点「按主张取」才落档；未选主张不产生建议'
+    ,'新增「未定档的取现状档」：一次把空档填成现状档并标「取现状」，已人工定过的档不被覆盖'
+    ,'基准档统一为 cfgBaseOf=st[1]：旧算法对两档变量取 st[0]，会把「短流程为主」「含工程化移除」当成基准档；cfgMidInfo 只统计三档变量'
+    ,'档位下拉从 selectedIndex 改为按 value 取档：原先第一项是「请选择」占位，选第一档会存成第二档'
+    ,'三步页首各一句语义（选工具 / 定档位 / 判自洽），首页两个入口改为「评估一套政策组合」「做方法验证（7 步）」'
+    ,'第 2 步统计条类名从 cfgstatline 改为 cfg-statline，此前一直没吃到样式、每项各占一行'
+   ]}
 ];
 /* 当前版本号只有一个来源：VERSIONS 的最后一条（数组按时间从旧到新排列）。
    2026-10-25 修：关于框里原先写死 v1.4，平台发到 v1.5.7 之后它还在对外显示旧版号。 */
@@ -7964,6 +8130,7 @@ function p6Status(){
 
 /* ================= 主渲染 ================= */
 function render(){
+  syncExpCard();
   renderSteps(); renderCmp(); layerTable(); renderTree(); renderStates();
   expDetail(); renderEnsBox(); scaleSum(); renderPolicy();
   renderCim(); renderEnsBar(); modelDetail(); renderScopeBar(); checkResult(); renderLay(); renderFilt();
@@ -7974,7 +8141,7 @@ function render(){
   finalSum();
   renderChangelog();
   p6Apply(); p6Status();
-  renderConfigPolicy(); renderConfigSetting(); renderConfigResult();
+  renderConfigPolicy(); renderCfgSrc(); renderConfigSetting(); renderConfigResult();
 
   const isResearch=viewMode==='research'&&!docPg;
   const isConfig=viewMode==='config'&&!docPg;

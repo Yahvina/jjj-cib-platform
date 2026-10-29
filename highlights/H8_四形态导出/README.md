@@ -6,7 +6,7 @@
 
 ## 代码位置（v1.5 工作副本）
 
-- HTML：`_src/v15/index.html` 第 382–387 行
+- HTML：`_src/v15/index.html` 第 383–388 行
 - 逻辑：`_src/v15/src/app.js`
 
 | 函数／常量 | 行号 |
@@ -20,27 +20,27 @@
 | `multiPickNote` | 1692–1698 |
 | `csvCell` | 1699–1702 |
 | `paramOf` | 1655–1658 |
-| `paramsCSV` | 1736–1752 |
-| `setExpMode` | 1754–1754 |
-| `downloadParams` | 1753–1753 |
-| `downloadParamsBtn` | 1939–1939 |
-| `narrText` | 1757–1776 |
-| `bayesCSV` | 1777–1796 |
-| `curScenInfo` | 1801–1812 |
-| `tableCSV` | 1813–1836 |
-| `genMain` | 1837–1843 |
-| `genMainLabel` | 1844–1850 |
-| `genSubHTML` | 1851–1864 |
-| `renderOutBtns` | 1866–1869 |
-| `syncGenOpts` | 1871–1879 |
-| `renderGenOut` | 1880–1904 |
+| `paramsCSV` | 1736–1753 |
+| `setExpMode` | 1755–1755 |
+| `downloadParams` | 1754–1754 |
+| `downloadParamsBtn` | 1943–1943 |
+| `narrText` | 1758–1778 |
+| `bayesCSV` | 1779–1799 |
+| `curScenInfo` | 1804–1815 |
+| `tableCSV` | 1816–1840 |
+| `genMain` | 1841–1847 |
+| `genMainLabel` | 1848–1854 |
+| `genSubHTML` | 1855–1868 |
+| `renderOutBtns` | 1870–1873 |
+| `syncGenOpts` | 1875–1883 |
+| `renderGenOut` | 1884–1908 |
 | `preview` | 1703–1735 |
-| `xmlTag` | 1905–1921 |
-| `xmlFile` | 1922–1937 |
-| `download` | 1938–1938 |
-| `downloadAll` | 1940–1953 |
-| `dl` | 1954–1960 |
-| `fmtTag` | 1961–1961 |
+| `xmlTag` | 1909–1925 |
+| `xmlFile` | 1926–1941 |
+| `download` | 1942–1942 |
+| `downloadAll` | 1944–1957 |
+| `dl` | 1958–1964 |
+| `fmtTag` | 1965–1965 |
 | `fmtNum` | 286–290 |
 
 - 样式：本目录 `style.css`（摘录）；完整样式表见 `../_shared/base.css`
@@ -60,10 +60,10 @@
 
 ## 目录外的函数依赖
 
-本模块还调用了 9 个**没有随本目录切出**的辅助函数，直接拷走本目录跑不起来；
+本模块还调用了 10 个**没有随本目录切出**的辅助函数，直接拷走本目录跑不起来；
 要跑请用完整平台，或连同下列调用一起取：
 
-`ST`　`checkSelected`　`computeBayes`　`dOf`　`defsOf`　`expNames`　`nowStr`　`selIdxOf`　`unknown`
+`ST`　`cfgSrcLabel`　`checkSelected`　`computeBayes`　`dOf`　`defsOf`　`expNames`　`nowStr`　`selIdxOf`　`unknown`
 
 ## 复用方式
 

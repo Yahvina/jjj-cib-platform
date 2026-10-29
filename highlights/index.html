@@ -81,7 +81,7 @@ code{font-family:ui-monospace,Consolas,monospace;background:var(--line2);padding
     <div class="hd"><span class="no">H5</span><span class="nm">自洽情景的判断链</span></div>
     <p class="need">不能只给一个「自洽 12 组」的数字，得能一路点到某条判断为什么这么打。</p>
     <p class="why">回应「评分要有过程」。枚举状态组合（组合数超 20 万自动改固定种子抽样），逐组算每个状态的影响平衡值——它从其余状态承受到的总量，加粗者是本情景选定状态，▲ 是该描述符的最高分。选定状态是自己的影响平衡值里最高的那一项，且组合内无冲突，才判自洽。展开任一情景能看到它由哪些档位组成、逐条影响各打了几分、以及为什么判自洽。</p>
-    <div class="loc">_src/v15/index.html 第 337–339、344–347 行　·　app.js 里 26 个声明</div>
+    <div class="loc">_src/v15/index.html 第 338–340、345–348 行　·　app.js 里 26 个声明</div>
     <div class="files"><span>fragment.html</span><span>logic.js</span><span>style.css</span><span>README.md</span></div>
   </div>
 
@@ -89,7 +89,7 @@ code{font-family:ui-monospace,Consolas,monospace;background:var(--line2);padding
     <div class="hd"><span class="no">H6</span><span class="nm">矛盾组合与处理建议（闭环）</span></div>
     <p class="need">发现了矛盾还得能闭环，否则只是个报错框。</p>
     <p class="why">不只报矛盾，还要说清「为什么矛盾」「改成什么就不矛盾」「采纳后重跑」。v1.5 起不再只看用户选中的那几个档位，而是过所有描述符对，列出全部互斥对（上限 40 对，超出会标注已截断），另单列「孤立档位」。两者不同义：孤立档位是它自己站不住（任何自洽情景里都没出现），互斥对是两档各自都行、凑一起不行。建议是算出来的——从自洽集里找与其中一边共存过的另一档，点一下就真的改状态并重跑。</p>
-    <div class="loc">_src/v15/index.html 第 349–352 行　·　app.js 里 9 个声明</div>
+    <div class="loc">_src/v15/index.html 第 350–353 行　·　app.js 里 9 个声明</div>
     <div class="files"><span>fragment.html</span><span>logic.js</span><span>style.css</span><span>README.md</span></div>
   </div>
 
@@ -97,7 +97,7 @@ code{font-family:ui-monospace,Consolas,monospace;background:var(--line2);padding
     <div class="hd"><span class="no">H7</span><span class="nm">逐层求解（下沉为折叠段）</span></div>
     <p class="need">国家级、区域级、省级是嵌套的，下层取值必须真的受上层约束。</p>
     <p class="why">让跨层约束真正进入求解，而不只是事后比对。上级解出的每个自洽情景，其取值转成下级的约束：下级与它区间不相交的状态根本进不了枚举。上级定「目标节奏20–30%」，下级「快速清洁化 30–40%」就不会被算到。上级某情景若让下级完全无解，会单独计数——那不是程序出错，那就是结论。v1.5 把它的入口从常驻卡片改成默认收起的折叠段：不勾多层时整段不出现，能力一点没少。组合是否自洽只取决于组合自身，所以整层只判一次（25 万次预算，小空间精确、大空间固定种子抽样），再按各组允许集归桶筛选。</p>
-    <div class="loc">_src/v15/index.html 第 340–343 行　·　app.js 里 14 个声明</div>
+    <div class="loc">_src/v15/index.html 第 341–344 行　·　app.js 里 14 个声明</div>
     <div class="files"><span>fragment.html</span><span>logic.js</span><span>style.css</span><span>README.md</span></div>
   </div>
 
@@ -105,7 +105,7 @@ code{font-family:ui-monospace,Consolas,monospace;background:var(--line2);padding
     <div class="hd"><span class="no">H8</span><span class="nm">四种形态的导出（配置／参数表／叙事／后验）</span></div>
     <p class="need">求出来的自洽情景要能真的落到下游模型里，且不能把耦合拆散。</p>
     <p class="why">导出不是一个格式，是四种用途：模型配置文件（GCAM 真实 ScenarioComponents 结构、真实文件名；CHEER 侧标注 CSV→GDX 的转换路径）、结构化参数表、定性叙事稿、贝叶斯后验表。参数表带情景号（scenario,param,value）——CIB 求出的是一组互相咬合的自洽组合，导成一行一个参数等于把耦合又拆回独立参数，下游按行取值会读出彼此矛盾的组合。装配文件不确定的描述符会明确标注需人工补齐，不静默兜底。</p>
-    <div class="loc">_src/v15/index.html 第 382–387 行　·　app.js 里 31 个声明</div>
+    <div class="loc">_src/v15/index.html 第 383–388 行　·　app.js 里 31 个声明</div>
     <div class="files"><span>fragment.html</span><span>logic.js</span><span>style.css</span><span>README.md</span></div>
   </div>
 

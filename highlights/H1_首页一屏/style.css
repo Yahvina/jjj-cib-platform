@@ -37,6 +37,8 @@ body.wizard .footbar{left:0;}
 
 body.wizard .steps{display:none;}
 
+.cfgsrc .sp{flex:1;}
+
 /* ================= 首页（概览入口） ================= */
 .hero{padding:8px 0 0;}
 

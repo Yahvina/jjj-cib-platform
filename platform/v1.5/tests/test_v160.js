@@ -105,17 +105,23 @@ inputs5.forEach(nm=>{ cfgPick[nm]=cfgMidOf(nm); });
 cim={};
 inputs5.forEach(a=>inputs5.forEach(b=>{ if(a!==b) cim[a+'>'+b]={v:1,conf:'中',why:'',rev:false}; }));
 const mid=cfgMidInfo();
-chk(mid.t === inputs5.length, '本次参与变量全部进入中档统计', mid.n + ' / ' + mid.t);
-chk(mid.list.length === inputs5.length, '每条入边源全落中档的变量都被列出', mid.list.join('/'));
+const tri5=inputs5.filter(nm=>ST(nm).length>=3);
+chk(mid.t === tri5.length, '只有三档变量进入默认档统计（两档没有中档）',
+  mid.n + ' / ' + mid.t + '（参与 ' + inputs5.length + '）');
+chk(mid.list.length === tri5.length, '上游变量全落默认档的三档变量都被列出', mid.list.join('/'));
 // 把某一源变量挪开中档，它的目标就不该算中档
 const tgt=inputs5[0], src=inputs5.find(o=>o!==inputs5[0]);
 cfgPick[src]=ST(src)[0]===cfgMidOf(src)?ST(src)[ST(src).length-1]:ST(src)[0];
 const mid2=cfgMidInfo();
 chk(mid2.list.indexOf(tgt)<0, '源变量离开中档后目标不算中档：'+tgt, mid2.list.join('/'));
-// 两态变量也进统计（钢铁工艺路线/碳移除规模）
+// 两态变量没有中档，不进默认档统计；但它的基准档必须是"现状档"（st[1]），不是最强档
 const two5=allDescs().map(d=>d.n).filter(nm=>ST(nm).length===2&&dOf(nm)&&dOf(nm).t!=='结果型');
-chk(two5.length>=1, '两态变量存在且可进中档统计', two5.join('/'));
-chk(typeof cfgMidOf === 'function' && cfgMidOf(two5[0]) === ST(two5[0])[0], '两态变量的基准档有定义：'+two5[0]);chk(code_has_expandV, 'expandV 仍在（未删）');
+chk(two5.length>=1, '两态变量存在', two5.join('/'));
+chk(typeof cfgBaseOf === 'function' && cfgBaseOf(two5[0]) === ST(two5[0])[1],
+  '两态变量的基准档是现状档：'+two5[0], cfgBaseOf(two5[0]));
+chk(cfgBaseOf(two5[0]) !== ST(two5[0])[0], '两态变量的基准档不是首档（旧算法会取到最强档）');
+chk(typeof cfgMidOf === 'function' && cfgMidOf(two5[0]) === cfgBaseOf(two5[0]), 'cfgMidOf 与 cfgBaseOf 同口径：'+two5[0]);
+chk(code_has_expandV, 'expandV 仍在（未删）');
 
 console.log();
 console.log('=== 6. 区间口径不筛政策 ===');

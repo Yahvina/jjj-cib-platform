@@ -42,6 +42,8 @@
 
 .rail-foot .btn{width:100%;justify-content:center;}
 
+.expstep .btn{padding:1px 8px;line-height:1.4;}
+
 .cta .btn{height:40px;padding:0 22px;font-size:15px;}
 
 .btn.danger{color:var(--rd);border-color:var(--rd-b);}

@@ -60,6 +60,7 @@ function paramOf(d){
 function paramsCSV(){
   const rows=expRows();
   let s='# 参数表 · 平台自动生成\n';
+  s+='# 判断来源：'+cfgSrcLabel()+'\n';
   s+='# 取档方式：'+expLabel()+'；值只覆盖 2035 锚点，2025/2030 需按政策里程碑插值\n';
   s+='descriptor,param,scope,year,value,low,high,unit,state,evidence,note\n';
   rows.forEach(r=>{
@@ -86,7 +87,8 @@ function narrText(){
   if(!rows.length) return '（还没有选描述符）';
   const sc=rows.map(r=>r.state).filter(Boolean);
   const note=multiPickNote();
-  let s='【情景特征】\n本情景在'+rows.length+'个描述符上取了'+sc.length+'档，构成一组自洽的政策情景假设。\n\n';
+  let s='【情景特征】\n本情景在'+rows.length+'个描述符上取了'+sc.length+'档，构成一组自洽的政策情景假设。'
+    +'判断来自：'+cfgSrcLabel()+'。\n\n';
   if(note) s+='【注意】'+note.replace(/<[^>]+>/g,'')+'\n\n';
   s+='【逐项特征】\n';
   rows.forEach(r=>{
@@ -113,6 +115,7 @@ function bayesCSV(){
     return names.indexOf(k.slice(0,i))>=0 && names.indexOf(k.slice(i+1))>=0;
   }):all;
   let s='# 贝叶斯后验 · 每条判断的后验分布\n';
+  s+='# 判断来源：'+cfgSrcLabel()+'\n';
   s+='# 先验 N(0, '+2.2+'²)，按置信度给噪声（高 .55 / 中 .85 / 低 1.25），网格积分得后验\n';
   s+='pair,observations,posterior_mean,sd,p05,p95,width,p_promote,p_suppress,p_flat\n';
   keys.forEach(k=>{
@@ -140,6 +143,7 @@ function tableCSV(){
   const rows=expRows();
   const info=curScenInfo();
   let s='# 结构化参数表 · 平台自动生成\n';
+  s+='# 判断来源：'+cfgSrcLabel()+'\n';
   s+='# 取档方式：'+expLabel()+'；值只覆盖 2035 锚点\n';
   s+='# 同一 scenario 内的参数构成一组自洽组合；跨 scenario 混用会破坏一致性。\n';
   if(info){
