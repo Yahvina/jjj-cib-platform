@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>京津冀政策情景快速评估平台 · 原型 v1.8.0</title>
+<title>京津冀政策情景快速评估平台 · 原型 v1.8.1</title>
   <style>
 :root{
   /* 冷灰科研纸（v1.8 起）：画布 95 / 卡片 100 / 井 90，卡片浮在画布之上。
@@ -1496,6 +1496,13 @@ body.wizard .steps,.steps{background:var(--dark-2);border-right:1px solid #141B2
 .steps .rail-foot .btn:hover{color:#fff;border-bottom-color:#fff;}
 .steps .rail-foot .btn.pri{background:#5B9BE0;color:#0E141A;border:0;}
 .steps .rail-foot .btn.pri:hover{background:#7FB3EC;color:#0E141A;}
+
+/* 左轨：内容顶到上、出口贴到底，中间是留白而不是"空了一块" */
+body.wizard .steps,.steps{display:flex;flex-direction:column;}
+.steps .rail-foot{margin-top:auto;padding-bottom:6px;}
+/* 深框与浅纸的交界加一条结构线，过渡不硬 */
+.topbar{border-bottom:2px solid var(--pri);}
+body.wizard .steps{border-right:1px solid #141B21;}
 
 </style>
 </head>
@@ -8271,6 +8278,13 @@ const VERSIONS=[
     ,'顶栏与左轨改深色（#1C252D / #2A343D），内容区保持浅纸，形成「深框 + 浅内容」；全站只有这一处深色结构'
     ,'结果摘要做成深色带（全站唯一深色内容块），「15 组」反白——治「整页没有一处暗、眼睛找不到落点」'
     ,'只改 styles.css（:root 重写 + 末尾追加覆盖层），index.html 与 app.js 零改动'
+   ]}
+  ,{v:'v1.8.1',d:'2026-10-29',tag:'',sum:'左轨补满：出口贴底、中间是留白；顶栏加一条结构线',ev:'本批提交',
+   items:[
+    '左轨改成纵向 flex，「去研究模式」「保存进度 / 回情景配置」这些出口用 margin-top:auto 贴到底部'
+    ,'原因：左轨从浅灰改成深色后，下半截原本看不见的空白露了出来，看着像「缺了一块」。让空白落在内容与出口之间，它就从「没画完」变成「留白」'
+    ,'顶栏底部换 2px 强调色细线，深框与浅纸的交界不再硬切'
+    ,'只改 styles.css，35/35 通过'
    ]}
 ];
 /* 当前版本号只有一个来源：VERSIONS 的最后一条（数组按时间从旧到新排列）。
