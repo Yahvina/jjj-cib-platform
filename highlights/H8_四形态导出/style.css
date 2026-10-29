@@ -2,24 +2,27 @@
    设计令牌（:root）永远带上；完整样式表见 ../_shared/base.css。 */
 
 :root{
-  /* 纸墨：暖白纸面 + 墨黑字 + 靛青结构色 + 赭石强调 */
-  --bg:#FBFAF7; --panel:#FFFFFF; --panel2:#F5F2EC;
-  --line:#E3DCD0; --line2:#EFEAE1;
-  --tx:#1B1A17; --tx2:#55504A; --tx3:#6E675D;
-  --pri:#2F4858; --pri-d:#22363F; --pri-s:#ECF0F2; --pri-b:#C3D0D6;
-  --ok:#2F4858; --ok-s:#ECF0F2; --ok-b:#C3D0D6;
-  --wn:#8C5A3C; --wn-s:#F7F0E8; --wn-b:#E2CDB9;
-  --rd:#9B3B2E; --rd-s:#F6EAE7; --rd-b:#DDB7AE;
-  /* CIB 双极色阶：靛（抑制）— 纸灰（无）— 赭（促进） */
-  --s-3:#1F5C7A; --s-2:#4C86A3; --s-1:#8FB3C7;
-  --s0:#EDEAE3;
-  --s1:#E2B79C; --s2:#CE8A62; --s3:#B0623A;
-  --r:4px; --r2:6px;
-  --sh:0 1px 1px rgba(27,26,23,.04);
-  --sh2:0 2px 6px rgba(27,26,23,.06);
-  --sh3:0 10px 30px rgba(27,26,23,.12);
+  /* 冷灰科研纸（v1.8 起）：画布 95 / 卡片 100 / 井 90，卡片浮在画布之上。
+     原来是暖米纸、三阶只差 3.8 个明度点，屏幕上分不出层次。 */
+  --bg:#EBEFF2; --panel:#FFFFFF; --panel2:#D9DFE3;
+  --line:#C5CBD0; --line2:#DDE2E6;
+  --tx:#080E13; --tx2:#242A2F; --tx3:#4E5358;
+  --pri:#1B589E; --pri-d:#003B7A; --pri-s:#DBE9FC; --pri-b:#A9C0DE;
+  --ok:#1B589E; --ok-s:#DBE9FC; --ok-b:#A9C0DE;
+  --wn:#713E1E; --wn-s:#F6E8DE; --wn-b:#DEBDA5;
+  --rd:#972F27; --rd-s:#F9EBE9; --rd-b:#E9BAB5;
+  /* CIB 双极色阶：蓝（抑制）— 纸灰（无）— 赭（促进），两侧同明度，只差色相 */
+  --s-3:#386CA0; --s-2:#608AB5; --s-1:#96AEC7;
+  --s0:#E1E5E8;
+  --s1:#C3A392; --s2:#AE785A; --s3:#965630;
+  --r:3px; --r2:5px;
+  --sh:0 1px 2px rgba(8,14,19,.06);
+  --sh2:0 2px 6px rgba(8,14,19,.08);
+  --sh3:0 10px 30px rgba(8,14,19,.14);
   --ease:cubic-bezier(.2,.7,.3,1);
   --warm:var(--wn);
+  /* 深色框架：全站唯一的重色，用在顶栏与结果摘要。没有它，整页只有一堆等重的浅色。 */
+  --dark:#1C252D; --dark-2:#2A343D; --dark-ink:#E6ECF2; --dark-ink2:#93A0AC;
 }
 
 .btn{height:32px;padding:0 13px;border-radius:4px;font-size:13px;
@@ -137,3 +140,15 @@ main .card > h3 .tag{font-weight:400;color:var(--tx3);}
 .chk{border-radius:2px;}
 
 .cfgcard .btn{flex:none;}
+
+#cfgResultSummary .cfgsumtop .btn{background:rgba(255,255,255,.10);color:#E6ECF2;border-color:rgba(255,255,255,.16);}
+
+#cfgResultSummary .cfgsumtop .btn:hover{background:rgba(255,255,255,.16);color:#fff;}
+
+.steps .rail-foot .btn{color:#93A0AC;border-bottom-color:rgba(255,255,255,.14);}
+
+.steps .rail-foot .btn:hover{color:#fff;border-bottom-color:#fff;}
+
+.steps .rail-foot .btn.pri{background:#5B9BE0;color:#0E141A;border:0;}
+
+.steps .rail-foot .btn.pri:hover{background:#7FB3EC;color:#0E141A;}
