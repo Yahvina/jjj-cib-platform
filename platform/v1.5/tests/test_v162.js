@@ -235,6 +235,24 @@ chk(sumTxt12.indexOf('筛') >= 0 || sumTxt12.indexOf('警示') >= 0 || sumTxt12.
   '全自洽时结果页有警示文字', '');
 
 console.log();
+console.log('=== 13. 模式来回切保持位置 / 一键去补把参与变量带进研究模式 ===');
+resetCfg(P1);
+sel.desc = {};
+cfgStep = 1; cur = 4;
+openResearch();
+chk(cur === 4, '切到研究模式保持原步骤（不回到第 1 步）', cur);
+openConfig();
+chk(cfgStep === 1, '切回配置保持原步骤（不回到第 1 步）', cfgStep);
+cfgStep = 1;
+const nBefore13 = nSel();
+cfgGotoFillMissing();
+chk(cur === 4, '去补后停在判断步（第 5 步）', cur);
+chk(nSel() === cfgInputNames().length, '参与变量全部带进研究模式，不用重勾',
+  nSel() + ' vs ' + cfgInputNames().length + '（原 ' + nBefore13 + '）');
+chk(cfgInputNames().every(nm => !!sel.desc[nm]), '每个参与变量都在 sel.desc 里', '');
+chk(cfgInputNames().every(nm => ((sel.desc[nm].states) || []).length === 0), '带进来的是全档，不预设档位', '');
+
+console.log();
 console.log(bad === 0 ? '全部通过' : bad + ' 项未通过');
 if(bad) process.exit(1);
 `;

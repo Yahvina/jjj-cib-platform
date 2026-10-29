@@ -249,7 +249,11 @@ const sameDayBad = vseq.filter((x, i) =>
   i > 0 && vseq[i - 1].d === x.d && cmpVer(vseq[i - 1].v, x.v) > 0);
 chk(sameDayBad.length === 0, '同一天内的小版本按版本号从旧到新排列',
   sameDayBad.map(x => vseq[vseq.indexOf(x) - 1].v + '>' + x.v).join(' '));
-chk(vseq[vseq.length - 1].v === 'v1.6.2', '末条即当前版本', vseq[vseq.length - 1].v);
+// 当前版本从页面 <title> 取，不在测试里写死版本号——否则每发一个小版本都要回来改断言，
+// 而这条要防的本来就是「VERSIONS 末条与页面标题对不上」。
+const titleVer = (html.match(/原型\s*(v[\d.]+)/) || [])[1];
+chk(!!titleVer && vseq[vseq.length - 1].v === titleVer, '末条即当前版本（与页面标题一致）',
+  vseq[vseq.length - 1].v + ' vs title ' + titleVer);
 
 console.log('=== 12. 首页引文接上了去向 ===');
 // 编辑器反馈：首页那段政策原文单看像随手摘的引文，看不出它跟平台有什么关系。

@@ -12,12 +12,12 @@
 | 函数／常量 | 行号 |
 |---|---|
 | `TICK` | 278–279 |
-| `mulberry` | 4659–4666 |
-| `cimSig` | 4668–4675 |
-| `comboSample` | 4678–4699 |
-| `buildIMP` | 4701–4725 |
-| `evalCombo` | 4727–4740 |
-| `cloneCim` | 4741–4749 |
+| `mulberry` | 4666–4673 |
+| `cimSig` | 4675–4682 |
+| `comboSample` | 4685–4706 |
+| `buildIMP` | 4708–4732 |
+| `evalCombo` | 4734–4747 |
+| `cloneCim` | 4748–4756 |
 | `enumCore` | 976–1056 |
 | `runCIM` | 1058–1075 |
 | `selectedCombo` | 1284–1290 |
@@ -33,10 +33,10 @@
 | `toggleScen` | 1446–1446 |
 | `impactVal` | 838–846 |
 | `pairIndexTable` | 966–973 |
-| `p6Apply` | 5756–5766 |
-| `p6Group` | 5767–5775 |
-| `p6All` | 5776–5776 |
-| `p6Status` | 5777–5783 |
+| `p6Apply` | 5770–5780 |
+| `p6Group` | 5781–5789 |
+| `p6All` | 5790–5790 |
+| `p6Status` | 5791–5797 |
 
 - 样式：本目录 `style.css`（摘录）；完整样式表见 `../_shared/base.css`
 
