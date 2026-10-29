@@ -1347,16 +1347,6 @@ main .stbox .hd{background:transparent;border-bottom:1px solid var(--line);}
 .mainnav button:hover{background:var(--panel2);color:var(--tx);}
 .mainnav button.on{color:var(--pri);font-weight:600;box-shadow:inset 0 -2px 0 var(--wn);}
 .cfg-kicker{font-size:11px;letter-spacing:.16em;color:var(--tx3);margin-bottom:6px;}
-.cfg-steps{display:flex;align-items:center;gap:0;margin:4px 0 22px;flex-wrap:wrap;}
-.cfg-step{display:flex;align-items:center;gap:8px;padding:0 18px 0 0;margin-right:14px;
-  color:var(--tx3);font-size:13px;border-bottom:2px solid var(--line);padding-bottom:8px;}
-.cfg-step.done{color:var(--tx2);cursor:pointer;}
-.cfg-step.done:hover{color:var(--tx);}
-.cfg-step.on{color:var(--tx);font-weight:600;border-bottom-color:var(--wn);}
-.cfg-step .cnum{width:20px;height:20px;flex:none;display:flex;align-items:center;justify-content:center;
-  font-size:11px;border:1px solid var(--line);border-radius:50%;background:var(--panel);color:var(--tx3);}
-.cfg-step.on .cnum{background:var(--wn);border-color:var(--wn);color:#fff;}
-.cfg-step.done .cnum{color:var(--pri);border-color:var(--pri-b);background:var(--pri-s);}
 .cfg-rule{background:var(--panel2);border-radius:var(--r);padding:12px 14px;margin-bottom:16px;}
 .cfg-r1{display:flex;align-items:baseline;gap:9px;flex-wrap:wrap;font-size:13px;color:var(--tx2);}
 .cfg-r1 b{color:var(--tx);}
