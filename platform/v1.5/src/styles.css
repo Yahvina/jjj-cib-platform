@@ -1422,6 +1422,26 @@ main .stbox .hd{background:transparent;border-bottom:1px solid var(--line);}
 .cfgdrawer-meta{font-size:12px;color:var(--tx3);line-height:1.8;margin-top:10px;}
 .cfgfold{border-top:1px solid var(--line2);margin-top:12px;padding-top:10px;}
 .cfgfold summary{cursor:pointer;font-size:13px;color:var(--tx);font-weight:600;padding:2px 0 8px;}
-.cfgsrc{font-size:12px;color:var(--tx3);line-height:1.6;max-width:100%;}
 .cfgscore{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:8px;font-size:13px;color:var(--tx3);}
 .hiline b{color:var(--tx);}
+
+/* 结果页：一个大数字 + 一张核对表 + 档位分布 */
+.cfgsumtop{display:flex;align-items:flex-start;gap:12px;}
+.cfgnum-big{font-family:"Songti SC",SimSun,serif;font-size:40px;font-weight:400;line-height:1;color:var(--tx);}
+.cfgnum-t{font-size:15px;color:var(--tx2);margin-left:8px;}
+.cfgsum-sub{font-size:13px;color:var(--tx3);margin-top:8px;}
+.cfgverdict{font-size:14px;padding:10px 13px;border-radius:var(--r);margin-bottom:12px;line-height:1.7;}
+.cfgverdict.ok{background:var(--pri-s);color:var(--tx);border:1px solid var(--pri-b);}
+.cfgverdict.bad{background:var(--wn-s);color:var(--tx);border:1px solid var(--wn-b);}
+.cfgtable{width:100%;border-collapse:collapse;font-size:14px;}
+.cfgtable th{font-weight:600;color:var(--tx3);font-size:13px;text-align:left;padding:6px 10px;border-bottom:1px solid var(--line);}
+.cfgtable td{padding:9px 10px;border-bottom:1px solid var(--line2);}
+.cfgtable td.num{font-variant-numeric:tabular-nums;color:var(--tx2);}
+.cfgtable tr.bad td{color:var(--rd);}
+.cfgd-row{display:flex;align-items:center;gap:12px;margin:9px 0;}
+.cfgd-name{width:150px;flex:none;font-size:14px;color:var(--tx);}
+.cfgd-bar{flex:1;display:flex;height:26px;border-radius:4px;overflow:hidden;font-size:12px;}
+.cfgd-seg{display:flex;align-items:center;justify-content:center;color:#fff;min-width:56px;white-space:nowrap;padding:0 6px;}
+.cfgd-seg.s0{background:var(--pri);}
+.cfgd-seg.s1{background:var(--wn);}
+.cfgd-seg.s2{background:var(--tx3);}

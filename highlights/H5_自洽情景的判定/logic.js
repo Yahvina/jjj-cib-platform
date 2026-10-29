@@ -191,6 +191,9 @@ function runCIM(dsIn, pickIn){
   const anchored=ds.filter(d=>ancOf(d)).length;
   cimResult={ds:ds.slice(), sizes:r.sizes.slice(), total:total, space:r.space, anchored:anchored,
     checked:r.checked, count:r.count, sampled:r.sampled,
+    /* freq 是每个「描述符|档位」在全部自洽组合里出现的次数。结果页的档位分布读它，
+       不读 consistent（那个只有 200 组上限）。 */
+    freq:r.freq||{}, presence:r.presence||null,
     consistent:r.consistent, inconsistent:r.inconsistent, ts:nowStr(),
     pickMap:pickIn?Object.assign({},pickIn):null};
   toast('检验完成：'+(r.sampled?'抽样 ':'')+r.checked.toLocaleString()+' 个组合，自洽 '+r.consistent.length+' 组'

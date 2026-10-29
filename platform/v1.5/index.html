@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>京津冀政策情景快速评估平台 · 原型 v1.7.0</title>
+<title>京津冀政策情景快速评估平台 · 原型 v1.7.1</title>
   <link rel="stylesheet" href="src/styles.css">
 </head>
 <body>
@@ -286,6 +286,7 @@
           <option value="low">仅低置信度</option>
           <option value="unrev">仅未审核</option>
         </select></span>
+      <button class="btn" onclick="backToConfig()">回情景配置 →</button>
     </div>
     <div class="cimstat" id="cimStat"></div>
   </div>
@@ -733,6 +734,14 @@
       <p><b>研究模式</b>：原七步流程整体收在这里，左侧竖排随时可跳；需要逐项核对判断链时用它。</p>
       <p><b>拿不准的地方</b>：文字带虚线下划线的，鼠标放上去有解释。</p>
     </div>
+  </div>
+</div>
+
+<div class="modal" id="cfgMetaModal" onclick="if(event.target===this)closeId('cfgMetaModal')">
+  <div class="mbox" style="max-width:640px;">
+    <div class="mhead"><b>本次检视</b><div class="sp"></div>
+      <button class="btn sm" onclick="closeId('cfgMetaModal')">关闭</button></div>
+    <div class="mbody" id="cfgMetaBody" style="font-size:15px;line-height:1.9;"></div>
   </div>
 </div>
 

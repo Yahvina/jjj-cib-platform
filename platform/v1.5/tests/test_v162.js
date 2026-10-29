@@ -93,7 +93,7 @@ i4.forEach(nm => { cfgPick[nm] = ST(nm)[0]; });
 cfgRun();
 cfgStep = 2; renderConfigResult();
 const pickTxt = document.getElementById('cfgPick').innerHTML;
-chk(pickTxt.indexOf('你选的那组') >= 0, 'cfgPick 说「你选的那组」', '');
+chk(pickTxt.indexOf('当前这套判断') >= 0, 'cfgPick 给的是「在你当前这套判断下」的结论', '');
 chk(pickTxt.indexOf('没取到档位') < 0, '不说「还有 N 个变量没取到档位」', '');
 chk((pickTxt.indexOf('不冲突') >= 0) || (pickTxt.indexOf('冲突在') >= 0), '给出不冲突/冲突在 N 个变量的结论', '');
 
