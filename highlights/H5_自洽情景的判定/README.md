@@ -33,10 +33,10 @@
 | `toggleScen` | 1565–1565 |
 | `impactVal` | 954–962 |
 | `pairIndexTable` | 1082–1089 |
-| `p6Apply` | 6284–6294 |
-| `p6Group` | 6295–6303 |
-| `p6All` | 6304–6304 |
-| `p6Status` | 6305–6311 |
+| `p6Apply` | 6292–6302 |
+| `p6Group` | 6303–6311 |
+| `p6All` | 6312–6312 |
+| `p6Status` | 6313–6319 |
 
 - 样式：本目录 `style.css`（摘录）；完整样式表见 `../_shared/base.css`
 

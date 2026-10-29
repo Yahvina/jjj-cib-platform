@@ -36,7 +36,7 @@
 
 .conf.done .h{color:var(--ok);}
 
-.conf{font-size:11px;border-radius:4px;padding:1px 6px;font-weight:600;flex:none;}
+.conf{font-size:12px;border-radius:4px;padding:1px 6px;font-weight:600;flex:none;}
 
 .conf.ok{background:var(--ok-s);color:var(--ok);}
 

@@ -43,7 +43,7 @@
 .stbox .hd{padding:9px 12px;background:var(--panel2);border-bottom:1px solid var(--line2);
   font-size:13px;font-weight:600;display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
 
-.stbox .hd .src{margin-left:auto;font-size:11px;font-weight:400;color:var(--ok);}
+.stbox .hd .src{margin-left:auto;font-size:12px;font-weight:400;color:var(--ok);}
 
 .strow{display:flex;align-items:center;gap:9px;padding:8px 12px;font-size:13px;
   border-bottom:1px solid var(--line2);cursor:pointer;}
@@ -57,7 +57,7 @@
 
 .strow .stnm{flex:1;cursor:pointer;}
 
-.strow .stnm .cus{font-style:normal;font-size:11px;color:var(--pri);background:var(--pri-s);
+.strow .stnm .cus{font-style:normal;font-size:12px;color:var(--pri);background:var(--pri-s);
   border-radius:99px;padding:1px 6px;margin-left:6px;}
 
 .rngwrap{cursor:pointer;}
@@ -102,21 +102,21 @@
 .ancsum code{background:var(--panel);padding:1px 4px;border-radius:3px;font-size:13px;}
 
 /* 区间证据标记 */
-.hd .evi{font-size:11px;font-weight:500;font-style:normal;padding:2px 8px;border-radius:9px;
+.hd .evi{font-size:12px;font-weight:500;font-style:normal;padding:2px 8px;border-radius:9px;
   margin-left:8px;vertical-align:middle;cursor:help;}
 
 /* 徽标自己当悬停锚点时，不要 .tip 的虚线下划线——它已经有底色和边框了 */
 .hd .evi.tip{border-bottom:none;}
 
-.evi.direct{background:#ECF0F2;color:#2F4858;border:1px solid #C3D0D6;}
+.evi.direct{background:#ECF0F2;color:#2F4858;border:1px solid var(--pri-b);}
 
-.evi.conv{background:#F8F2EA;color:#8C5A3C;border:1px solid #E4CDB5;}
+.evi.conv{background:#F8F2EA;color:#8C5A3C;border:1px solid var(--wn-b);}
 
-.evi.example{background:#F1EEE7;color:#6E675D;border:1px solid #E3DCD0;}
+.evi.example{background:#E2E7EB;color:var(--tx3);border:1px solid var(--line);}
 
-.evi.exo{background:#EEF2F4;color:#2F4858;border:1px solid #C3D0D6;}
+.evi.exo{background:#EEF2F4;color:#2F4858;border:1px solid var(--pri-b);}
 
-.cus.evu{background:#F7EDEF;color:#7E4757;}
+.cus.evu{background:var(--rd-s);color:var(--rd);}
 
 .rngedit .re-ev{font-size:13px;color:var(--tx2);line-height:1.7;background:var(--panel2);
   padding:7px 10px;border-radius:3px;margin:8px 0;}
@@ -131,9 +131,9 @@
 
 .scopebtns{display:flex;gap:5px;flex-wrap:wrap;}
 
-.scopebar .snote{font-size:11px;color:var(--tx3);flex:1 1 100%;line-height:1.7;margin-top:2px;}
+.scopebar .snote{font-size:12px;color:var(--tx3);flex:1 1 100%;line-height:1.7;margin-top:2px;}
 
-.evi.scope{background:#F7EDEF;color:#7E4757;border:1px solid #E4CDD3;}
+.evi.scope{background:var(--rd-s);color:var(--rd);border:1px solid #E4CDD3;}
 
 .hidbox .hd2{font-size:13px;font-weight:600;margin-bottom:6px;}
 

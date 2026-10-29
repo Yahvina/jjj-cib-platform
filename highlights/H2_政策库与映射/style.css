@@ -25,7 +25,7 @@
   --dark:#1C252D; --dark-2:#2A343D; --dark-ink:#E6ECF2; --dark-ink2:#93A0AC;
 }
 
-.card h3 .tag{font-size:11px;font-weight:400;padding:2px 0;
+.card h3 .tag{font-size:12px;font-weight:400;padding:2px 0;
   background:none;border:none;color:var(--tx3);letter-spacing:.5px;}
 
 /* ================= v1.1 政策库与映射 ================= */
@@ -46,7 +46,7 @@
 
 .polside .empty{font-size:13px;color:var(--tx3);text-align:center;padding:40px 10px;line-height:1.8;}
 
-.polside .shead{font-size:11px;color:var(--tx3);margin-bottom:8px;letter-spacing:.3px;}
+.polside .shead{font-size:12px;color:var(--tx3);margin-bottom:8px;letter-spacing:.3px;}
 
 .polside .pname{font-size:15px;font-weight:600;line-height:1.5;margin-bottom:5px;}
 
@@ -65,21 +65,21 @@
 .mapfams .fam{border:1px solid var(--line);border-radius:4px;padding:9px 11px;background:#fff;}
 
 /* 区间证据标记 */
-.hd .evi{font-size:11px;font-weight:500;font-style:normal;padding:2px 8px;border-radius:9px;
+.hd .evi{font-size:12px;font-weight:500;font-style:normal;padding:2px 8px;border-radius:9px;
   margin-left:8px;vertical-align:middle;cursor:help;}
 
 /* 徽标自己当悬停锚点时，不要 .tip 的虚线下划线——它已经有底色和边框了 */
 .hd .evi.tip{border-bottom:none;}
 
-.evi.direct{background:#ECF0F2;color:#2F4858;border:1px solid #C3D0D6;}
+.evi.direct{background:#ECF0F2;color:#2F4858;border:1px solid var(--pri-b);}
 
-.evi.conv{background:#F8F2EA;color:#8C5A3C;border:1px solid #E4CDB5;}
+.evi.conv{background:#F8F2EA;color:#8C5A3C;border:1px solid var(--wn-b);}
 
-.evi.example{background:#F1EEE7;color:#6E675D;border:1px solid #E3DCD0;}
+.evi.example{background:#E2E7EB;color:var(--tx3);border:1px solid var(--line);}
 
-.evi.exo{background:#EEF2F4;color:#2F4858;border:1px solid #C3D0D6;}
+.evi.exo{background:#EEF2F4;color:#2F4858;border:1px solid var(--pri-b);}
 
-.evi.scope{background:#F7EDEF;color:#7E4757;border:1px solid #E4CDD3;}
+.evi.scope{background:var(--rd-s);color:var(--rd);border:1px solid #E4CDD3;}
 
 /* ================= v1.3 UI 升级层：滚动条 / 选中态 / 交互反馈 ================= */
 /* 细滚动条：所有内滚区域统一，避免默认粗滚动条破坏面板质感 */

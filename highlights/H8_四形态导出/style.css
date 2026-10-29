@@ -45,7 +45,7 @@
 
 .rail-foot .btn{width:100%;justify-content:center;}
 
-.card h3 .tag{font-size:11px;font-weight:400;padding:2px 0;
+.card h3 .tag{font-size:12px;font-weight:400;padding:2px 0;
   background:none;border:none;color:var(--tx3);letter-spacing:.5px;}
 
 .opt{border:1px solid var(--line);border-radius:var(--r);padding:13px 14px;
@@ -75,7 +75,7 @@
 
 .btn.danger:hover{background:var(--rd-s);}
 
-pre.out{background:#24221F;color:#E8E2D8;border:1px solid #33302B;border-radius:var(--r);padding:14px 16px;
+pre.out{background:var(--dark);color:var(--dark-ink);border:1px solid var(--dark-2);border-radius:var(--r);padding:14px 16px;
   font-family:ui-monospace,Consolas,monospace;font-size:13px;line-height:1.75;
   overflow:auto;max-height:340px;}
 
@@ -106,7 +106,7 @@ table.enstab td.enact .btn{margin:2px 3px 2px 0;height:24px;padding:0 8px;}
 /* 数据表：表头加重一点底边，斑马纹不引入（保持克制），只加 hover 已够 */
 
 /* 代码块内滚动条 */
-pre.out::-webkit-scrollbar-thumb{background:#4A4640;border:2px solid transparent;background-clip:content-box;}
+pre.out::-webkit-scrollbar-thumb{background:var(--dark-2);border:2px solid transparent;background-clip:content-box;}
 
 /* 状态选择是单选：用圆形勾选标记，和可多选的复选框区分开 */
 .chk.rad{border-radius:50%;}

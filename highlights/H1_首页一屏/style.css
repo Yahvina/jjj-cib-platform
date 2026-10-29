@@ -121,12 +121,12 @@ body.wizard .steps{display:none;}
 
 #pcmp .mfoot{display:flex;justify-content:space-between;margin-top:14px;padding-top:10px;
   border-top:1px solid var(--line2);font-family:ui-monospace,Consolas,monospace;
-  font-size:11px;line-height:1.4;color:var(--tx3);letter-spacing:.04em;}
+  font-size:12px;line-height:1.4;color:var(--tx3);letter-spacing:.04em;}
 
 #pcmp .mfoot b{color:var(--tx);font-weight:400;}
 
 #pcmp .cap{position:absolute;left:0;bottom:0;font-family:ui-monospace,Consolas,monospace;
-  font-size:11px;color:var(--tx3);letter-spacing:.1em;}
+  font-size:12px;color:var(--tx3);letter-spacing:.1em;}
 
 #pcmp .facts{display:flex;gap:44px;margin-top:64px;padding-top:22px;
   border-top:1px solid var(--line);position:relative;z-index:1;}
@@ -144,13 +144,13 @@ body.wizard .steps{display:none;}
 #pcmp .quote cite{display:block;font-family:inherit;font-size:13px;color:var(--tx3);
   font-style:normal;margin-top:14px;}
 
-#pcmp .quote .qtag{font-family:ui-monospace,Consolas,monospace;font-size:11px;
+#pcmp .quote .qtag{font-family:ui-monospace,Consolas,monospace;font-size:12px;
   letter-spacing:.14em;color:var(--tx3);margin-bottom:16px;}
 
 #pcmp .quote .qmap{display:flex;align-items:baseline;gap:10px;margin-top:18px;
   padding-top:14px;border-top:1px solid var(--line2);max-width:520px;}
 
-#pcmp .quote .qfrom{font-family:ui-monospace,Consolas,monospace;font-size:11px;
+#pcmp .quote .qfrom{font-family:ui-monospace,Consolas,monospace;font-size:12px;
   letter-spacing:.12em;color:var(--tx3);flex:none;}
 
 #pcmp .quote .qarrow{font-size:13px;color:var(--wn);line-height:1;}
@@ -162,7 +162,7 @@ body.wizard .steps{display:none;}
   position:static;height:auto;width:auto;left:auto;top:auto;bottom:auto;background:none;
   overflow:visible;z-index:auto;}
 
-#pcmp .steps b{display:block;font-family:ui-monospace,Consolas,monospace;font-size:11px;
+#pcmp .steps b{display:block;font-family:ui-monospace,Consolas,monospace;font-size:12px;
   line-height:1;color:var(--tx3);letter-spacing:.14em;margin-bottom:12px;}
 
 #pcmp .steps h3{font-family:inherit;font-size:16px;font-weight:600;line-height:1.6;

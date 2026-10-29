@@ -36,7 +36,7 @@
   padding:5px 11px;font-size:13px;color:var(--tx2);cursor:pointer;
   display:inline-flex;align-items:center;gap:6px;transition:all .15s var(--ease);}
 
-.p6tab span{font-size:11px;color:var(--tx3);background:var(--panel2);
+.p6tab span{font-size:12px;color:var(--tx3);background:var(--panel2);
   border-radius:99px;padding:0 5px;line-height:15px;}
 
 .p6tab:hover{background:var(--panel2);color:var(--tx);}
