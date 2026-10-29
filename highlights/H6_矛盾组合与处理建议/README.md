@@ -11,14 +11,14 @@
 
 | 函数／常量 | 行号 |
 |---|---|
-| `exclPairs` | 1626–1653 |
-| `confPairs` | 1658–1678 |
-| `confList` | 1679–1728 |
-| `toggleConf` | 1729–1729 |
-| `applyConfFix` | 1730–1739 |
-| `coFn` | 1569–1577 |
-| `aliveTable` | 1580–1607 |
-| `freqOf` | 1609–1621 |
+| `exclPairs` | 1622–1649 |
+| `confPairs` | 1654–1674 |
+| `confList` | 1675–1724 |
+| `toggleConf` | 1725–1725 |
+| `applyConfFix` | 1726–1735 |
+| `coFn` | 1565–1573 |
+| `aliveTable` | 1576–1603 |
+| `freqOf` | 1605–1617 |
 | `selectedCombo` | 1403–1409 |
 
 - 样式：本目录 `style.css`（摘录）；完整样式表见 `../_shared/base.css`

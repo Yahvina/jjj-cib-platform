@@ -246,16 +246,12 @@ function checkResult(){
     return;
   }
   const r=cimResult;
-  let h=kv('参与检验的描述符', r.ds.length+' 个')
-   +kv('状态总数', r.sizes.reduce((a,b)=>a+b,0)+' 个')
-   +kv('组合空间', r.total.toLocaleString()+' 种'
-   +(r.anchored?(' <span style="color:var(--pri);">→ 锚定后 '+(r.space||r.total).toLocaleString()+' 种</span>'):''))
-   +(r.anchored?kv('数值锚定排除','<span style="color:var(--pri);">'
-     +(r.total-(r.space||r.total)).toLocaleString()+' 种组合（'+r.anchored+' 个描述符已锚定）</span>'):'')
-   +kv('实际检查', (r.sampled?('随机抽样 '+r.checked.toLocaleString()+' 种'):(r.checked.toLocaleString()+' 种（全枚举）')))
-   +kv('自洽情景', '<span style="color:var(--ok);font-weight:600;">'
-     +r.consistent.length+(r.consistent.length>=200?'+':'')+' 组</span>')
-   +kv('不自洽组合', '<span style="color:var(--rd);">'+r.inconsistent.toLocaleString()+' 组</span>')
+  /* 六行统计表（参与 N 个／状态总数／组合空间／实际检查／自洽／不自洽）收进「本次检视」抽屉。
+     正文只留一句话——顶部 p6stat 已经报过自洽组数，再铺一张表就是重复。 */
+  let h='<div class="cksum">在 <b>'+(r.sampled?('抽样 '+r.checked.toLocaleString()):r.checked.toLocaleString())+'</b> 种组合里（'
+    +(r.sampled?'抽样':'全枚举')+'）找到 <b style="color:var(--ok);font-weight:600;">'
+    +r.consistent.length+(r.consistent.length>=200?'+':'')+'</b> 组自洽情景'
+    +(r.anchored?('，锚定把组合空间收窄到 '+(r.space||r.total).toLocaleString()+' 种'):'')+'。</div>'
    +'<div style="margin-top:12px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;">'
    +'<button class="btn sm" onclick="runCIM()">重新检验</button>'
    +'<span class="dim" style="font-size:13px;">计算时间 '+r.ts+'</span></div>';

@@ -17,11 +17,11 @@
 | `allowUnder` | 1206–1223 |
 | `runLayered` | 1297–1325 |
 | `renderLay` | 1333–1398 |
-| `buildIMP` | 5088–5112 |
-| `evalCombo` | 5114–5127 |
-| `mulberry` | 5046–5053 |
-| `comboSample` | 5065–5086 |
-| `cloneCim` | 5128–5136 |
+| `buildIMP` | 5084–5108 |
+| `evalCombo` | 5110–5123 |
+| `mulberry` | 5042–5049 |
+| `comboSample` | 5061–5082 |
+| `cloneCim` | 5124–5132 |
 | `ST` | 658–658 |
 | `defsOf` | 600–632 |
 | `rngTxt` | 659–663 |

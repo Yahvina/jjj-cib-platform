@@ -12,31 +12,31 @@
 | 函数／常量 | 行号 |
 |---|---|
 | `TICK` | 278–279 |
-| `mulberry` | 5046–5053 |
-| `cimSig` | 5055–5062 |
-| `comboSample` | 5065–5086 |
-| `buildIMP` | 5088–5112 |
-| `evalCombo` | 5114–5127 |
-| `cloneCim` | 5128–5136 |
+| `mulberry` | 5042–5049 |
+| `cimSig` | 5051–5058 |
+| `comboSample` | 5061–5082 |
+| `buildIMP` | 5084–5108 |
+| `evalCombo` | 5110–5123 |
+| `cloneCim` | 5124–5132 |
 | `enumCore` | 1092–1172 |
 | `runCIM` | 1174–1194 |
 | `selectedCombo` | 1403–1409 |
 | `checkSelected` | 1415–1437 |
-| `checkResult` | 1450–1528 |
+| `checkResult` | 1450–1524 |
 | `rangeStat` | 1440–1447 |
 | `toggleAllScen` | 1449–1449 |
-| `coFn` | 1569–1577 |
-| `aliveTable` | 1580–1607 |
-| `freqOf` | 1609–1621 |
-| `scenCard` | 1529–1537 |
-| `scenDetail` | 1538–1564 |
-| `toggleScen` | 1565–1565 |
+| `coFn` | 1565–1573 |
+| `aliveTable` | 1576–1603 |
+| `freqOf` | 1605–1617 |
+| `scenCard` | 1525–1533 |
+| `scenDetail` | 1534–1560 |
+| `toggleScen` | 1561–1561 |
 | `impactVal` | 954–962 |
 | `pairIndexTable` | 1082–1089 |
-| `p6Apply` | 6292–6302 |
-| `p6Group` | 6303–6311 |
-| `p6All` | 6312–6312 |
-| `p6Status` | 6313–6319 |
+| `p6Apply` | 6294–6304 |
+| `p6Group` | 6305–6313 |
+| `p6All` | 6314–6314 |
+| `p6Status` | 6315–6321 |
 
 - 样式：本目录 `style.css`（摘录）；完整样式表见 `../_shared/base.css`
 
@@ -55,10 +55,10 @@
 
 ## 目录外的函数依赖
 
-本模块还调用了 17 个**没有随本目录切出**的辅助函数，直接拷走本目录跑不起来；
+本模块还调用了 16 个**没有随本目录切出**的辅助函数，直接拷走本目录跑不起来；
 要跑请用完整平台，或连同下列调用一起取：
 
-`ST`　`TREE`　`ancAllowed`　`ancOf`　`computeBayes`　`defsOf`　`el`　`expandV`　`kv`　`nowStr`　`prepErr`　`presence`　`rangeSize`　`rngTxt`　`rows`　`seen`　`selIdxOf`
+`ST`　`TREE`　`ancAllowed`　`ancOf`　`computeBayes`　`defsOf`　`el`　`expandV`　`nowStr`　`prepErr`　`presence`　`rangeSize`　`rngTxt`　`rows`　`seen`　`selIdxOf`
 
 ## 复用方式
 

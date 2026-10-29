@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>京津冀政策情景快速评估平台 · 原型 v1.8.8</title>
+<title>京津冀政策情景快速评估平台 · 原型 v1.8.9</title>
   <style>
 :root{
   /* 冷灰科研纸（v1.8 起）：画布 95 / 卡片 100 / 井 90，卡片浮在画布之上。
@@ -3733,16 +3733,12 @@ function checkResult(){
     return;
   }
   const r=cimResult;
-  let h=kv('参与检验的描述符', r.ds.length+' 个')
-   +kv('状态总数', r.sizes.reduce((a,b)=>a+b,0)+' 个')
-   +kv('组合空间', r.total.toLocaleString()+' 种'
-   +(r.anchored?(' <span style="color:var(--pri);">→ 锚定后 '+(r.space||r.total).toLocaleString()+' 种</span>'):''))
-   +(r.anchored?kv('数值锚定排除','<span style="color:var(--pri);">'
-     +(r.total-(r.space||r.total)).toLocaleString()+' 种组合（'+r.anchored+' 个描述符已锚定）</span>'):'')
-   +kv('实际检查', (r.sampled?('随机抽样 '+r.checked.toLocaleString()+' 种'):(r.checked.toLocaleString()+' 种（全枚举）')))
-   +kv('自洽情景', '<span style="color:var(--ok);font-weight:600;">'
-     +r.consistent.length+(r.consistent.length>=200?'+':'')+' 组</span>')
-   +kv('不自洽组合', '<span style="color:var(--rd);">'+r.inconsistent.toLocaleString()+' 组</span>')
+  /* 六行统计表（参与 N 个／状态总数／组合空间／实际检查／自洽／不自洽）收进「本次检视」抽屉。
+     正文只留一句话——顶部 p6stat 已经报过自洽组数，再铺一张表就是重复。 */
+  let h='<div class="cksum">在 <b>'+(r.sampled?('抽样 '+r.checked.toLocaleString()):r.checked.toLocaleString())+'</b> 种组合里（'
+    +(r.sampled?'抽样':'全枚举')+'）找到 <b style="color:var(--ok);font-weight:600;">'
+    +r.consistent.length+(r.consistent.length>=200?'+':'')+'</b> 组自洽情景'
+    +(r.anchored?('，锚定把组合空间收窄到 '+(r.space||r.total).toLocaleString()+' 种'):'')+'。</div>'
    +'<div style="margin-top:12px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;">'
    +'<button class="btn sm" onclick="runCIM()">重新检验</button>'
    +'<span class="dim" style="font-size:13px;">计算时间 '+r.ts+'</span></div>';
@@ -8479,6 +8475,12 @@ const VERSIONS=[
     ,'28 种旧暖色字面值（旧纸色 F6F3EF/FBF1EE、旧线 E3DCD0、暖色语法高亮等）换成冷灰令牌；pre.out 代码块换深色框架系'
     ,'test_v161/v162 全过；矩阵类名未动，无需改测试'
    ]}
+  ,{v:'v1.8.9',d:'2026-10-30',tag:'',sum:'第 7 步正文只留一句话：六行检验统计表收进「本次检视」抽屉',ev:'本批提交',
+   items:[
+    '检验结果卡片里那张六行表（参与 N 个 / 状态总数 / 组合空间 / 实际检查 / 自洽 / 不自洽）删除——顶部 p6stat 已报过自洽组数，再铺一张表就是重复，被用户点名「一切从简忘了吗」'
+    ,'正文现在一句话：在 X 种组合里（全枚举／抽样）找到 N 组自洽情景，外加重新检验按钮与计算时间'
+    ,'六行数字全部移进「本次检视」抽屉的「检验覆盖」一节，随 cimResult 出现'
+   ]}
 ];
 /* 当前版本号只有一个来源：VERSIONS 的最后一条（数组按时间从旧到新排列）。
    2026-10-25 修：关于框里原先写死 v1.4，平台发到 v1.5.7 之后它还在对外显示旧版号。 */
@@ -8629,6 +8631,20 @@ function p6MetaHTML(){
     +kv('导出格式',genName())
     +kv('数据侧核验覆盖',vHit+' 条（映射有工具级记录）')
     +'</div>';
+  if(cimResult){
+    const r=cimResult;
+    h+='<details class="cfgfold" open><summary>检验覆盖</summary>'
+      +kv('参与检验的描述符',r.ds.length+' 个')
+      +kv('状态总数',r.sizes.reduce((a,b)=>a+b,0)+' 个')
+      +kv('组合空间',r.total.toLocaleString()+' 种'
+        +(r.anchored?(' → 锚定后 '+(r.space||r.total).toLocaleString()+' 种'):''))
+      +(r.anchored?kv('数值锚定排除',(r.total-(r.space||r.total)).toLocaleString()
+        +' 种组合（'+r.anchored+' 个描述符已锚定）'):'')
+      +kv('实际检查',(r.sampled?('随机抽样 '+r.checked.toLocaleString()+' 种'):(r.checked.toLocaleString()+' 种（全枚举）')))
+      +kv('自洽情景',r.consistent.length+(r.consistent.length>=200?'+':'')+' 组')
+      +kv('不自洽组合',r.inconsistent.toLocaleString()+' 组')
+      +'</details>';
+  }
   h+='<details class="cfgfold" open><summary>参与的描述符</summary>'
     +(ds.length
       ?('<div class="cfgpick">'+ds.map(n=>'<span class="pill">'+attrEsc(n)+'</span>').join('')+'</div>')
