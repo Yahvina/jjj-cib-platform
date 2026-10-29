@@ -13,7 +13,7 @@
 ## 三条命令
 
 ```bash
-# 1. 跑自检（33 套）。这是唯一会因 ✗ 而失败的入口。
+# 1. 跑自检（35 套：34 套源码级 + 1 套成品冒烟）。这是唯一会因 ✗ 而失败的入口。
 powershell -ExecutionPolicy Bypass -File platform/v1.5/tests/run_tests.ps1 -Prod
 
 # 2. 只校验、不写文件（断言全过才继续）
@@ -44,7 +44,7 @@ cd highlights && python build_highlights.py --check  # 校验是否过期，exit
 
 ## 改完必须做的四件事
 
-1. 跑闸门 `run_tests.ps1 -Prod` → 必须 33/33；
+1. 跑闸门 `run_tests.ps1 -Prod` → 必须 35/35（不带 `-Prod` 是 34/34 + 1 跳过，别把跳过当成通过）；
 2. 若动了平台源码 → 重跑 `build_highlights.py`；
 3. `python merge_v15.py` → 重新打包（**不加参数也会更新仓库根 `index.html`**，
    那才是 Pages 真正服务的文件；历史上漏过这一步，网页显示 200 但内容还是旧的）；

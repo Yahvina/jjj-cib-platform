@@ -1055,9 +1055,9 @@ function enumCore(ds, force, capN, keepAll){
     truncated: keepAll ? (count>keepAll) : false};
 }
 
-function runCIM(){
+function runCIM(dsIn, pickIn){
   if(useBayes && !BAYES) computeBayes();
-  const ds=Object.keys(sel.desc);
+  const ds=(dsIn&&dsIn.length)?dsIn:Object.keys(sel.desc);
   const pe=prepErr(ds);
   if(pe){ toast(pe); return; }
   const r=enumCore(ds,null);
@@ -1067,7 +1067,8 @@ function runCIM(){
   const anchored=ds.filter(d=>ancOf(d)).length;
   cimResult={ds:ds.slice(), sizes:r.sizes.slice(), total:total, space:r.space, anchored:anchored,
     checked:r.checked, count:r.count, sampled:r.sampled,
-    consistent:r.consistent, inconsistent:r.inconsistent, ts:nowStr()};
+    consistent:r.consistent, inconsistent:r.inconsistent, ts:nowStr(),
+    pickMap:pickIn?Object.assign({},pickIn):null};
   toast('检验完成：'+(r.sampled?'抽样 ':'')+r.checked.toLocaleString()+' 个组合，自洽 '+r.consistent.length+' 组'
     +(anchored?('（锚定已把空间收窄到 '+r.space.toLocaleString()+' 种）'):''));
   render();
@@ -1280,8 +1281,9 @@ function renderLay(){
 /* 「我选的那套情景」到底成不成立——这是状态选择的用处。
    枚举不预设取值，但用户确实需要知道自己的主张站不站得住：
    若不自洽，指出哪几个描述符的选定状态不是自己的最高分，并给出应改成哪一档。 */
-function selectedCombo(ds){
+function selectedCombo(ds, pickMap){
   return ds.map(d=>{
+    if(pickMap) return pickMap[d]?ST(d).indexOf(pickMap[d]):-1;
     const sn=((sel.desc[d]||{}).states||[])[0];
     return sn?ST(d).indexOf(sn):-1;
   });
@@ -1289,13 +1291,16 @@ function selectedCombo(ds){
 /* 「你选的情景」站不站得住。
    多选语义下，只有当每个描述符都恰好勾了一档，才存在"唯一的一套情景"；
    若有人勾了多档，那划的是范围——这时判"某一条情景自不自洽"没有意义，
-   改为报"范围里有多少种组合最终是自洽的"，这才是 B 方案该给的回答。 */
-function checkSelected(ds){
-  const cb=selectedCombo(ds);
+   改为报"范围里有多少种组合最终是自洽的"，这才是 B 方案该给的回答。
+   给了 pickMap（配置模式）就绕过多选分支，直接算「你选的那组」——研究模式 B 方案语义不变。 */
+function checkSelected(ds, pickMap){
+  const cb=selectedCombo(ds, pickMap);
   const missing=cb.filter(x=>x<0).length;
   if(missing) return {missing:missing};
-  const multi=ds.filter(d=>selIdxOf(d).length>1);
-  if(multi.length) return {range:true, multi:multi, cb:cb};
+  if(!pickMap){
+    const multi=ds.filter(d=>selIdxOf(d).length>1);
+    if(multi.length) return {range:true, multi:multi, cb:cb};
+  }
   const IMP=buildIMP(ds,cim), sizes=ds.map(d=>ST(d).length), rows=[];
   let ok=true;
   ds.forEach((d,i)=>{
@@ -1318,7 +1323,7 @@ function rangeStat(){
   const ds=cimResult.ds;
   const inRange=cimResult.consistent.filter(cb=>
     ds.every((d,i)=>{ const s=selIdxOf(d); return !s.length||s.indexOf(cb[i])>=0; }));
-  return {n:rangeSize(ds), ok:inRange.length, total:cimResult.consistent.length,
+  return {n:rangeSize(ds), ok:inRange.length, total:cimResult.count,
     anySel:ds.some(d=>selIdxOf(d).length)};
 }
 let allScen=false;   // 是否展开全部自洽情景（默认只列前 6 个，避免几百组把页面拖慢）
@@ -1535,7 +1540,7 @@ function confPairs(){
   if(!cimResult) return {need:'check'};
   const ds=cimResult.ds, cons=cimResult.consistent;
   if(!cons.length) return {need:'empty'};
-  const cb=selectedCombo(ds);
+  const cb=(cimResult&&cimResult.pickMap)?selectedCombo(ds,cimResult.pickMap):selectedCombo(ds);
   if(cb.some(x=>x<0)) return {need:'missing'};
   const out=[];
   for(let i=0;i<ds.length;i++) for(let j=i+1;j<ds.length;j++){
@@ -1651,11 +1656,21 @@ function paramOf(d){
   const v=String((d&&d.v)||'').split(/[；;]/)[0].trim();
   return v||'（该描述符未注明模型变量）';
 }
+/* 导出取哪批变量：配置模式只取本次检算的参与集。
+   否则「按政策库载入相关变量」把 15 个变量放进 sel.desc 后，参数表会多出 12 行
+   没参与检算、state 与 value 都空的记录，叙事里还会写出「15 个描述符上取了 3 档」。
+   研究模式没有"另一次检算"，仍按 sel.desc 全量——那里的检算本来就是全量。 */
+function expNames(){
+  if(viewMode==='config'&&cimResult&&cimResult.ds&&cimResult.ds.length) return cimResult.ds.slice();
+  return Object.keys(sel.desc);
+}
 function expRows(){
-  const names=Object.keys(sel.desc);
+  const names=expNames();
   return names.map(nm=>{
     const d=dOf(nm); if(!d) return null;
-    const st=(sel.desc[nm].states||[])[0]||'';
+    /* 配置模式的 sel.desc.states 是有意留空的（空＝全档，见 cfgSyncToResearch），
+       真正「你选的那组」在 cfgPick；研究模式仍按勾选的第一档。 */
+    const st=(viewMode==='config'&&cfgPick[nm])?cfgPick[nm]:((sel.desc[nm].states||[])[0]||'');
     const defs=defsOf(nm), def=defs.filter(x=>x.n===st)[0]||null;
     const lo=(def&&def.lo!=null)?def.lo:null;
     const hi=(def&&def.hi!=null)?def.hi:null;
@@ -1728,7 +1743,7 @@ function paramsCSV(){
         r.value==null?'':r.value,r.lo==null?'':r.lo,r.hi==null?'':r.hi,csvCell(r.unit),
         csvCell(r.state),csvCell(r.ev),csvCell(r.note)].join(',')+'\n';
   });
-  const mp=Object.keys(sel.desc).filter(nm=>selIdxOf(nm).length>1);
+  const mp=expNames().filter(nm=>selIdxOf(nm).length>1);
   if(mp.length){
     s+='# 注意：'+mp.map(nm=>nm).join('、')+' 勾了多档（＝划定范围），本表按每档的第一档取值。\n';
     s+='# 要按整个范围导出，请用「导出全部自洽情景」。\n';
@@ -1742,9 +1757,9 @@ function setExpMode(v){ expMode=v; render(); }
 function narrText(){
   const rows=expRows();
   if(!rows.length) return '（还没有选描述符）';
-  const sc=Object.keys(sel.desc).map(nm=>(sel.desc[nm].states||[])[0]).filter(Boolean);
+  const sc=rows.map(r=>r.state).filter(Boolean);
   const note=multiPickNote();
-  let s='【情景特征】\n本情景在'+nSel()+'个描述符上取了'+sc.length+'档，构成一组自洽的政策情景假设。\n\n';
+  let s='【情景特征】\n本情景在'+rows.length+'个描述符上取了'+sc.length+'档，构成一组自洽的政策情景假设。\n\n';
   if(note) s+='【注意】'+note.replace(/<[^>]+>/g,'')+'\n\n';
   s+='【逐项特征】\n';
   rows.forEach(r=>{
@@ -1761,7 +1776,14 @@ function narrText(){
 }
 function bayesCSV(){
   if(!BAYES) computeBayes();
-  const keys=BAYES?Object.keys(BAYES.cells):[];
+  const all=(BAYES&&BAYES.cells)?Object.keys(BAYES.cells):[];
+  /* 只有配置模式才裁到本次参与集：那里载入 15 个变量后会把 210 对后验一并导出，
+     跟结果页「本次 3 个变量」对不上。研究模式的贝叶斯表本来是全域的，保持原样。 */
+  const names=(viewMode==='config'&&cimResult&&cimResult.ds&&cimResult.ds.length)?cimResult.ds:null;
+  const keys=names?all.filter(k=>{
+    const i=k.indexOf('>'); if(i<0) return true;
+    return names.indexOf(k.slice(0,i))>=0 && names.indexOf(k.slice(i+1))>=0;
+  }):all;
   let s='# 贝叶斯后验 · 每条判断的后验分布\n';
   s+='# 先验 N(0, '+2.2+'²)，按置信度给噪声（高 .55 / 中 .85 / 低 1.25），网格积分得后验\n';
   s+='pair,observations,posterior_mean,sd,p05,p95,width,p_promote,p_suppress,p_flat\n';
@@ -1777,7 +1799,7 @@ function bayesCSV(){
    把参数拆成一行行独立数值，等于把耦合又拆散，下游按行取用会得到互相矛盾的一组值。
    所以每行都带上它所属的情景标识，并在表头写明「同一 scenario 内才自洽、跨 scenario 混用会破坏一致性」。 */
 function curScenInfo(){
-  const ds=Object.keys(sel.desc);
+  const ds=expNames();
   if(ds.length<2) return null;
   const sc=checkSelected(ds);
   if(sc.missing) return null;
@@ -2322,13 +2344,25 @@ function cfgStepper(n){
 function restoreCfgSel(){
   if(!cfgSaved) return;
   sel.desc=cfgSaved; cfgSaved=null;
-  cimResult=null; BAYES=null; layeredResult=null; corrResult=null; profResult=null;
-}
-/* 配置->研究：把本轮 cfgFinal 只写进政策命中变量，不动 sel.desc 里的其它变量。 */
-function cfgSyncToResearch(){
+  /* 恢复快照后把本轮确认的档位（cfgPick）并入参与变量的范围：配置定档→研究模式可见。
+     只并入、不塌成单档：范围（states）是枚举空间，cfgPick 只是「你选的那组」。
+     原范围为空＝全档，就展开成全档；否则把 pick 追加进原范围，绝不把范围收成 [pick]。 */
   cfgInputNames().forEach(nm=>{
     const s=cfgFinalOf(nm); if(!s) return;
-    sel.desc[nm]={states:[s],src:'情景配置 · 政策组合取值'};
+    const prev=(sel.desc[nm]||{}).states||[];
+    if(prev.indexOf(s)>=0) return;
+    const range=prev.length?prev.slice():ST(nm).slice();
+    if(range.indexOf(s)<0) range.push(s);
+    sel.desc[nm]={states:range,src:'情景配置 · 政策组合取值'};
+  });
+  cimResult=null; BAYES=null; layeredResult=null; corrResult=null; profResult=null;
+}
+/* 配置->研究：把本轮参与变量写进 sel.desc，保证 key 存在，但不塌成单档。
+   保留研究模式里已有的 states（范围），空仍为空（＝全部档位）。 */
+function cfgSyncToResearch(){
+  cfgInputNames().forEach(nm=>{
+    const prev=(sel.desc[nm]||{}).states;
+    sel.desc[nm]={states:(prev&&prev.length)?prev.slice():[],src:'情景配置 · 政策组合取值'};
   });
 }
 /* 研究->配置：只合并本轮研究模式真改动过的变量，没进过研究模式就不动 cfgFinal。 */
@@ -2412,9 +2446,10 @@ function cfgMidInfo(){
   return {n:n, t:t, list:list, ratio:(t?n/t:0)};
 }
 function cfgWhyText(claim,pick,touched,conf){
-  if(touched) return '用户手动设定为「'+pick+'」。映射把握 '+conf+' 只表示政策与变量这条对应关系有多确定，不是政策档位。';
+  if(touched) return '用户手动设定为「'+pick+'」。依据强度 '+conf+' 只表示政策与变量这条对应关系有多确定，不是政策档位。';
+  if(!pick) return '档位待确认，平台不自动推断。依据强度 '+conf+' 不是政策档位。';
   if(claim!=='未指定') return '按政策主张「'+claim+'」预置「'+pick+'」，仍需人工确认。';
-  return '政策主张未指定，平台按基准档预置「'+pick+'」，尚未人工确认。';
+  return '档位预置「'+pick+'」，尚未人工确认。依据强度 '+conf+' 不是政策档位。';
 }
 function cfgSideHTML(){
   const cov=cfgCov();
@@ -2480,8 +2515,18 @@ function renderConfigPolicy(){
   const stat=document.getElementById('cfgPolicyStat');
   if(stat){
     const cov=cfgCov();
-    stat.innerHTML='<span class="kv"><span>当前筛选</span><span>'+cfgArr().length+' 条（全部 '+PALLC().length+' 条）</span></span>'
+    const inp=cfgInputNames();
+    let h='<span class="kv"><span>当前筛选</span><span>'+cfgArr().length+' 条（全部 '+PALLC().length+' 条）</span></span>'
       +'<span class="kv"><span>覆盖变量</span><span>'+Object.keys(cov).length+' / '+allDescs().length+' 个</span></span>';
+    if(inp.length<2){
+      /* 能补齐的候选政策：命中变量里含有当前参与集缺的那个变量的政策名，按命中数排。 */
+      const cand=PALLC().filter(p=>!cfgSel[p.n])
+        .map(p=>{ const hit=(p.m||[]).map(x=>x[0]).filter(nm=>{ const d=dOf(nm); return d&&d.t!=='结果型'&&inp.indexOf(nm)<0; }); return {p:p,n:new Set(hit).size}; })
+        .filter(x=>x.n>0).sort((a,b)=>b.n-a.n).slice(0,6).map(x=>x.p.n);
+      h+='<div class="note rd" style="margin-top:8px;"><b>只覆盖 '+inp.length+' 个变量，至少要 2 个。</b>'
+        +(cand.length?('可补齐的候选政策：'+cand.map(attrEsc).join('、')+'。'):'再挑一条命中别的变量的政策。')+'</div>';
+    }
+    stat.innerHTML=h;
   }
   const hint=document.getElementById('cfg0Hint');
   if(hint) hint.innerHTML=cfgNotice||(cfgChosen().length
@@ -2496,14 +2541,21 @@ function renderConfigSetting(){
   const hint=document.getElementById('cfg1Hint');
   const chosen=cfgChosen(), cov=cfgCov(), inputs=cfgInputNames(), res=cfgResultNames();
   const mid=cfgMidInfo();
-  if(stat) stat.innerHTML='<div class="cfgstatline">'
-    +'<span class="kv"><span>已选政策</span><span>'+chosen.length+' 条</span></span>'
-    +'<span class="kv"><span>需要确认的变量</span><span>'+inputs.length+' 个</span></span>'
-    +'<span class="kv"><span>中档占比</span><span>'+Math.round(mid.ratio*100)+'%（'+mid.n+' / '+mid.t+'）</span></span>'
-    +'<span class="kv"><span>判断矩阵</span><span>'+cfgJudgedN()+' 条判断</span></span>'
-    +'</div>'
-    +(mid.ratio>0.5?'<div class="note rd"><b>判定力不足：</b>最终档里中档占 '+Math.round(mid.ratio*100)
-      +'%，超过一半。中档按基准处理、不提供判定力度，这样的结果不能当正常结论用。</div>':'');
+  const part2=cfgParticipation(inputs);
+  if(stat){
+    const enough=(mid.ratio<=0.5);
+    const tip='已选 '+chosen.length+' 条政策，需要确认 '+inputs.length+' 个变量。'
+      +'判断矩阵本次参与变量之间有 '+part2.judged+' 条判断（共 '+part2.pairN+' 对）。'
+      +'默认档占比 '+Math.round(mid.ratio*100)+'%（'+mid.n+' / '+mid.t+'）。'
+      +'默认档不参与判定。';
+    stat.innerHTML='<div class="cfgstatline">'
+      +'<span class="kv"><span>本次参与</span><span>'+part2.pairN+' 对，已判 '+part2.judged+' 对</span></span>'
+      +'<span class="kv"><span>需要确认的变量</span><span>'+inputs.length+' 个</span></span>'
+      +'<span class="kv"><span>判断是否够用</span><span class="tip" tabindex="0" data-tip="'+attrEsc(tip)+'">'
+      +(enough?'够':'不够')+'</span></span>'
+      +(part2.unjudged.length?'<span class="kv"><button class="btn sm" onclick="cfgGotoFillMissing()">一键去补这几对</button></span>':'')
+      +'</div>';
+  }
   if(!host) return;
   if(!inputs.length){
     host.innerHTML='<div class="empty">被选中政策命中的变量不足两个，请返回第一步补充政策。</div>';
@@ -2513,28 +2565,24 @@ function renderConfigSetting(){
       const d=dOf(nm)||{}, sts=ST(nm), pick=cfgFinalOf(nm);
       const ms=cov[nm]||[], conf=cfgBestConf(ms.map(o=>o.m));
       const claim=cfgClaim[nm]||'未指定', touched=!!cfgTouched[nm];
+      const tip=attrEsc('类型：'+(d.t||'—')+'；依据强度：'+(conf||'—')
+        +'；政策主张：'+claim+'；影响这条变量的政策：'+(ms.map(o=>o.p.n).join('、')||'—')
+        +'。'+(touched?'档位由人工设定。':'档位待确认。')+cfgWhyText(claim,pick,touched,conf));
+      const scope=(sts.length===1?'1 档':('全部档位（'+sts.length+' 档）'));
       h+='<div class="cfgrow">'
-        +'<div class="cfgr1"><b>'+attrEsc(nm)+'</b>'
-        +'<span class="pill">'+attrEsc(d.t||'')+'</span>'
-        +'<span class="conf '+cfgConfCls(conf)+'">映射把握 '+conf+'</span>'
-        +(claim==='未指定'?'<span class="cfgtag u">政策主张未指定</span>':'')
-        +(touched?'<span class="cfgtag m">手动设定</span>':'<span class="cfgtag b">按基准档</span>')
+        +'<div class="cfgr1"><b class="tip" tabindex="0" data-tip="'+tip+'">'+attrEsc(nm)+'</b>'
+        +'<span class="cfgnum">范围：'+attrEsc(scope)+'</span>'
         +'</div>'
-        +'<div class="cfgsub">影响这条变量的政策：'
-        +ms.map(o=>'<span class="pill">'+attrEsc(o.p.n)+'</span>').join('')+'</div>'
         +'<div class="cfgctl">'
-        +'<label class="cfgf"><span>政策主张</span><select class="txt" onchange="cfgSetClaim(\''+nm+'\',this.value)">'
-        +CFG_CLAIMS.map(v=>'<option value="'+v+'"'+(claim===v?' selected':'')+'>'+v+'</option>').join('')
-        +'</select></label>'
         +'<label class="cfgf"><span>最终档</span><select class="txt" onchange="cfgSetPick(\''+nm+'\',this.selectedIndex)">'
+        +'<option value="-1"'+(pick?'':' selected')+'>— 请选择 —</option>'
         +sts.map((s,i)=>'<option value="'+i+'"'+(s===pick?' selected':'')+'>'+attrEsc(s)+'</option>').join('')
         +'</select></label>'
-        +'<div class="cfgwhy">'+cfgWhyText(claim,pick,touched,conf)+'</div>'
         +'</div></div>';
     });
     const cold=allDescs().filter(x=>!cov[x.n]&&x.t!=='结果型');
     h+='<div class="ptnote" style="margin-bottom:10px;">区间口径见第一步，它只影响数值区间，不影响这次的政策集合。</div>';
-    h+='<details class="cfgcold"><summary>本次未涉及，按基准档处理（'+cold.length+' 个变量）</summary>'
+    h+='<details class="cfgcold"><summary>本次未涉及，取默认档（'+cold.length+' 个变量）</summary>'
       +'<div class="cfgcoldb">'
       +(cold.length?cold.map(x=>'<span class="pill">'+attrEsc(x.n)+'</span>').join(''):'<span class="ptnote">没有</span>')
       +'</div></details>';
@@ -2597,18 +2645,22 @@ function cfgFlatVars(ds){
 function cfgGate(ds){
   const list=(ds||cfgInputNames()).slice();
   const part=cfgParticipation(list);
-  if(part.pairN===0) return {ok:false, why:'本次参与变量不足两个，判断不了', part:part, unjudged:part.unjudged};
+  /* hard=true 才真正拦截；soft=true 只把警示带到结果页，cfgRun 照出结果。
+     拦截只保留：①零判断 ②档位不完整。 */
+  if(part.pairN===0) return {ok:false, hard:true, why:'本次参与变量不足两个，判断不了', part:part, unjudged:part.unjudged};
   if(part.judged===0)
-    return {ok:false, why:'本次参与变量之间一条判断都没有', part:part, unjudged:part.unjudged};
-  const flat=cfgFlatVars(list);
-  if(flat.length)
-    return {ok:false, why:'「'+flat[0]+'」在各档位上没有被任何判断约束', part:part, flat:flat, unjudged:part.unjudged};
+    return {ok:false, hard:true, why:'本次参与变量之间一条判断都没有', part:part, unjudged:part.unjudged};
   const r=enumCore(list,null,null);
-  if(r.bad||r.dead>=0) return {ok:false, why:'变量的可用档位不完整', part:part, unjudged:part.unjudged};
-  if(r.checked>0&&r.count/r.checked>=0.999)
-    return {ok:false, why:'检算空间几乎全部自洽，这版判断没有筛出任何信息',
-      part:part, ratio:r.count/r.checked, count:r.count, checked:r.checked, unjudged:part.unjudged};
-  return {ok:true, part:part, count:r.count, checked:r.checked, unjudged:part.unjudged};
+  if(r.bad||r.dead>=0) return {ok:false, hard:true, why:'变量的可用档位不完整', part:part, unjudged:part.unjudged};
+  /* count/checked>=0.999 与「某变量无梯度」不再拦截——照出结果，在结果页给警示，说明这套判断筛掉的不多。 */
+  const flat=cfgFlatVars(list);
+  const ratio=r.checked?r.count/r.checked:0;
+  const weak=r.checked>0&&ratio>=0.999;
+  if(flat.length||weak)
+    return {ok:false, soft:true, flat:flat, weak:weak, ratio:ratio, count:r.count, checked:r.checked,
+      why:(flat.length?('「'+flat[0]+'」在各档位上没有被任何判断约束'):'检算空间几乎全部自洽，这版判断没有筛出任何信息'),
+      part:part, unjudged:part.unjudged};
+  return {ok:true, part:part, count:r.count, checked:r.checked, ratio:ratio, unjudged:part.unjudged};
 }
 function cfgRun(){
   cfgNotice='';
@@ -2616,19 +2668,20 @@ function cfgRun(){
   if(!chosen.length){ cfgNotice='先在第一步选至少一条政策'; cfgStep=0; viewMode='config'; docPg=''; render(); return; }
   const inputs=cfgInputNames();
   if(inputs.length<2){ cfgNotice='被政策命中的变量不足两个，结果无法生成'; cfgStep=1; viewMode='config'; docPg=''; render(); return; }
+  /* 顺序：参与集<2 拦 → cfgSaved 空则快照 → cfgSyncToResearch（保留旧 states）→ cfgGate → 未定档拦 → runCIM(inputs,pick)。
+     先快照再 sync：sync 会把 sel.desc 改成配置选中态；快照必须存「配置之前的原样」。 */
+  if(!cfgSaved) cfgSaved=JSON.parse(JSON.stringify(sel.desc));
+  cfgSyncToResearch();
   const gate=cfgGate(inputs);
-  if(!gate.ok){ cfgGateInfo=gate; cfgStep=2; viewMode='config'; docPg=''; render(); return; }
-  cfgGateInfo=null;
+  if(!gate.ok&&gate.hard){ cfgGateInfo=gate; cfgStep=2; viewMode='config'; docPg=''; render(); return; }
+  cfgGateInfo=gate.ok?null:gate;   /* soft：带警示照出结果 */
   const pick={}, undecided=[];
   inputs.forEach(nm=>{ const s=cfgFinalOf(nm); if(s){ pick[nm]=s; } else undecided.push(nm); });
   if(undecided.length){ cfgNotice='还有 '+undecided.length+' 个变量没定档'; cfgStep=1; viewMode='config'; docPg=''; render(); return; }
-  if(!cfgSaved) cfgSaved=JSON.parse(JSON.stringify(sel.desc));
-  inputs.forEach(nm=>{ cfgPick[nm]=pick[nm]; });
-  cfgSyncToResearch();
   cimResult=null; BAYES=null; layeredResult=null; corrResult=null; profResult=null;
   cfgRunInfo={ts:nowStr(), mid:cfgMidInfo(), scored:cfgJudgedIn(inputs), nPol:chosen.length, pick:pick};
   cfgStep=2; viewMode='config'; docPg='';
-  if(cfgRunInfo.scored&&prepErr(Object.keys(sel.desc))===null) runCIM();
+  if(cfgRunInfo.scored&&prepErr(inputs)===null) runCIM(inputs, pick);
   else cimResult=null;
   render(); window.scrollTo({top:0,behavior:'smooth'});
 }
@@ -2658,20 +2711,35 @@ function cfgGateHelpHTML(g){
     h+='<div style="margin-top:10px;">本次检算：'+g.checked.toLocaleString()+' 个组合，其中自洽 '
       +g.count.toLocaleString()+' 个（'+Math.round(g.ratio*1000)/10+'%）。</div>';
   }
+  if(g&&!g.ok&&((p.unjudged&&p.unjudged.length)||(g.flat&&g.flat.length))){
+    h+='<div style="margin-top:12px;"><button class="btn pri" onclick="cfgGotoFillMissing()">一键去补这几对</button></div>';
+  }
   return h;
+}
+/* 待补对写进全局，跳到研究模式第 5 步（交叉影响打分，cur=4），定位高亮。 */
+let cfgFillMissing=[];
+function cfgGotoFillMissing(g){
+  const gg=g||cfgGateInfo||null;
+  const part=(gg&&gg.part)||cfgParticipation(cfgInputNames());
+  const pairs=(part.unjudged||[]).slice();
+  cfgFillMissing=pairs;
+  openResearch();
+  cur=4;
+  render();
+  if(typeof window!=='undefined'&&window.scrollTo) window.scrollTo({top:0,behavior:'smooth'});
 }
 function cfgEdgeHTML(){
   const mid=(cfgRunInfo&&cfgRunInfo.mid)||cfgMidInfo();
   const bad=cfgUnverifiedCount();
   const judged=(cfgRunInfo&&cfgRunInfo.scored!==undefined)?cfgRunInfo.scored:cfgJudgedIn();
-  return '<div class="ptnote" style="margin-top:12px;">'
-    +'边界说明：本页只给平台在当前判断下算出的自洽检验结果，不预测未来，也不推荐某一套方案。<br>'
-    +'· 判断矩阵来源：研究模式下的人工与 AI 判断，本次参与变量之间有 '+judged+' 条。'
-    +(cimResult?(bad?('参与组合里还有 '+bad+' 条判断没有填写——<b>留空是还没查，不等于没关系</b>，平台不会把它当成 0。')
+  const tip='边界说明：本页只给平台在当前判断下算出的自洽检验结果，不预测未来，也不推荐某一套方案。'
+    +'判断矩阵来源：研究模式下的人工与 AI 判断，本次参与变量之间有 '+judged+' 条。'
+    +(cimResult?(bad?('参与组合里还有 '+bad+' 条判断没有填写——留空是还没查，不等于没关系，平台不会把它当成 0。')
                 :'参与组合的判断没有空格。'):'')
-    +'<br>· 中档：本次 '+mid.t+' 个参与变量里有 '+mid.n+' 个的入边源变量全部落在中档'
-    +(mid.list&&mid.list.length?('（'+mid.list.join('、')+'）'):'')+'。中档按基准处理、不提供判定力度。'
-    +'</div>';
+    +'默认档：本次 '+mid.t+' 个参与变量里有 '+mid.n+' 个的上游变量全部落在默认档，本版判断不出它们该取哪一档。'
+    +(mid.list&&mid.list.length?('（'+mid.list.join('、')+'）'):'');
+  return '<div class="ptnote" style="margin-top:12px;">这些结果是当前判断下的自洽范围，'
+    +'<span class="tip" tabindex="0" data-tip="'+attrEsc(tip)+'">怎么读</span>。</div>';
 }
 function cfgSetExp(v){ if(v!=='low'&&v!=='mid'&&v!=='high') return; expMode=v; render(); }
 function cfgOpenReport(){ if(!cimResult){ toast('还没有生成结果'); return; } openReport(); }
@@ -2685,7 +2753,15 @@ function renderConfigResult(){
   const exp=document.getElementById('cfgExport');
   const r=cimResult;
   if(sum){
-    if(!cfgRunInfo){ sum.innerHTML='<div class="empty">还没有生成结果，回到第二步点「生成结果」。</div>'; }
+    if(cfgGateInfo&&cfgGateInfo.hard&&!cfgGateInfo.ok){
+      /* 硬拦：cfgRunInfo 保持 null，但闸门出口按钮必须照出（headless 实测的唯一出口）。 */
+      const g=cfgGateInfo;
+      sum.innerHTML='<div class="note rd"><b>这次没有出结论。</b>'
+        +'原因：'+attrEsc(g.why||'判断不足')+'。平台不会用 0 代替还没查的格。'
+        +cfgGateHelpHTML(g)
+        +'</div>'+cfgEdgeHTML();
+    }
+    else if(!cfgRunInfo){ sum.innerHTML='<div class="empty">还没有生成结果，回到第二步点「生成结果」。</div>'; }
     else if(!r){
       const g=cfgGateInfo||cfgGate(Object.keys(sel.desc));
       sum.innerHTML='<div class="note rd"><b>这次没有出结论。</b>'
@@ -2693,13 +2769,16 @@ function renderConfigResult(){
         +cfgGateHelpHTML(g)
         +'</div>'+cfgEdgeHTML();
     }else{
+      const gWeak=(cfgGateInfo&&cfgGateInfo.weak)||(r.checked>0&&r.count/r.checked>=0.999);
       sum.innerHTML=kv('参与检验的变量', r.ds.length+' 个')
-        +kv('组合空间', r.total.toLocaleString()+' 种')
+        +kv('组合空间', r.space.toLocaleString()+' 种')
         +kv('本次检查', r.sampled?('抽查 '+r.checked.toLocaleString()+' 种（本次检验了其中一部分，结果是下限）')
                               :(r.checked.toLocaleString()+' 种，全部穷举'))
-        +kv('互不冲突的设定', '<b>'+r.consistent.length+(r.consistent.length>=200?'+':'')+' 组</b>')
+        +kv('互不冲突的设定', '<b>'+r.count+(r.count>=r.consistent.length&&r.consistent.length>=200?'+':'')+' 组</b>')
         +kv('取到中档的变量', mid.n+' / '+mid.t+' 个')
-        +(mid.list&&mid.list.length?('<div class="note" style="margin-top:12px;"><b>这几个变量的入边源变量全落中档，本版对它们没有判定力：</b><br>'
+        +(gWeak?('<div class="note" style="margin-top:12px;"><b>警示：</b>本次检算里 '
+          +Math.round(r.count/(r.checked||1)*1000)/10+'% 的组合都自洽，这套判断筛掉的不多，结果区分度有限。</div>'):'')
+        +(mid.list&&mid.list.length?('<div class="note" style="margin-top:12px;"><b>这几个变量的上游变量全落默认档，本版判断不出它们该取哪一档：</b><br>'
           +mid.list.map(nm=>'· '+attrEsc(nm)).join('<br>')+'</div>'):'')
         +cfgEdgeHTML();
     }
@@ -2707,10 +2786,10 @@ function renderConfigResult(){
   if(pick){
     if(!r){ pick.innerHTML='<div class="empty">还没有可核对的设定。</div>'; }
     else{
-      const sc=checkSelected(r.ds);
+      const sc=checkSelected(r.ds, r.pickMap);
       let h='';
       if(sc.missing){
-        h+='<div class="note">还有 '+sc.missing+' 个变量没有取到档位，无法核对「你选的那组」。</div>';
+        h+='<div class="note">还有 '+sc.missing+' 个变量没取到档位，无法核对「你选的那组」。</div>';
       }else if(sc.ok){
         h+='<div class="note ok"><b>你选的那组不冲突。</b>每个变量取到的档位，都是它在当前判断下平衡值最高的一档。</div>';
       }else{
@@ -2744,17 +2823,25 @@ function renderConfigResult(){
   if(exp){
     if(!r){ exp.innerHTML='<div class="empty">先有结果再导出。</div>'; }
     else{
-      exp.innerHTML='<div class="cfgctl"><span class="cfgf"><span>取档方式</span>'
+      const g=genOf();
+      exp.innerHTML='<div class="slabel">参数生成方式</div>'
+        +'<div class="grid2">'
+        +[['config','模型配置文件','给模型直接读的装配文件：GCAM 走 XML 清单，CHEER 走 CSV'],
+          ['table','结构化参数表','只有参数名与数值，不带依据与叙述，便于逐项核对'],
+          ['narrative','定性叙事','一段情景特征文字，说明每个变量取哪一档'],
+          ['bayes','贝叶斯概率分布','给出每条判断的后验均值与 90% 区间，区间宽窄即分歧大小']].map(x=>
+          '<div class="opt'+(g===x[0]?' sel':'')+'" data-gen="'+x[0]+'" onclick="pick(this,\'gen\')">'
+          +'<div class="t">'+x[1]+' <span class="chk'+(g===x[0]?' on':'')+'">'+(g===x[0]?TICK:'')+'</span></div>'
+          +'<div class="d">'+x[2]+'</div></div>').join('')
+        +'</div>'
+        +'<div class="cfgctl"><span class="cfgf"><span>取档方式</span>'
         +'<select class="txt" onchange="cfgSetExp(this.value)">'
         +[['low','区间下界（保守）'],['mid','区间中点'],['high','区间上界（加码）']].map(x=>
           '<option value="'+x[0]+'"'+(expMode===x[0]?' selected':'')+'>'+x[1]+'</option>').join('')
         +'</select></span></div>'
         +'<div class="cfgbtns">'
-        +'<button class="btn pri" onclick="download()">导出模型配置文件</button>'
-        +'<button class="btn" onclick="downloadParams()">导出参数表（CSV）</button>'
-        +'<button class="btn" onclick="downloadTableBtn()">导出结构化参数表</button>'
-        +'<button class="btn" onclick="dl(narrText(),\'txt\',\'JJJ-CIB-情景叙事\')">导出情景叙事</button>'
-        +'<button class="btn" onclick="dl(bayesCSV(),\'csv\',\'JJJ-CIB-贝叶斯不确定性\')">导出贝叶斯不确定性</button>'
+        +'<button class="btn pri" onclick="genMain()">'+genMainLabel()+'</button>'
+        +'<button class="btn" onclick="downloadAll()">导出全部自洽情景</button>'
         +'<button class="btn" onclick="cfgOpenReport()">生成情景报告</button>'
         +'</div>'
         +'<div class="ptnote" style="margin-top:10px;">同一组设定可以按下界 / 中点 / 上界导出；数值只覆盖 2035 锚点，'
@@ -2982,17 +3069,27 @@ function verifBlock(v){
     +'<a class="vfl" href="'+v.u+'" target="_blank" rel="noopener">查看政策原文 ↗</a>'
     +'</div>';
 }
+/* 按政策库载入相关变量：把政策库映射到的变量加进本次参与集（sel.desc）。
+   结果型由模型算出、不作为政策输入，不加。只写来源与依据强度，不写 states
+   （空数组本就等于全档，也谈不上政策档位）；已经划过的范围原样保留。
+   2026-10-29：此前只遍历已选变量补来源，第一次用的人 sel.desc 是空的，点了等于没点。 */
 function applyPolicy(){
-  if(nSel()===0){ toast('先到「描述符与状态」勾选描述符，再回来预填'); return; }
   const cov={};
-  PALLC().forEach(p=>p.m.forEach(x=>{ if(!cov[x[0]]) cov[x[0]]=x; }));
-  let n=0;
+  PALLC().forEach(p=>(p.m||[]).forEach(x=>{ if(!cov[x[0]]) cov[x[0]]=x; }));
+  let added=0, have=0;
+  Object.keys(cov).forEach(nm=>{
+    const d=dOf(nm);
+    if(!d||d.t==='结果型') return;
+    if(sel.desc[nm]) have++;
+    else { sel.desc[nm]={states:[],src:null}; added++; }
+    sel.desc[nm].src='政策库 · '+cov[nm][2]+'；依据强度 '+cov[nm][1]+'；档位待确认';
+  });
   Object.keys(sel.desc).forEach(nm=>{
-    if(cov[nm]){ sel.desc[nm].src='政策库 · 依据「'+cov[nm][2]+'」；置信度 '+cov[nm][1]; n++; }
-    else sel.desc[nm].src='（政策库中无对应路径，属外生输入或需另行设定）';
+    if(!cov[nm]) sel.desc[nm].src='（政策库中无对应路径，属外生输入或需另行设定）';
   });
   pulled=true;
-  toast('已按政策库映射预填 '+n+' 个描述符的来源说明');
+  cimResult=null; BAYES=null; layeredResult=null; corrResult=null; profResult=null;
+  toast('已按政策库载入 '+(added+have)+' 个相关变量（新加 '+added+' 个），档位待确认');
   render();
 }
 function uploadPolicy(){
@@ -5085,6 +5182,7 @@ function renderBayes(){
    已有情景需要重新检验；省略 = 不动结果（只改界面、措辞、性能或新增旁路分析）。
    与 git 提交对应；此处只列入对外可讲、能被核对的事项。 */
 const CHANGELOG=[
+ {d:'2026-10-29',k:'功能',x:'情景配置主路径打通：范围不再塌成一组、闸门有出口、生成方式搬进结果页',y:'配置模式原先先按多档范围过闸门，再同步到研究模式，同步时又把每个变量写成单档，导致结果页同时印「组合空间 243 种」与「本次检查 1 种」。现在顺序改成：参与集不足两个先拦，再存研究模式快照，再按原范围同步（空 states 就是全档，不再写单档），过闸门，最后只跑本次参与集。组合空间读枚举内核的 space，本次检查读 checked，互不冲突的设定读 count——都取真实枚举结果，不读有 200 组上限的自洽集合长度。闸门降级：两两之间一条判断都没有、或某变量各档累计影响恒定才拦；本次几乎全部自洽（自洽数/检查数不小于 0.999）只出结果并警示「这套判断筛掉的不多」，不再拦住。缺判断时闸门给「一键去补这几对」，点了直接进研究模式的判断步。第二步顶栏常驻「本次参与 X 对，已判 Y 对」和同一入口。第一步覆盖变量不足两个时标红。生成方式四选一（结构化参数表/叙事/模型配置/贝叶斯）搬进配置结果页，paramsCSV 与 tableCSV 两个 csv 入口合并成一个主按钮，取档方式下界/中点/上界独立成下拉。「按政策库载入相关变量」把政策库命中的非结果型变量加进本次参与集（15 个），只写来源与依据强度并标「档位待确认」，不写 states、不把政策库第二位当档位，已划范围不被覆盖；四种导出与叙事只覆盖本次参与集，不再把载入的 15 个变量写成本情景的 15 个描述符。确认设定页瘦身：每行可见只留变量名与最终档，类型、依据强度、政策主张、影响它的政策进悬停。词表统一：映射把握→依据强度、入边源变量→上游变量、判定力→判断完整性、按基准档→默认档。'},
  {d:'2026-10-29',k:'口径',x:'检算口径统一：贝叶斯只做导出与不确定性展示，不进检算',y:'交叉影响取值只有一条路：状态级精判 st 优先，其余按 expandV 展开。原先开了贝叶斯时，impactVal 会用后验均值矩阵顶掉整条打分——后验矩阵只有一个描述符级数、同一对变量下所有档位对拿到同一个数，等于把档位梯度压平。现删掉这条分支，检算统一走 expandV 加状态级精判；贝叶斯保留在后验导出与不确定性展示。连带把 test_bayes.js 的断言与 README 的旧说法改过来。'},
  {d:'2026-10-29',k:'功能',x:'情景配置补闸门与中档判据，配置与研究模式显式单向同步',y:'出结论前先过闸门，判据只看本次参与变量：两两之间一条判断都没有，或某个参与变量自身各档位拿到的累计影响恒定（全自由），或本次检算空间几乎全部自洽（自洽数/检查数不小于 0.999），就拒出结论并列出还差哪几对。不用入度、不用连通性——那会误杀单向链与多分量。自洽数一律读枚举内核返回的 count，不读有 200 组上限的自洽集合长度。中档改成按变量个体判：某变量的全部入边源都落在各自中档，它才算取到中档；不再按全局比例，也不再跳过两态变量。最终档兜底返回空串并拦下未定档变量，不再静默落首档。配置进研究模式时把最终档同步进研究模式状态，切回时把研究模式里改过的档合并回配置；快照隔离保持不变。结果页给中档逐变量提示，单向场景标注某变量档位未被约束。'},
  {d:'2026-10-28',k:'口径',x:'变量—参数对照表逐项核盘：19 个描述符全部有源文件路径或 N/A/待核',y:'按 GCAM-China v8 参数包（235 个文件）逐行核 build_varmap.py 的 19 个描述符和补入的 d13–d19 等变量：106 行变量要么给出本机核到的 GCAM/CHEER 源文件路径，要么明确标 N/A 或 N/A/待核，不补编路径。CHEER 压缩包本机未解包，Labor 标 N/A/待核；参数包没有完整 gcamdata 树，13 处 csv/xml 路径核不到，全部改为 N/A/待核并写明“未在本机 GCAM-China v8 参数包核到”。solar_potential_province.csv 没有 base.cost 列，单独标 N/A/待核。对照表保留四张工作表，描述符—变量对照表 A1:L107，含「换算方法」「取档方式」两列，不加「状态」列；UNMATCHED=0、NO_FILE_PATH=0。'},
@@ -5560,6 +5658,17 @@ const VERSIONS=[
     ,'最终档兜底返回空串，未定档直接拦下并写明还有几个变量没定档，不再静默落首档'
     ,'配置进研究模式把最终档写进研究模式状态，切回把研究模式里改过的档合并回配置；快照隔离保持原样'
     ,'选政策页可选清单独立成块、政策详情改抽屉、确认设定页每行只留变量名档位来源，结果页给中档逐变量提示并补齐四形态导出'
+   ]}
+  ,{v:'v1.6.2',d:'2026-10-29',tag:'',sum:'情景配置主路径打通：范围不塌、闸门有出口、生成方式进结果页',ev:'本批提交',
+   items:[
+    '配置模式检算只跑本次参与集：同步时保留原档位范围（不再把每个变量写成单档），结果页组合空间读 space、本次检查读 checked、互不冲突的设定读 count'
+    ,'三变量三档加有梯度判断：本次检查 27 种、互不冲突 5 组，不再同时印「组合空间 243 种」与「检查 1 种」'
+    ,'闸门只拦两种情况：两两之间一条判断都没有、某变量各档累计影响恒定；几乎全自洽（自洽数/检查数不小于 0.999）改为出结果并警示，不再拦'
+    ,'缺判断时闸门给「一键去补这几对」，点击进研究模式判断步；第二步顶栏常驻「本次参与 X 对，已判 Y 对」与同一入口'
+    ,'第一步覆盖变量不足两个时标红「只覆盖 N 个变量，至少要 2 个」，并列出候选政策'
+    ,'生成方式四选一搬进配置结果页，paramsCSV 与 tableCSV 两个 csv 入口合并成一个主按钮，取档方式下界/中点/上界独立成下拉'
+    ,'「按政策库载入相关变量」把政策库命中的非结果型变量（15 个）加进本次参与集，只写来源与依据强度并标「档位待确认」，不写 states、不把政策库第二位当档位'
+    ,'确认设定页每行可见只留变量名与最终档，类型、依据强度、政策主张、影响它的政策进悬停；词表统一为上游变量、判断完整性、默认档'
    ]}
 ];
 /* 当前版本号只有一个来源：VERSIONS 的最后一条（数组按时间从旧到新排列）。

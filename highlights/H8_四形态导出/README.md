@@ -14,33 +14,33 @@
 | `GEN_LABEL` | 274–274 |
 | `genOf` | 275–275 |
 | `genName` | 276–276 |
-| `expMode` | 1649–1653 |
-| `expRows` | 1654–1673 |
-| `expLabel` | 1674–1674 |
-| `multiPickNote` | 1677–1683 |
-| `csvCell` | 1684–1687 |
-| `paramOf` | 1650–1653 |
-| `paramsCSV` | 1721–1737 |
-| `setExpMode` | 1739–1739 |
-| `downloadParams` | 1738–1738 |
-| `downloadParamsBtn` | 1917–1917 |
-| `narrText` | 1742–1761 |
-| `bayesCSV` | 1762–1774 |
-| `curScenInfo` | 1779–1790 |
-| `tableCSV` | 1791–1814 |
-| `genMain` | 1815–1821 |
-| `genMainLabel` | 1822–1828 |
-| `genSubHTML` | 1829–1842 |
-| `renderOutBtns` | 1844–1847 |
-| `syncGenOpts` | 1849–1857 |
-| `renderGenOut` | 1858–1882 |
-| `preview` | 1688–1720 |
-| `xmlTag` | 1883–1899 |
-| `xmlFile` | 1900–1915 |
-| `download` | 1916–1916 |
-| `downloadAll` | 1918–1931 |
-| `dl` | 1932–1938 |
-| `fmtTag` | 1939–1939 |
+| `expMode` | 1654–1658 |
+| `expRows` | 1667–1688 |
+| `expLabel` | 1689–1689 |
+| `multiPickNote` | 1692–1698 |
+| `csvCell` | 1699–1702 |
+| `paramOf` | 1655–1658 |
+| `paramsCSV` | 1736–1752 |
+| `setExpMode` | 1754–1754 |
+| `downloadParams` | 1753–1753 |
+| `downloadParamsBtn` | 1939–1939 |
+| `narrText` | 1757–1776 |
+| `bayesCSV` | 1777–1796 |
+| `curScenInfo` | 1801–1812 |
+| `tableCSV` | 1813–1836 |
+| `genMain` | 1837–1843 |
+| `genMainLabel` | 1844–1850 |
+| `genSubHTML` | 1851–1864 |
+| `renderOutBtns` | 1866–1869 |
+| `syncGenOpts` | 1871–1879 |
+| `renderGenOut` | 1880–1904 |
+| `preview` | 1703–1735 |
+| `xmlTag` | 1905–1921 |
+| `xmlFile` | 1922–1937 |
+| `download` | 1938–1938 |
+| `downloadAll` | 1940–1953 |
+| `dl` | 1954–1960 |
+| `fmtTag` | 1961–1961 |
 | `fmtNum` | 286–290 |
 
 - 样式：本目录 `style.css`（摘录）；完整样式表见 `../_shared/base.css`
@@ -63,7 +63,7 @@
 本模块还调用了 9 个**没有随本目录切出**的辅助函数，直接拷走本目录跑不起来；
 要跑请用完整平台，或连同下列调用一起取：
 
-`ST`　`checkSelected`　`computeBayes`　`dOf`　`defsOf`　`nSel`　`nowStr`　`selIdxOf`　`unknown`
+`ST`　`checkSelected`　`computeBayes`　`dOf`　`defsOf`　`expNames`　`nowStr`　`selIdxOf`　`unknown`
 
 ## 复用方式
 

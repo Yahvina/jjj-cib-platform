@@ -35,7 +35,7 @@ function confPairs(){
   if(!cimResult) return {need:'check'};
   const ds=cimResult.ds, cons=cimResult.consistent;
   if(!cons.length) return {need:'empty'};
-  const cb=selectedCombo(ds);
+  const cb=(cimResult&&cimResult.pickMap)?selectedCombo(ds,cimResult.pickMap):selectedCombo(ds);
   if(cb.some(x=>x<0)) return {need:'missing'};
   const out=[];
   for(let i=0;i<ds.length;i++) for(let j=i+1;j<ds.length;j++){
@@ -170,8 +170,9 @@ function freqOf(r,i,a){
   return c;
 }
 
-function selectedCombo(ds){
+function selectedCombo(ds, pickMap){
   return ds.map(d=>{
+    if(pickMap) return pickMap[d]?ST(d).indexOf(pickMap[d]):-1;
     const sn=((sel.desc[d]||{}).states||[])[0];
     return sn?ST(d).indexOf(sn):-1;
   });

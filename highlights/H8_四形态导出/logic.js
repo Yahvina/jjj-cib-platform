@@ -15,10 +15,12 @@ function paramOf(d){
 }
 
 function expRows(){
-  const names=Object.keys(sel.desc);
+  const names=expNames();
   return names.map(nm=>{
     const d=dOf(nm); if(!d) return null;
-    const st=(sel.desc[nm].states||[])[0]||'';
+    /* 配置模式的 sel.desc.states 是有意留空的（空＝全档，见 cfgSyncToResearch），
+       真正「你选的那组」在 cfgPick；研究模式仍按勾选的第一档。 */
+    const st=(viewMode==='config'&&cfgPick[nm])?cfgPick[nm]:((sel.desc[nm].states||[])[0]||'');
     const defs=defsOf(nm), def=defs.filter(x=>x.n===st)[0]||null;
     const lo=(def&&def.lo!=null)?def.lo:null;
     const hi=(def&&def.hi!=null)?def.hi:null;
@@ -65,7 +67,7 @@ function paramsCSV(){
         r.value==null?'':r.value,r.lo==null?'':r.lo,r.hi==null?'':r.hi,csvCell(r.unit),
         csvCell(r.state),csvCell(r.ev),csvCell(r.note)].join(',')+'\n';
   });
-  const mp=Object.keys(sel.desc).filter(nm=>selIdxOf(nm).length>1);
+  const mp=expNames().filter(nm=>selIdxOf(nm).length>1);
   if(mp.length){
     s+='# 注意：'+mp.map(nm=>nm).join('、')+' 勾了多档（＝划定范围），本表按每档的第一档取值。\n';
     s+='# 要按整个范围导出，请用「导出全部自洽情景」。\n';
@@ -82,9 +84,9 @@ function downloadParamsBtn(){ downloadParams(); }
 function narrText(){
   const rows=expRows();
   if(!rows.length) return '（还没有选描述符）';
-  const sc=Object.keys(sel.desc).map(nm=>(sel.desc[nm].states||[])[0]).filter(Boolean);
+  const sc=rows.map(r=>r.state).filter(Boolean);
   const note=multiPickNote();
-  let s='【情景特征】\n本情景在'+nSel()+'个描述符上取了'+sc.length+'档，构成一组自洽的政策情景假设。\n\n';
+  let s='【情景特征】\n本情景在'+rows.length+'个描述符上取了'+sc.length+'档，构成一组自洽的政策情景假设。\n\n';
   if(note) s+='【注意】'+note.replace(/<[^>]+>/g,'')+'\n\n';
   s+='【逐项特征】\n';
   rows.forEach(r=>{
@@ -102,7 +104,14 @@ function narrText(){
 
 function bayesCSV(){
   if(!BAYES) computeBayes();
-  const keys=BAYES?Object.keys(BAYES.cells):[];
+  const all=(BAYES&&BAYES.cells)?Object.keys(BAYES.cells):[];
+  /* 只有配置模式才裁到本次参与集：那里载入 15 个变量后会把 210 对后验一并导出，
+     跟结果页「本次 3 个变量」对不上。研究模式的贝叶斯表本来是全域的，保持原样。 */
+  const names=(viewMode==='config'&&cimResult&&cimResult.ds&&cimResult.ds.length)?cimResult.ds:null;
+  const keys=names?all.filter(k=>{
+    const i=k.indexOf('>'); if(i<0) return true;
+    return names.indexOf(k.slice(0,i))>=0 && names.indexOf(k.slice(i+1))>=0;
+  }):all;
   let s='# 贝叶斯后验 · 每条判断的后验分布\n';
   s+='# 先验 N(0, '+2.2+'²)，按置信度给噪声（高 .55 / 中 .85 / 低 1.25），网格积分得后验\n';
   s+='pair,observations,posterior_mean,sd,p05,p95,width,p_promote,p_suppress,p_flat\n';
@@ -115,7 +124,7 @@ function bayesCSV(){
 }
 
 function curScenInfo(){
-  const ds=Object.keys(sel.desc);
+  const ds=expNames();
   if(ds.length<2) return null;
   const sc=checkSelected(ds);
   if(sc.missing) return null;

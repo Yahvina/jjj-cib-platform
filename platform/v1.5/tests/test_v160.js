@@ -169,11 +169,15 @@ chk(twoAll.length>=1, '存在两态变量', twoAll.join('/'));
 twoAll.slice(0,2).forEach(nm=>{ delete cfgPick[nm]; chk(cfgFinalOf(nm)==='', '两态变量未定档不取首档：'+nm, JSON.stringify(cfgFinalOf(nm))); });
 const threeAll=allDescs().map(d=>d.n).filter(nm=>ST(nm).length===3&&dOf(nm)&&dOf(nm).t!=='结果型');
 threeAll.slice(0,2).forEach(nm=>{ delete cfgPick[nm]; chk(cfgFinalOf(nm)==='', '三档变量未定档也不默认落中档：'+nm, JSON.stringify(cfgFinalOf(nm))); });
-const selBefore9=JSON.stringify(sel.desc), savedBefore9=cfgSaved;
+const selBefore9=JSON.stringify(sel.desc);
 cfgRun();
 chk(cfgRunInfo===null, '还有变量没定档时不出结果');
-chk(JSON.stringify(sel.desc)===selBefore9, '缺档被拦时不改写 sel.desc');
-chk(cfgSaved===savedBefore9, '缺档被拦时不保存快照');
+chk(cfgSaved!==null && JSON.stringify(cfgSaved)===selBefore9, '缺档被拦前已保存研究模式快照');
+const pre9=JSON.parse(selBefore9);
+chk(inputs9.every(nm=>{ const b=sel.desc[nm]; if(!b) return false;
+  const now=(b.states||[]), was=((pre9[nm]||{}).states)||[];
+  return now.length===was.length && now.every((v,i)=>v===was[i]); }),
+  '缺档被拦前参与集已同步进 sel.desc（保留原范围）');
 
 console.log('--- 9b. 定档后正常生成 ---');
 inputs9.forEach(nm=>{ cfgPick[nm]=ST(nm)[0]; });
@@ -187,7 +191,11 @@ const pickOk=inputs9.every(nm=>cfgPick[nm]===ST(nm)[0]);
 chk(pickOk, '生成结果写入最终档快照 cfgPick');
 let roundBack=true; try{ openResearch(); }catch(e){ roundBack=false; console.log(e.message); }
 chk(roundBack, '返回研究模式不抛异常');
-chk(JSON.stringify(sel.desc)===roundBefore, '返回研究模式恢复原 sel 快照');
+const roundPre=JSON.parse(roundBefore);
+chk(JSON.stringify(sel.desc[roundSnap])===JSON.stringify(roundPre[roundSnap]),
+  '返回研究模式恢复原 sel 快照（快照内那条原样保留）');
+chk(inputs9.every(nm=>{ const b=sel.desc[nm]; return !!b && (b.states||[]).indexOf(cfgPick[nm])>=0; }),
+  '返回研究模式时本轮 cfgPick 已合并进 sel.desc');
 chk(cfgSaved===null, '快照恢复后清空，避免重复恢复');
 chk(cfgSel && JSON.stringify(cfgSel)===roundSel, '配置流程数据不被研究模式恢复污染');
 chk(roundCfg!==JSON.stringify(sel.desc), '配置运行确实切换了 sel.desc（快照非空转）');

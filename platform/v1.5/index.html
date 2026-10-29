@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>京津冀政策情景快速评估平台 · 原型 v1.6.1</title>
+<title>京津冀政策情景快速评估平台 · 原型 v1.6.2</title>
   <link rel="stylesheet" href="src/styles.css">
 </head>
 <body>
@@ -142,7 +142,7 @@
 
   <div class="card">
     <div class="cimbar">
-      <button class="btn pri" onclick="applyPolicy()">按政策库预填来源</button>
+      <button class="btn pri" onclick="applyPolicy()">按政策库载入相关变量</button>
       <button class="btn" onclick="uploadPolicy()">上传政策清单</button>
       <div class="sp"></div>
       <span class="cimf">类别
@@ -433,7 +433,7 @@
 <section class="pane" id="cfg0">
   <div class="cfg-kicker">情景配置 · 01</div>
   <h2 class="pt">选政策</h2>
-  <p class="pd">从政策库中选出本次要评估的政策组合。平台只展示政策已经映射到的变量；“依据强度”表示这条对应关系有多确定，不是政策本身的档位。</p>
+  <p class="pd">从政策库中选出本次要评估的政策组合。平台只展示政策已经映射到的变量。<span class="tip" tabindex="0" data-tip="「依据强度」表示这条对应关系有多确定，不是政策本身的档位。">依据强度怎么看</span></p>
   <div id="cfgStepper0"></div>
   <div class="cfg-rule">
     <div class="cfg-r1"><b>区间口径</b><span id="cfgScopeText"></span></div>
@@ -463,9 +463,10 @@
 <section class="pane" id="cfg1">
   <div class="cfg-kicker">情景配置 · 02</div>
   <h2 class="pt">确认设定</h2>
-  <p class="pd">只展开被选中政策命中的变量。政策主张先保留“提高 / 维持 / 降低 / 未指定”，默认未指定；最终档位需要人工确认，平台不自动推断，也不把依据强度当作档位。</p>
+  <p class="pd">只展开被选中政策命中的变量。<span class="tip" tabindex="0" data-tip="政策主张先保留「提高 / 维持 / 降低 / 未指定」，默认未指定；最终档位需要人工确认，平台不自动推断，也不把依据强度当作档位。">这里要确认什么</span></p>
   <div id="cfgStepper1"></div>
   <div id="cfgSettingStat"></div>
+  <div id="cfgScoreBar"></div>
   <div id="cfgSettingList"></div>
   <div class="cfgfoot">
     <button class="btn" onclick="cfgGo(0)">← 返回选政策</button>
@@ -478,7 +479,7 @@
 <section class="pane" id="cfg2">
   <div class="cfg-kicker">情景配置 · 03</div>
   <h2 class="pt">看结果并导出</h2>
-  <p class="pd">这里给出平台在当前设定与当前判断下算出的结果，不预测未来，也不推荐某一套方案。导出的是下游模型可读的情景配置文件。</p>
+  <p class="pd">这里给出平台在当前设定与当前判断下算出的结果。<span class="tip" tabindex="0" data-tip="平台只做自洽性检验，不做预测，也不推荐某一套方案。导出的是下游模型可读的情景配置文件。">结果怎么读</span></p>
   <div id="cfgStepper2"></div>
   <div class="card">
     <h3>结果摘要</h3>
@@ -551,7 +552,7 @@
 
       <h3>第 3 步　描述符与状态</h3>
       <p>描述符按三级组织：输入型（经济增速、人口分布、协同机制）、参数型（产业结构、电力互济、可再生开发、钢铁工艺、CCUS、碳移除、用水）、结果型（一次能源结构、终端电气化率）。共 19 个，合计 55 个状态。</p>
-      <p>每个状态右侧的数值区间是该档位的<b>取值锚点</b>：把「高速 / 中速」这类定性标签落到具体范围上，标签就变成了半定量档位。区间可改，状态可增删——标准不必只有一套，可以换成自己的口径。状态定义的来源说明可以回<b>第 2 步</b>用「按政策库预填来源」一次性写好，不必逐条手敲。</p>
+      <p>每个状态右侧的数值区间是该档位的<b>取值锚点</b>：把「高速 / 中速」这类定性标签落到具体范围上，标签就变成了半定量档位。区间可改，状态可增删——标准不必只有一套，可以换成自己的口径。政策库挂到的变量可以回<b>第 2 步</b>用「按政策库载入相关变量」一次加进参与集并写好来源说明（结果型除外），不必逐条手敲；载入只写来源与依据强度，档位仍要自己确认。</p>
       <p><b>勾选的档位就是这个描述符的「可信范围」。</b>一个描述符可以勾多档——可信范围本就不止一档。勾了之后，枚举与一致性检验只在这个范围里找自洽情景，报告与影响谱也跟着这个范围走；<b>一个都不勾＝不设限</b>，全部档位都参与。范围划得越窄、主张越具体，也越容易找不到自洽情景——这是把范围划窄的正常结果，不是平台算错。</p>
       <p>要表达「某个档位不可能」，请用每个描述符下方的「已知值」，那里有区间依据可追溯；只在勾选里避开它，只是把搜索范围划窄，并不构成数值上的排除。结果型描述符由模型算出，不能勾选。</p>
 
@@ -746,3 +747,4 @@
 <script src="src/app.js"></script>
 </body>
 </html>
+

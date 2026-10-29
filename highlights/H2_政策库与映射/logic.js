@@ -248,16 +248,22 @@ function verifBlock(v){
 }
 
 function applyPolicy(){
-  if(nSel()===0){ toast('先到「描述符与状态」勾选描述符，再回来预填'); return; }
   const cov={};
-  PALLC().forEach(p=>p.m.forEach(x=>{ if(!cov[x[0]]) cov[x[0]]=x; }));
-  let n=0;
+  PALLC().forEach(p=>(p.m||[]).forEach(x=>{ if(!cov[x[0]]) cov[x[0]]=x; }));
+  let added=0, have=0;
+  Object.keys(cov).forEach(nm=>{
+    const d=dOf(nm);
+    if(!d||d.t==='结果型') return;
+    if(sel.desc[nm]) have++;
+    else { sel.desc[nm]={states:[],src:null}; added++; }
+    sel.desc[nm].src='政策库 · '+cov[nm][2]+'；依据强度 '+cov[nm][1]+'；档位待确认';
+  });
   Object.keys(sel.desc).forEach(nm=>{
-    if(cov[nm]){ sel.desc[nm].src='政策库 · 依据「'+cov[nm][2]+'」；置信度 '+cov[nm][1]; n++; }
-    else sel.desc[nm].src='（政策库中无对应路径，属外生输入或需另行设定）';
+    if(!cov[nm]) sel.desc[nm].src='（政策库中无对应路径，属外生输入或需另行设定）';
   });
   pulled=true;
-  toast('已按政策库映射预填 '+n+' 个描述符的来源说明');
+  cimResult=null; BAYES=null; layeredResult=null; corrResult=null; profResult=null;
+  toast('已按政策库载入 '+(added+have)+' 个相关变量（新加 '+added+' 个），档位待确认');
   render();
 }
 

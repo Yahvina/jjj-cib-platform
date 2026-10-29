@@ -14,17 +14,17 @@
 | `POLICY` | 121–228 |
 | `POLICY_EVID` | 230–230 |
 | `POLICY_VERIF` | 237–253 |
-| `PALLC` | 2768–2768 |
+| `PALLC` | 2855–2855 |
 | `nSel` | 281–281 |
-| `renderPolicy` | 2801–2851 |
-| `pickPolicy` | 2852–2852 |
-| `polEvid` | 2854–2856 |
-| `polEvidBlock` | 2898–2898 |
-| `polSidePanel` | 2916–2956 |
-| `verifBlock` | 2976–2984 |
-| `applyPolicy` | 2985–2997 |
-| `uploadPolicy` | 2998–3020 |
-| `prepErr` | 3086–3091 |
+| `renderPolicy` | 2888–2938 |
+| `pickPolicy` | 2939–2939 |
+| `polEvid` | 2941–2943 |
+| `polEvidBlock` | 2985–2985 |
+| `polSidePanel` | 3003–3043 |
+| `verifBlock` | 3063–3071 |
+| `applyPolicy` | 3076–3094 |
+| `uploadPolicy` | 3095–3117 |
+| `prepErr` | 3183–3188 |
 
 - 样式：本目录 `style.css`（摘录）；完整样式表见 `../_shared/base.css`
 
@@ -43,10 +43,10 @@
 
 ## 目录外的函数依赖
 
-本模块还调用了 12 个**没有随本目录切出**的辅助函数，直接拷走本目录跑不起来；
+本模块还调用了 13 个**没有随本目录切出**的辅助函数，直接拷走本目录跑不起来；
 要跑请用完整平台，或连同下列调用一起取：
 
-`allDescs`　`attrEsc`　`cimKeys`　`polDeptHit`　`polDeptList`　`polDeptTag`　`polDepts`　`polEvidFiles`　`polEvidMaps`　`polModelBlock`　`polTimeBlock`　`polUser`
+`allDescs`　`attrEsc`　`cimKeys`　`dOf`　`polDeptHit`　`polDeptList`　`polDeptTag`　`polDepts`　`polEvidFiles`　`polEvidMaps`　`polModelBlock`　`polTimeBlock`　`polUser`
 
 ## 复用方式
 

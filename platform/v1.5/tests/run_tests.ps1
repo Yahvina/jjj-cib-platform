@@ -91,7 +91,7 @@ foreach ($candDir in $prodDirs) {
 # Which argument each test takes: source by default; the doc/menu tests need a
 # built HTML file; the smoke test needs the single-file build.
 function Get-TestArg([string]$name) {
-  if ($name -eq 'test_doc.js' -or $name -eq 'test_menu.js' -or $name -eq 'test_v160.js' -or $name -eq 'test_v161.js') { return $htmlArg }
+  if ($name -eq 'test_doc.js' -or $name -eq 'test_menu.js' -or $name -eq 'test_v160.js' -or $name -eq 'test_v161.js' -or $name -eq 'test_v162.js') { return $htmlArg }
   if ($name -eq 'test_gen_smoke.js') { return $prodArg }
   return $srcArg
 }

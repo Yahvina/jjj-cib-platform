@@ -179,9 +179,9 @@ function enumCore(ds, force, capN, keepAll){
     truncated: keepAll ? (count>keepAll) : false};
 }
 
-function runCIM(){
+function runCIM(dsIn, pickIn){
   if(useBayes && !BAYES) computeBayes();
-  const ds=Object.keys(sel.desc);
+  const ds=(dsIn&&dsIn.length)?dsIn:Object.keys(sel.desc);
   const pe=prepErr(ds);
   if(pe){ toast(pe); return; }
   const r=enumCore(ds,null);
@@ -191,25 +191,29 @@ function runCIM(){
   const anchored=ds.filter(d=>ancOf(d)).length;
   cimResult={ds:ds.slice(), sizes:r.sizes.slice(), total:total, space:r.space, anchored:anchored,
     checked:r.checked, count:r.count, sampled:r.sampled,
-    consistent:r.consistent, inconsistent:r.inconsistent, ts:nowStr()};
+    consistent:r.consistent, inconsistent:r.inconsistent, ts:nowStr(),
+    pickMap:pickIn?Object.assign({},pickIn):null};
   toast('检验完成：'+(r.sampled?'抽样 ':'')+r.checked.toLocaleString()+' 个组合，自洽 '+r.consistent.length+' 组'
     +(anchored?('（锚定已把空间收窄到 '+r.space.toLocaleString()+' 种）'):''));
   render();
 }
 
-function selectedCombo(ds){
+function selectedCombo(ds, pickMap){
   return ds.map(d=>{
+    if(pickMap) return pickMap[d]?ST(d).indexOf(pickMap[d]):-1;
     const sn=((sel.desc[d]||{}).states||[])[0];
     return sn?ST(d).indexOf(sn):-1;
   });
 }
 
-function checkSelected(ds){
-  const cb=selectedCombo(ds);
+function checkSelected(ds, pickMap){
+  const cb=selectedCombo(ds, pickMap);
   const missing=cb.filter(x=>x<0).length;
   if(missing) return {missing:missing};
-  const multi=ds.filter(d=>selIdxOf(d).length>1);
-  if(multi.length) return {range:true, multi:multi, cb:cb};
+  if(!pickMap){
+    const multi=ds.filter(d=>selIdxOf(d).length>1);
+    if(multi.length) return {range:true, multi:multi, cb:cb};
+  }
   const IMP=buildIMP(ds,cim), sizes=ds.map(d=>ST(d).length), rows=[];
   let ok=true;
   ds.forEach((d,i)=>{
@@ -311,7 +315,7 @@ function rangeStat(){
   const ds=cimResult.ds;
   const inRange=cimResult.consistent.filter(cb=>
     ds.every((d,i)=>{ const s=selIdxOf(d); return !s.length||s.indexOf(cb[i])>=0; }));
-  return {n:rangeSize(ds), ok:inRange.length, total:cimResult.consistent.length,
+  return {n:rangeSize(ds), ok:inRange.length, total:cimResult.count,
     anySel:ds.some(d=>selIdxOf(d).length)};
 }
 

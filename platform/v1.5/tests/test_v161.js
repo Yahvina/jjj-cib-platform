@@ -169,7 +169,8 @@ const fSelBefore = JSON.stringify(sel.desc);
 cfgRun();
 chk(cfgRunInfo === null, '未定档时不出结果');
 chk(cfgNotice.indexOf('没定档') >= 0, '被拦时提示还有变量没定档', cfgNotice);
-chk(JSON.stringify(sel.desc) === fSelBefore, '被拦时不改写 sel.desc');
+chk(cfgSaved !== null && JSON.stringify(cfgSaved) === fSelBefore, '被拦前已保存研究模式快照');
+chk(fInputs.every(nm => !!sel.desc[nm]), '被拦前参与集已同步进 sel.desc');
 
 console.log();
 console.log('=== G. 研究模式手动设过的变量，进出配置 -> 不丢 ===');
