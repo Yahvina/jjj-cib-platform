@@ -397,7 +397,7 @@ function renderTree(){
         const cls=d.t==='输入型'?'in':(d.t==='参数型'?'par':'out');
         const openDetail=expanded.has(d.id);
         d3+=`<div class="tl3 ${dis?'dis':''}">
-          <span class="chk ${on?'on':''}" onclick="${dis?'':`selDesc('${d.id}')`}">${on?TICK:''}</span>
+          <span class="chk ${on?'on':''}" data-id="${d.id}" onclick="${dis?'':`selDesc('${d.id}')`}">${on?TICK:''}</span>
           <span class="nm" onclick="toggleDetail('${d.id}')">${d.n}${dis?' <span class="dim">（不可作为输入）</span>':''}
             <span class="meta">${d.v}</span></span></div>`;
         if(openDetail){
@@ -433,6 +433,32 @@ function renderTree(){
   if(cnt) cnt.textContent=
     `共 ${allDescs().length} 个　·　已选 ${nSel()} 项${q?'（匹配 '+shown+' 个）':''}`;
 }
+function renderTreeCnt(){
+  const cnt=document.getElementById('treeCnt');
+  if(cnt) cnt.textContent=`共 ${allDescs().length} 个　·　已选 ${nSel()} 项`;
+}
+/* 全选 / 清空（用户点名要的，对齐情景配置选政策）。全选＝所有非结果型都进参与集。
+   两个都走轻量路径（只改勾选框与统计，不 render）：走 render 会重建抽屉，
+   触发按钮的旧 DOM 随之脱离文档树，document 的「点空白关闭」监听会把那次点击
+   误判成「点在抽屉外」，刚弹开的抽屉立刻被自己关掉。 */
+function descSelAll(){
+  const n=allDescs().filter(d=>d.t!=='结果型').length;
+  allDescs().filter(d=>d.t!=='结果型').forEach(d=>{
+    if(!sel.desc[d.n]) sel.desc[d.n]={states:[],src:null};
+  });
+  document.querySelectorAll('#tree .chk[data-id]').forEach(chk=>{
+    const d=allDescs().find(x=>x.id===chk.getAttribute('data-id'));
+    if(d&&d.t!=='结果型'){ chk.classList.add('on'); chk.innerHTML=TICK; }
+  });
+  renderTreeCnt(); renderP2Stat(); renderDescList();
+  toast('已把 '+n+' 个描述符全部加入参与集');
+}
+function descClearAll(){
+  sel.desc={}; cimResult=null; BAYES=null; layeredResult=null; corrResult=null; profResult=null;
+  document.querySelectorAll('#tree .chk.on').forEach(chk=>{ chk.classList.remove('on'); chk.innerHTML=''; });
+  renderTreeCnt(); renderP2Stat(); renderDescList();
+  toast('已清空，参与集为空');
+}
 function toggleDetail(id){
   if(expanded.has(id)) expanded.delete(id); else expanded.add(id);
   renderTree();
@@ -444,8 +470,17 @@ function toggleNode(id){
 function onSearch(){ searchQ=document.getElementById('search').value; renderTree(); }
 function setSearch(v){ document.getElementById('search').value=v; searchQ=v; renderTree(); }
 function selDesc(id){
-  const d=allDescs().find(x=>x.id===id);
-  if(sel.desc[d.n]) delete sel.desc[d.n]; else sel.desc[d.n]={states:[],src:null};
+  const d=allDescs().find(x=>x.id===id); if(!d) return;
+  const adding=!sel.desc[d.n];
+  if(adding) sel.desc[d.n]={states:[],src:null}; else delete sel.desc[d.n];
+  /* 在「添加描述符」抽屉里勾选时走轻量路径：只切勾选框、刷新统计与清单，
+     不重建整页——原来每次勾选都 render()，树重建后滚动位置归零，勾一个就跳回顶部。 */
+  if(p2Drawer&&p2Drawer.mode==='add'){
+    const chk=document.querySelector('#tree .chk[data-id="'+id+'"]');
+    if(chk){ chk.classList.toggle('on',adding); chk.innerHTML=adding?TICK:''; }
+    renderTreeCnt(); renderP2Stat(); renderDescList();
+    return;
+  }
   render();
 }
 /* 多选（v1.5 B 方案）：勾选＝给这个描述符**划定一个可信范围**，
@@ -829,6 +864,8 @@ function renderP2Drawer(){
       +'<button class="btn sm" onclick="closeP2Drawer()">关闭</button></div>'
       +'<div class="tools" style="margin-top:12px;">'
       +'<input class="txt" id="search" placeholder="搜索描述符或对应变量…" oninput="onSearch()">'
+      +'<button class="btn sm" onclick="descSelAll()">全选</button>'
+      +'<button class="btn sm" onclick="descClearAll()">清空</button>'
       +'<button class="btn sm" onclick="setSearch(\'\')">清除</button></div>'
       +'<div class="p2treecnt" id="treeCnt"></div>'
       +'<div class="tree" id="tree"></div>';
@@ -5532,6 +5569,7 @@ function renderBayes(){
    已有情景需要重新检验；省略 = 不动结果（只改界面、措辞、性能或新增旁路分析）。
    与 git 提交对应；此处只列入对外可讲、能被核对的事项。 */
 const CHANGELOG=[
+ {d:'2026-10-30',k:'功能',x:'选描述符加全选/清空、点空白关抽屉、修勾选跳顶',y:'三个都来自实际使用。① 抽屉加「全选 / 清空」：全选＝所有非结果型进参与集（17 个），清空＝归零。两个都走轻量路径（只改勾选框与统计，不 render）——第一版走了 render，结果刚弹开的抽屉立刻被自己关掉：按钮的旧 DOM 随抽屉重建脱离文档树，document 的「点空白关闭」监听把那次点击误判成点在抽屉外。② 点抽屉以外的空白处也能关，不必找关闭按钮；政策详情抽屉同样适用。③ 勾选跳回顶部的根因是 selDesc 每次都 render()，树整个重建、scrollTop 归零——现在抽屉里的勾选走轻量路径，只切该项勾选框、刷新统计与清单，树不重建，滚动位置天然保留。'},
  {d:'2026-10-30',k:'界面',x:'研究模式第 3 步改成「清单 + 抽屉」',y:'原来左右两栏并置：左边描述符树固定 660px，右边是每个已选描述符一整块状态设置（约 300px）。选 10 个时右栏到 3003px，左栏早在 660px 就滚完了，两栏彻底脱节，下面的「描述符框架」被顶到 3700px 处。现在主区只有一列：顶部一行「已选 N 个 · 应判 M 条 ＋ 添加描述符」，下面是清单，每个描述符一行（名称、档位覆盖、当前档、设置），行高约 52px。重内容进抽屉，与政策详情共用同一种：点「＋ 添加描述符」出搜索与树（多选），点某行「设置」出该描述符的状态面板（区间、档位、已知值、自定义状态），底部带「上一项 / 下一项」，可以连着改十个不用反复开关。实测 10 个描述符整页 1381px，比原来的 3763px 短 2.7 倍，且增长从「每多一个 +300px」变成「+52px」。勾选与改档都会触发整页 render，抽屉重建时把 scrollTop 带过去，不会每点一次跳回顶部。renderTree / renderStates / #treeCnt 都加了「元素不在就直接返回」的守卫，因为树与状态面板现在只在抽屉打开时才存在。'},
  {d:'2026-10-29',k:'修复',x:'首页顶部冒出七步流程左轨',y:'v1.8.0 给左轨做深色时，选择器写成了「body.wizard .steps,.steps」——多出来的那个 .steps 把左轨无条件设成 display:flex，正好盖掉原文件里的「.steps{display:none}」。结果首页也长出整条七步左轨，还带着「立情景 / CIB 判定 / 看结果」三组标题。两条覆盖都收回成只作用于 body.wizard；另外 renderSteps() 加了守卫，非研究/非配置模式时直接清空 #steps 内容，双保险，将来 CSS 再被别的规则盖住也不会露出来。'},
  {d:'2026-10-29',k:'修复',x:'政策详情页关不掉',y:'v1.7.5 把抽屉从「第 1 步的 renderConfigPolicy 里渲染」改成「由 render 统一渲染」时，漏改了关闭这条路：cfgCloseDetail、cfgRemovePolicy、cfgClearDepts、cfgClearPolicies 以及取消命中提示那一处，仍然在调 renderConfigPolicy。这个函数已经不再画抽屉，于是 cfgOpen 清掉了、抽屉却还停在屏幕右边。五处一并改成 render()。教训是这类"把渲染搬走"的改动要顺着状态的每一个写入点走一遍，不是只改入口。test_v162 补第 4b 组：hook render 计数，断言 closeDetail 必须触发整页重绘——原来那条 bug 用"cfgOpen 变成 null"是测不出来的，因为值早就清了。'},
@@ -6145,6 +6183,13 @@ const VERSIONS=[
     ,'renderTree / renderStates 都加了「元素不在就返回」的守卫；#treeCnt 同理'
     ,'test_tip 的「含取值区间，可编辑」那条提示移到 h2 的 data-tip，class 顺序调成 tip 在前以匹配原有断言'
    ]}
+  ,{v:'v1.8.6',d:'2026-10-30',tag:'',sum:'选描述符三件事：全选/清空、点空白关抽屉、勾选不再跳回顶部',ev:'本批提交',
+   items:[
+    '「添加描述符」抽屉加「全选 / 清空」：全选＝所有非结果型进参与集（17 个），清空＝参与集归零。两个都走轻量路径——只改勾选框与统计，不 render。走 render 的话，按钮的旧 DOM 随抽屉重建脱离文档树，document 的点空白监听会把那次点击误判成「点在抽屉外」，刚弹开的抽屉立刻被自己关掉（实测踩到）'
+    ,'点抽屉以外的空白处也能关：document 级监听，target 不在 #p2Drawer 内且不在打开它的容器（p2bar / descList）里就关。政策详情抽屉（#cfgDrawer）同样适用'
+    ,'勾选跳回顶部的根因：selDesc 原来每次 render()，树整个重建、scrollTop 归零。现在抽屉里的勾选走轻量路径——只切该项勾选框、刷新统计与清单，树不重建，滚动位置天然保留'
+    ,'树的勾选框加 data-id，供轻量路径定位'
+   ]}
 ];
 /* 当前版本号只有一个来源：VERSIONS 的最后一条（数组按时间从旧到新排列）。
    2026-10-25 修：关于框里原先写死 v1.4，平台发到 v1.5.7 之后它还在对外显示旧版号。 */
@@ -6326,5 +6371,14 @@ document.addEventListener('click', function(e){
 });
 document.addEventListener('keydown', function(e){
   if(e.key==='Escape') document.querySelectorAll('.tip.open').forEach(x=>x.classList.remove('open'));
+});
+/* 点抽屉以外的空白处关闭：两个研究/配置共用的抽屉都适用。
+   点「打开它的按钮」不算空白——按钮的 onclick 先冒泡执行，随后才轮到 document，
+   此时 target 仍指向按钮所在的容器，用容器排除即可，否则刚弹开就被自己关掉。 */
+document.addEventListener('click', function(e){
+  const t=e.target;
+  const on=(id)=>{const d=document.getElementById(id);return d&&d.classList.contains('on')&&d.contains(t);};
+  if(p2Drawer&&!on('p2Drawer')&&!(t.closest&&t.closest('#p2 .p2bar,#p2 .descList'))) closeP2Drawer();
+  if(cfgOpen&&!on('cfgDrawer')&&!(t.closest&&t.closest('#cfgPolicyList,#cfgChosen'))) cfgCloseDetail();
 });
 render();

@@ -319,7 +319,7 @@ function renderTree(){
         const cls=d.t==='输入型'?'in':(d.t==='参数型'?'par':'out');
         const openDetail=expanded.has(d.id);
         d3+=`<div class="tl3 ${dis?'dis':''}">
-          <span class="chk ${on?'on':''}" onclick="${dis?'':`selDesc('${d.id}')`}">${on?TICK:''}</span>
+          <span class="chk ${on?'on':''}" data-id="${d.id}" onclick="${dis?'':`selDesc('${d.id}')`}">${on?TICK:''}</span>
           <span class="nm" onclick="toggleDetail('${d.id}')">${d.n}${dis?' <span class="dim">（不可作为输入）</span>':''}
             <span class="meta">${d.v}</span></span></div>`;
         if(openDetail){
@@ -371,8 +371,17 @@ function onSearch(){ searchQ=document.getElementById('search').value; renderTree
 function setSearch(v){ document.getElementById('search').value=v; searchQ=v; renderTree(); }
 
 function selDesc(id){
-  const d=allDescs().find(x=>x.id===id);
-  if(sel.desc[d.n]) delete sel.desc[d.n]; else sel.desc[d.n]={states:[],src:null};
+  const d=allDescs().find(x=>x.id===id); if(!d) return;
+  const adding=!sel.desc[d.n];
+  if(adding) sel.desc[d.n]={states:[],src:null}; else delete sel.desc[d.n];
+  /* 在「添加描述符」抽屉里勾选时走轻量路径：只切勾选框、刷新统计与清单，
+     不重建整页——原来每次勾选都 render()，树重建后滚动位置归零，勾一个就跳回顶部。 */
+  if(p2Drawer&&p2Drawer.mode==='add'){
+    const chk=document.querySelector('#tree .chk[data-id="'+id+'"]');
+    if(chk){ chk.classList.toggle('on',adding); chk.innerHTML=adding?TICK:''; }
+    renderTreeCnt(); renderP2Stat(); renderDescList();
+    return;
+  }
   render();
 }
 

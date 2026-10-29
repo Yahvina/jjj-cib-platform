@@ -11,54 +11,54 @@
 
 | 函数／常量 | 行号 |
 |---|---|
-| `RANGE_PRESET` | 489–509 |
-| `RANGE_EVID` | 512–532 |
-| `EVID_WORD` | 533–533 |
-| `SCOPE_NAME` | 538–538 |
-| `SCOPE_PRESET` | 543–553 |
-| `SCOPE_NOTE` | 554–560 |
-| `stateDefs` | 562–562 |
-| `stateDefsScope` | 539–539 |
-| `scopedDefs` | 540–540 |
-| `defsOf` | 565–597 |
-| `baseOf` | 600–600 |
-| `clearScopeCache` | 601–603 |
-| `setScope` | 604–608 |
-| `dropScopeOverride` | 609–614 |
-| `renderScopeBar` | 615–620 |
-| `ST` | 623–623 |
-| `rngTxt` | 624–628 |
-| `rngIssues` | 631–641 |
-| `editRange` | 642–642 |
-| `addState` | 643–643 |
-| `numOf` | 644–644 |
-| `txtOf` | 645–645 |
-| `saveRange` | 646–661 |
-| `renState` | 662–673 |
-| `delState` | 674–682 |
-| `doAddState` | 683–691 |
-| `attrEsc` | 694–699 |
-| `renderStates` | 701–780 |
+| `RANGE_PRESET` | 524–544 |
+| `RANGE_EVID` | 547–567 |
+| `EVID_WORD` | 568–568 |
+| `SCOPE_NAME` | 573–573 |
+| `SCOPE_PRESET` | 578–588 |
+| `SCOPE_NOTE` | 589–595 |
+| `stateDefs` | 597–597 |
+| `stateDefsScope` | 574–574 |
+| `scopedDefs` | 575–575 |
+| `defsOf` | 600–632 |
+| `baseOf` | 635–635 |
+| `clearScopeCache` | 636–638 |
+| `setScope` | 639–643 |
+| `dropScopeOverride` | 644–649 |
+| `renderScopeBar` | 650–655 |
+| `ST` | 658–658 |
+| `rngTxt` | 659–663 |
+| `rngIssues` | 666–676 |
+| `editRange` | 677–677 |
+| `addState` | 678–678 |
+| `numOf` | 679–679 |
+| `txtOf` | 680–680 |
+| `saveRange` | 681–696 |
+| `renState` | 697–708 |
+| `delState` | 709–717 |
+| `doAddState` | 718–726 |
+| `attrEsc` | 729–734 |
+| `renderStates` | 736–815 |
 | `renderTree` | 383–435 |
-| `toggleDetail` | 436–439 |
-| `toggleNode` | 440–443 |
-| `onSearch` | 444–444 |
-| `setSearch` | 445–445 |
-| `selDesc` | 446–450 |
-| `tglState` | 456–465 |
-| `selIdxOf` | 475–479 |
-| `rangeSize` | 481–483 |
-| `ancOf` | 931–931 |
-| `ancTxt` | 932–935 |
-| `parseAnc` | 936–944 |
-| `setAnc` | 945–953 |
-| `clearAnc` | 954–954 |
-| `ancAllowed` | 960–970 |
-| `ancConflicts` | 973–987 |
-| `selRangeHTML` | 990–996 |
-| `ancRowHTML` | 998–1012 |
-| `ancSummaryHTML` | 1014–1030 |
-| `ancConflictHTML` | 1033–1039 |
+| `toggleDetail` | 462–465 |
+| `toggleNode` | 466–469 |
+| `onSearch` | 470–470 |
+| `setSearch` | 471–471 |
+| `selDesc` | 472–485 |
+| `tglState` | 491–500 |
+| `selIdxOf` | 510–514 |
+| `rangeSize` | 516–518 |
+| `ancOf` | 968–968 |
+| `ancTxt` | 969–972 |
+| `parseAnc` | 973–981 |
+| `setAnc` | 982–990 |
+| `clearAnc` | 991–991 |
+| `ancAllowed` | 997–1007 |
+| `ancConflicts` | 1010–1024 |
+| `selRangeHTML` | 1027–1033 |
+| `ancRowHTML` | 1035–1049 |
+| `ancSummaryHTML` | 1051–1067 |
+| `ancConflictHTML` | 1070–1076 |
 
 - 样式：本目录 `style.css`（摘录）；完整样式表见 `../_shared/base.css`
 
@@ -77,10 +77,10 @@
 
 ## 目录外的函数依赖
 
-本模块还调用了 9 个**没有随本目录切出**的辅助函数，直接拷走本目录跑不起来；
+本模块还调用了 12 个**没有随本目录切出**的辅助函数，直接拷走本目录跑不起来；
 要跑请用完整平台，或连同下列调用一起取：
 
-`TREE`　`after`　`allDescs`　`collapsed`　`dOf`　`expanded`　`nSel`　`searchQ`　`toast`
+`TREE`　`after`　`allDescs`　`collapsed`　`dOf`　`expanded`　`nSel`　`renderDescList`　`renderP2Stat`　`renderTreeCnt`　`searchQ`　`toast`
 
 ## 复用方式
 
