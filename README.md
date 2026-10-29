@@ -182,6 +182,7 @@ git add -A; git commit -m "简述这次改了什么"; git push origin main
 | v1.8.2 | 2026-10-29 | **内容区在剩余空间里居中，宽屏右边不再空一大片**：`body.wizard .pane` 从 `max-width:1000px` 且左对齐，改成 `max-width:1120px` 且左右 `auto` 居中。原因是左轨占掉 212px 后，内容固定 1000px 紧贴左边，1500 宽的屏右边空出 200 多像素，两侧不对称，看着像页面没铺满。只改 `styles.css`。 |
 | v1.8.3 | 2026-10-29 | **修：政策详情页关不掉**：v1.7.5 把抽屉从「第 1 步的 `renderConfigPolicy` 里渲染」改成「由 `render` 统一渲染」时，漏改了关闭这条路——`cfgCloseDetail`、`cfgRemovePolicy`、`cfgClearDepts`、`cfgClearPolicies` 以及取消命中提示那一处，仍在调 `renderConfigPolicy`，于是 `cfgOpen` 清了、抽屉留在屏幕右边。五处一并改成 `render()`。`test_v162` 补第 4b 组：hook `render` 计数，断言 `closeDetail` 必须触发整页重绘——原来那条 bug 用「`cfgOpen` 变成 null」测不出来，因为值早就清了。 |
 | v1.8.4 | 2026-10-29 | **修：首页顶部冒出七步流程左轨**：v1.8.0 给左轨做深色时，选择器写成 `body.wizard .steps,.steps`——多出来的 `.steps` 把左轨无条件设成 `display:flex`，正好盖掉原文件里的 `.steps{display:none}`，于是首页长出整条七步左轨。两条覆盖都收回成只作用于 `body.wizard`；另在 `renderSteps()` 加守卫，非研究/非配置模式时清空 `#steps` 内容，双保险。 |
+| v1.8.5 | 2026-10-30 | **研究模式第 3 步改成「清单 + 抽屉」**：原来左右两栏并置——左树固定 660px，右边每个已选描述符一整块状态设置（约 300px），选 10 个时右栏到 3003px，左栏早在 660px 就滚完，两栏脱节，「描述符框架」被顶到 3700px。现在主区只有一列：顶部「已选 N 个 · 应判 M 条 ＋ 添加描述符」，下面清单每行 52px（名称、档位覆盖、当前档、设置）。重内容进 `#p2Drawer`：点「＋ 添加描述符」出搜索与树（多选），点行内「设置」出该描述符的状态面板，底部带「上一项 / 下一项」可连改。实测 10 个描述符整页 1381px（原来 3763，短 2.7 倍），增长从每多一个 +300px 变 +52px。抽屉在整页 render 重建时保留 `scrollTop`。`renderTree`／`renderStates`／`#treeCnt` 加「元素不在就返回」守卫（树与状态面板只在抽屉打开时存在）。`test_tip` 的提示文字移到第 3 步 h2 的 `data-tip`。`sel.desc` 数据结构与打分枚举零改动。 |
 
 **每一版都单独留档**，避免后续迭代把已经做好的功能覆盖掉。
 

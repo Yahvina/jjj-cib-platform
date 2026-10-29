@@ -1499,3 +1499,21 @@ body.wizard .steps{border-right:1px solid #141B21;}
 
 /* 内容区在剩余空间里居中：原先 max-width 1000 且左对齐，宽屏下右边留一大片空 */
 body.wizard .pane{max-width:1120px;margin-left:auto;margin-right:auto;}
+
+/* 第 3 步：清单 + 抽屉。原来右栏每个描述符一整块设置（约 300px），选 10 个就 3000px，
+   左栏的树只有 660px，滚到一半就脱节。现在一行一个描述符。 */
+.p2bar{display:flex;align-items:center;gap:14px;margin:4px 0 14px;flex-wrap:wrap;}
+.p2stat{display:flex;gap:18px;font-size:13px;color:var(--tx3);flex-wrap:wrap;}
+.p2stat b{color:var(--tx);font-variant-numeric:tabular-nums;}
+.descList{background:var(--panel);border:1px solid var(--line);border-radius:var(--r2);overflow:hidden;}
+.drow{display:flex;align-items:center;gap:14px;padding:11px 16px;border-bottom:1px solid var(--line2);}
+.drow:last-child{border-bottom:0;}
+.drow:hover{background:var(--bg);}
+.dmain{flex:1;min-width:0;}
+.dnm{font-size:15px;color:var(--tx);font-weight:600;}
+.dmeta{font-size:12px;color:var(--tx3);margin-top:2px;}
+.dmeta b{color:var(--tx2);font-weight:600;}
+.p2empty{padding:28px 16px;text-align:center;color:var(--tx3);font-size:13px;}
+.p2nav{display:flex;align-items:center;gap:10px;margin:12px 0 4px;}
+.p2navc{font-size:12px;color:var(--tx3);font-variant-numeric:tabular-nums;}
+.p2treecnt{font-size:12px;color:var(--tx3);margin:10px 0 8px;}

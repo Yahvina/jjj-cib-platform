@@ -381,7 +381,7 @@ function layerTable(){
 
 /* ================= 步骤 2 ================= */
 function renderTree(){
-  const el=document.getElementById('tree');
+  const el=document.getElementById('tree'); if(!el) return;   /* 树现在只在「添加描述符」抽屉里 */
   const q=searchQ.trim().toLowerCase();
   let h='', shown=0;
   TREE.forEach((l1,i1)=>{
@@ -429,7 +429,8 @@ function renderTree(){
       <div class="${k1?'hide':''}">${buf}</div></div>`;
   });
   el.innerHTML=h||'<div class="empty">没有匹配的描述符</div>';
-  document.getElementById('treeCnt').textContent=
+  const cnt=document.getElementById('treeCnt');
+  if(cnt) cnt.textContent=
     `共 ${allDescs().length} 个　·　已选 ${nSel()} 项${q?'（匹配 '+shown+' 个）':''}`;
 }
 function toggleDetail(id){
@@ -697,8 +698,9 @@ function attrEsc(s){
     .replace(/</g,'&lt;').replace(/>/g,'&gt;');
 }
 
-function renderStates(){
-  const el=document.getElementById('statePanel'), names=Object.keys(sel.desc);
+function renderStates(only){
+  const el=document.getElementById('statePanel'); if(!el) return;   /* 状态面板现在只在「设置」抽屉里 */
+  const names = only ? [only] : (p2Drawer&&p2Drawer.mode==='edit' ? [p2Drawer.nm] : Object.keys(sel.desc));
   if(!names.length){ el.innerHTML='<div class="empty">左侧勾选描述符后，这里显示它的状态选项</div>'; }
   else{
     el.innerHTML=names.map(nm=>{
@@ -768,12 +770,87 @@ function renderStates(){
       +ancSummaryHTML();
   }
   const outs=allDescs().filter(d=>d.t==='结果型');
-  document.getElementById('outPanel').innerHTML=
+  const outEl=document.getElementById('outPanel');
+  if(outEl) outEl.innerHTML=
     `<div class="stbox" style="margin-top:12px;">
       <div class="hd">模型输出预期</div>
       <div style="padding:10px 12px;font-size:13px;color:var(--tx2);line-height:1.7;">
         ${outs.map(d=>`· <b style="color:var(--tx)">${d.n}</b>——${d.tr}`).join('<br>')}
       </div></div>`;
+}
+/* ================= 第 3 步：清单 + 抽屉 =================
+   原来左右两栏并置：右栏每个描述符一整块设置面板（约 300px），选 10 个就是 3000px，
+   左栏的树只有 660px，滚到一半就脱节，下面的「描述符框架」被顶到页面最底。
+   现在主区只留清单（每行 44px），重内容进抽屉：添加＝树多选，设置＝单个描述符的状态面板。 */
+let p2Drawer=null;      /* null | {mode:'add'} | {mode:'edit', nm} */
+function p2StatHTML(){
+  const n=Object.keys(sel.desc).length, pairs=n>1?n*(n-1):0;
+  return '<span>已选 <b>'+n+'</b> 个描述符</span>'
+    +'<span>应判 <b>'+pairs.toLocaleString()+'</b> 条</span>'
+    +'<span>共 '+allDescs().length+' 个可选用</span>';
+}
+function renderP2Stat(){
+  const el=document.getElementById('p2stat'); if(el) el.innerHTML=p2StatHTML();
+}
+function renderDescList(){
+  renderP2Stat();
+  const el=document.getElementById('descList'); if(!el) return;
+  const names=Object.keys(sel.desc);
+  if(!names.length){
+    el.innerHTML='<div class="p2empty">还没有选描述符。点右上「＋ 添加描述符」，从树里挑。</div>';
+    return;
+  }
+  el.innerHTML=names.map(nm=>{
+    const c=sel.desc[nm], defs=defsOf(nm);
+    const onN=defs.filter(s=>(c.states||[]).indexOf(s.n)>=0).length;
+    const cur=(c.states||[]).length===1?c.states[0]:'';
+    const bare=!(c.states||[]).length;
+    return '<div class="drow">'
+      +'<div class="dmain"><div class="dnm">'+attrEsc(nm)+'</div>'
+      +'<div class="dmeta">'+(bare?'不设限（全 '+defs.length+' 档）':(onN+' / '+defs.length+' 档'))
+      +(cur?'　<b>'+attrEsc(cur)+'</b>':'')+'</div></div>'
+      +'<button class="btn sm" onclick="openDescDrawer(\''+nm+'\')">设置</button>'
+      +'</div>';
+  }).join('');
+}
+function openDescDrawer(nm){ p2Drawer={mode:'edit',nm:nm}; render(); }
+function openAddDrawer(){ p2Drawer={mode:'add'}; render(); }
+function closeP2Drawer(){ p2Drawer=null; render(); }
+function renderP2Drawer(){
+  const el=document.getElementById('p2Drawer'); if(!el) return;
+  if(!p2Drawer){ el.className='cfgdrawer'; el.innerHTML=''; return; }
+  /* 勾选或改档都会触发整页 render，抽屉会重建——把滚动位置带过去，
+     否则在树里连勾五个，每勾一次都跳回顶部。 */
+  const keep=el.scrollTop;
+  el.className='cfgdrawer on';
+  if(p2Drawer.mode==='add'){
+    el.innerHTML='<div class="drawer-h"><div><div class="drawer-k">添加描述符</div>'
+      +'<b>从树里挑</b></div>'
+      +'<button class="btn sm" onclick="closeP2Drawer()">关闭</button></div>'
+      +'<div class="tools" style="margin-top:12px;">'
+      +'<input class="txt" id="search" placeholder="搜索描述符或对应变量…" oninput="onSearch()">'
+      +'<button class="btn sm" onclick="setSearch(\'\')">清除</button></div>'
+      +'<div class="p2treecnt" id="treeCnt"></div>'
+      +'<div class="tree" id="tree"></div>';
+    renderTree();
+  }else{
+    const nm=p2Drawer.nm, names=Object.keys(sel.desc), i=names.indexOf(nm);
+    el.innerHTML='<div class="drawer-h"><div><div class="drawer-k">状态设置</div>'
+      +'<b>'+attrEsc(nm)+'</b></div>'
+      +'<button class="btn sm" onclick="closeP2Drawer()">关闭</button></div>'
+      +'<div class="p2nav"><button class="btn sm"'+(i<=0?' disabled':'')+' onclick="descStep(-1)">上一项</button>'
+      +'<span class="p2navc">'+(i+1)+' / '+names.length+'</span>'
+      +'<button class="btn sm"'+(i>=names.length-1?' disabled':'')+' onclick="descStep(1)">下一项</button></div>'
+      +'<div id="statePanel"></div>';
+    renderStates(nm);
+  }
+  if(keep) el.scrollTop=keep;
+}
+function descStep(d){
+  const names=Object.keys(sel.desc), i=names.indexOf(p2Drawer.nm)+d;
+  if(i<0||i>=names.length) return;
+  p2Drawer={mode:'edit',nm:names[i]};
+  render();
 }
 /* ================= 步骤 3 ================= */
 function expDetail(){
@@ -5455,6 +5532,7 @@ function renderBayes(){
    已有情景需要重新检验；省略 = 不动结果（只改界面、措辞、性能或新增旁路分析）。
    与 git 提交对应；此处只列入对外可讲、能被核对的事项。 */
 const CHANGELOG=[
+ {d:'2026-10-30',k:'界面',x:'研究模式第 3 步改成「清单 + 抽屉」',y:'原来左右两栏并置：左边描述符树固定 660px，右边是每个已选描述符一整块状态设置（约 300px）。选 10 个时右栏到 3003px，左栏早在 660px 就滚完了，两栏彻底脱节，下面的「描述符框架」被顶到 3700px 处。现在主区只有一列：顶部一行「已选 N 个 · 应判 M 条 ＋ 添加描述符」，下面是清单，每个描述符一行（名称、档位覆盖、当前档、设置），行高约 52px。重内容进抽屉，与政策详情共用同一种：点「＋ 添加描述符」出搜索与树（多选），点某行「设置」出该描述符的状态面板（区间、档位、已知值、自定义状态），底部带「上一项 / 下一项」，可以连着改十个不用反复开关。实测 10 个描述符整页 1381px，比原来的 3763px 短 2.7 倍，且增长从「每多一个 +300px」变成「+52px」。勾选与改档都会触发整页 render，抽屉重建时把 scrollTop 带过去，不会每点一次跳回顶部。renderTree / renderStates / #treeCnt 都加了「元素不在就直接返回」的守卫，因为树与状态面板现在只在抽屉打开时才存在。'},
  {d:'2026-10-29',k:'修复',x:'首页顶部冒出七步流程左轨',y:'v1.8.0 给左轨做深色时，选择器写成了「body.wizard .steps,.steps」——多出来的那个 .steps 把左轨无条件设成 display:flex，正好盖掉原文件里的「.steps{display:none}」。结果首页也长出整条七步左轨，还带着「立情景 / CIB 判定 / 看结果」三组标题。两条覆盖都收回成只作用于 body.wizard；另外 renderSteps() 加了守卫，非研究/非配置模式时直接清空 #steps 内容，双保险，将来 CSS 再被别的规则盖住也不会露出来。'},
  {d:'2026-10-29',k:'修复',x:'政策详情页关不掉',y:'v1.7.5 把抽屉从「第 1 步的 renderConfigPolicy 里渲染」改成「由 render 统一渲染」时，漏改了关闭这条路：cfgCloseDetail、cfgRemovePolicy、cfgClearDepts、cfgClearPolicies 以及取消命中提示那一处，仍然在调 renderConfigPolicy。这个函数已经不再画抽屉，于是 cfgOpen 清掉了、抽屉却还停在屏幕右边。五处一并改成 render()。教训是这类"把渲染搬走"的改动要顺着状态的每一个写入点走一遍，不是只改入口。test_v162 补第 4b 组：hook render 计数，断言 closeDetail 必须触发整页重绘——原来那条 bug 用"cfgOpen 变成 null"是测不出来的，因为值早就清了。'},
  {d:'2026-10-29',k:'界面',x:'视觉改版第一批：冷灰画布 + 白卡片 + 深色框架 + 蓝强调',y:'用户的判断是「颜色太接近、低饱和、一片一片、没有层次」。实测确认了三条：纸的三阶只差 3.8 个明度点（96.2 / 98.5 / 100），卡片是暖白而不是白；强调色 #2F4858 的 chroma 只有 0.041，在纸底上读起来就是灰；数据色阶 −3 是 L45、+3 是 L57.8，同样强度左边更黑——这是语义错误，不只是不好看。这一批换整套色板：画布降到 L95 冷灰、卡片提到 L100 纯白浮在画布之上（原来卡片比画布只亮 1.5 点），墨从三阶改四阶，线分细（84）硬（62）两档，强调色换成 #1B589E（chroma 0.129），数据阶两侧统一到 L52/62/74。另外补上一件原方案漏掉的事：整页没有一处暗，眼睛就没落点。所以顶栏与左轨改深色（#1C252D / #2A343D）连成一个框，结果摘要做成深色带反白——全站只有这两处深色，多了又会变回一片。本批只动 styles.css：:root 重写 + 末尾追加覆盖层，index.html 与 app.js 零改动，35/35 通过。'},
@@ -6058,6 +6136,15 @@ const VERSIONS=[
     ,'两条覆盖都收回成只作用于 body.wizard，首页回到 display:none'
     ,'renderSteps() 加守卫：非研究模式且非配置模式时清空 #steps 内容，双保险——将来 CSS 再被别的规则盖住也不会露出来'
    ]}
+  ,{v:'v1.8.5',d:'2026-10-30',tag:'',sum:'研究模式第 3 步改成「清单 + 抽屉」：选 10 个描述符，页面从 3763px 压到 1381px',ev:'本批提交',
+   items:[
+    '主区不再左右两栏：顶部一行「已选 N 个 · 应判 M 条 ＋ 添加描述符」，下面是清单，每个描述符一行（名称 / 档位覆盖 / 当前档 / 设置）'
+    ,'重内容进抽屉，两个模式共用 #p2Drawer：添加＝搜索＋树多选；设置＝该描述符的状态面板，带「上一项 / 下一项」，十个连改不用开关'
+    ,'实测：10 个描述符时整页 1381px（原来 3763），右栏 3003px 的问题消失，描述符框架回到清单正下方'
+    ,'勾选或改档都会触发整页 render，抽屉重建时把 scrollTop 带过去，不会每点一次就跳回顶部'
+    ,'renderTree / renderStates 都加了「元素不在就返回」的守卫；#treeCnt 同理'
+    ,'test_tip 的「含取值区间，可编辑」那条提示移到 h2 的 data-tip，class 顺序调成 tip 在前以匹配原有断言'
+   ]}
 ];
 /* 当前版本号只有一个来源：VERSIONS 的最后一条（数组按时间从旧到新排列）。
    2026-10-25 修：关于框里原先写死 v1.4，平台发到 v1.5.7 之后它还在对外显示旧版号。 */
@@ -6173,7 +6260,7 @@ function p6Status(){
 /* ================= 主渲染 ================= */
 function render(){
   syncExpCard();
-  renderSteps(); renderCmp(); layerTable(); renderTree(); renderStates();
+  renderSteps(); renderCmp(); layerTable(); renderDescList(); renderP2Drawer();
   expDetail(); renderEnsBox(); scaleSum(); renderPolicy();
   renderCim(); renderEnsBar(); modelDetail(); renderScopeBar(); checkResult(); renderLay(); renderFilt();
   renderTableau(); renderMap();

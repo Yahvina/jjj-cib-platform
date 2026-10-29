@@ -221,8 +221,9 @@ function attrEsc(s){
     .replace(/</g,'&lt;').replace(/>/g,'&gt;');
 }
 
-function renderStates(){
-  const el=document.getElementById('statePanel'), names=Object.keys(sel.desc);
+function renderStates(only){
+  const el=document.getElementById('statePanel'); if(!el) return;   /* 状态面板现在只在「设置」抽屉里 */
+  const names = only ? [only] : (p2Drawer&&p2Drawer.mode==='edit' ? [p2Drawer.nm] : Object.keys(sel.desc));
   if(!names.length){ el.innerHTML='<div class="empty">左侧勾选描述符后，这里显示它的状态选项</div>'; }
   else{
     el.innerHTML=names.map(nm=>{
@@ -292,7 +293,8 @@ function renderStates(){
       +ancSummaryHTML();
   }
   const outs=allDescs().filter(d=>d.t==='结果型');
-  document.getElementById('outPanel').innerHTML=
+  const outEl=document.getElementById('outPanel');
+  if(outEl) outEl.innerHTML=
     `<div class="stbox" style="margin-top:12px;">
       <div class="hd">模型输出预期</div>
       <div style="padding:10px 12px;font-size:13px;color:var(--tx2);line-height:1.7;">
@@ -301,7 +303,7 @@ function renderStates(){
 }
 
 function renderTree(){
-  const el=document.getElementById('tree');
+  const el=document.getElementById('tree'); if(!el) return;   /* 树现在只在「添加描述符」抽屉里 */
   const q=searchQ.trim().toLowerCase();
   let h='', shown=0;
   TREE.forEach((l1,i1)=>{
@@ -349,7 +351,8 @@ function renderTree(){
       <div class="${k1?'hide':''}">${buf}</div></div>`;
   });
   el.innerHTML=h||'<div class="empty">没有匹配的描述符</div>';
-  document.getElementById('treeCnt').textContent=
+  const cnt=document.getElementById('treeCnt');
+  if(cnt) cnt.textContent=
     `共 ${allDescs().length} 个　·　已选 ${nSel()} 项${q?'（匹配 '+shown+' 个）':''}`;
 }
 

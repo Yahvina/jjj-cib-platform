@@ -6,59 +6,59 @@
 
 ## 代码位置（v1.5 工作副本）
 
-- HTML：`_src/v15/index.html` 第 179–211 行
+- HTML：`_src/v15/index.html` 第 179–204 行
 - 逻辑：`_src/v15/src/app.js`
 
 | 函数／常量 | 行号 |
 |---|---|
-| `RANGE_PRESET` | 488–508 |
-| `RANGE_EVID` | 511–531 |
-| `EVID_WORD` | 532–532 |
-| `SCOPE_NAME` | 537–537 |
-| `SCOPE_PRESET` | 542–552 |
-| `SCOPE_NOTE` | 553–559 |
-| `stateDefs` | 561–561 |
-| `stateDefsScope` | 538–538 |
-| `scopedDefs` | 539–539 |
-| `defsOf` | 564–596 |
-| `baseOf` | 599–599 |
-| `clearScopeCache` | 600–602 |
-| `setScope` | 603–607 |
-| `dropScopeOverride` | 608–613 |
-| `renderScopeBar` | 614–619 |
-| `ST` | 622–622 |
-| `rngTxt` | 623–627 |
-| `rngIssues` | 630–640 |
-| `editRange` | 641–641 |
-| `addState` | 642–642 |
-| `numOf` | 643–643 |
-| `txtOf` | 644–644 |
-| `saveRange` | 645–660 |
-| `renState` | 661–672 |
-| `delState` | 673–681 |
-| `doAddState` | 682–690 |
-| `attrEsc` | 693–698 |
-| `renderStates` | 700–777 |
-| `renderTree` | 383–434 |
-| `toggleDetail` | 435–438 |
-| `toggleNode` | 439–442 |
-| `onSearch` | 443–443 |
-| `setSearch` | 444–444 |
-| `selDesc` | 445–449 |
-| `tglState` | 455–464 |
-| `selIdxOf` | 474–478 |
-| `rangeSize` | 480–482 |
-| `ancOf` | 854–854 |
-| `ancTxt` | 855–858 |
-| `parseAnc` | 859–867 |
-| `setAnc` | 868–876 |
-| `clearAnc` | 877–877 |
-| `ancAllowed` | 883–893 |
-| `ancConflicts` | 896–910 |
-| `selRangeHTML` | 913–919 |
-| `ancRowHTML` | 921–935 |
-| `ancSummaryHTML` | 937–953 |
-| `ancConflictHTML` | 956–962 |
+| `RANGE_PRESET` | 489–509 |
+| `RANGE_EVID` | 512–532 |
+| `EVID_WORD` | 533–533 |
+| `SCOPE_NAME` | 538–538 |
+| `SCOPE_PRESET` | 543–553 |
+| `SCOPE_NOTE` | 554–560 |
+| `stateDefs` | 562–562 |
+| `stateDefsScope` | 539–539 |
+| `scopedDefs` | 540–540 |
+| `defsOf` | 565–597 |
+| `baseOf` | 600–600 |
+| `clearScopeCache` | 601–603 |
+| `setScope` | 604–608 |
+| `dropScopeOverride` | 609–614 |
+| `renderScopeBar` | 615–620 |
+| `ST` | 623–623 |
+| `rngTxt` | 624–628 |
+| `rngIssues` | 631–641 |
+| `editRange` | 642–642 |
+| `addState` | 643–643 |
+| `numOf` | 644–644 |
+| `txtOf` | 645–645 |
+| `saveRange` | 646–661 |
+| `renState` | 662–673 |
+| `delState` | 674–682 |
+| `doAddState` | 683–691 |
+| `attrEsc` | 694–699 |
+| `renderStates` | 701–780 |
+| `renderTree` | 383–435 |
+| `toggleDetail` | 436–439 |
+| `toggleNode` | 440–443 |
+| `onSearch` | 444–444 |
+| `setSearch` | 445–445 |
+| `selDesc` | 446–450 |
+| `tglState` | 456–465 |
+| `selIdxOf` | 475–479 |
+| `rangeSize` | 481–483 |
+| `ancOf` | 931–931 |
+| `ancTxt` | 932–935 |
+| `parseAnc` | 936–944 |
+| `setAnc` | 945–953 |
+| `clearAnc` | 954–954 |
+| `ancAllowed` | 960–970 |
+| `ancConflicts` | 973–987 |
+| `selRangeHTML` | 990–996 |
+| `ancRowHTML` | 998–1012 |
+| `ancSummaryHTML` | 1014–1030 |
+| `ancConflictHTML` | 1033–1039 |
 
 - 样式：本目录 `style.css`（摘录）；完整样式表见 `../_shared/base.css`
 
@@ -77,10 +77,10 @@
 
 ## 目录外的函数依赖
 
-本模块还调用了 10 个**没有随本目录切出**的辅助函数，直接拷走本目录跑不起来；
+本模块还调用了 9 个**没有随本目录切出**的辅助函数，直接拷走本目录跑不起来；
 要跑请用完整平台，或连同下列调用一起取：
 
-`TREE`　`after`　`allDescs`　`collapsed`　`dOf`　`expanded`　`nSel`　`names`　`searchQ`　`toast`
+`TREE`　`after`　`allDescs`　`collapsed`　`dOf`　`expanded`　`nSel`　`searchQ`　`toast`
 
 ## 复用方式
 

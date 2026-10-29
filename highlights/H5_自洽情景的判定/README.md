@@ -6,37 +6,37 @@
 
 ## 代码位置（v1.5 工作副本）
 
-- HTML：`_src/v15/index.html` 第 339–341、346–349 行
+- HTML：`_src/v15/index.html` 第 332–334、339–342 行
 - 逻辑：`_src/v15/src/app.js`
 
 | 函数／常量 | 行号 |
 |---|---|
 | `TICK` | 278–279 |
-| `mulberry` | 4932–4939 |
-| `cimSig` | 4941–4948 |
-| `comboSample` | 4951–4972 |
-| `buildIMP` | 4974–4998 |
-| `evalCombo` | 5000–5013 |
-| `cloneCim` | 5014–5022 |
-| `enumCore` | 978–1058 |
-| `runCIM` | 1060–1080 |
-| `selectedCombo` | 1289–1295 |
-| `checkSelected` | 1301–1323 |
-| `checkResult` | 1336–1414 |
-| `rangeStat` | 1326–1333 |
-| `toggleAllScen` | 1335–1335 |
-| `coFn` | 1455–1463 |
-| `aliveTable` | 1466–1493 |
-| `freqOf` | 1495–1507 |
-| `scenCard` | 1415–1423 |
-| `scenDetail` | 1424–1450 |
-| `toggleScen` | 1451–1451 |
-| `impactVal` | 840–848 |
-| `pairIndexTable` | 968–975 |
-| `p6Apply` | 6144–6154 |
-| `p6Group` | 6155–6163 |
-| `p6All` | 6164–6164 |
-| `p6Status` | 6165–6171 |
+| `mulberry` | 5009–5016 |
+| `cimSig` | 5018–5025 |
+| `comboSample` | 5028–5049 |
+| `buildIMP` | 5051–5075 |
+| `evalCombo` | 5077–5090 |
+| `cloneCim` | 5091–5099 |
+| `enumCore` | 1055–1135 |
+| `runCIM` | 1137–1157 |
+| `selectedCombo` | 1366–1372 |
+| `checkSelected` | 1378–1400 |
+| `checkResult` | 1413–1491 |
+| `rangeStat` | 1403–1410 |
+| `toggleAllScen` | 1412–1412 |
+| `coFn` | 1532–1540 |
+| `aliveTable` | 1543–1570 |
+| `freqOf` | 1572–1584 |
+| `scenCard` | 1492–1500 |
+| `scenDetail` | 1501–1527 |
+| `toggleScen` | 1528–1528 |
+| `impactVal` | 917–925 |
+| `pairIndexTable` | 1045–1052 |
+| `p6Apply` | 6231–6241 |
+| `p6Group` | 6242–6250 |
+| `p6All` | 6251–6251 |
+| `p6Status` | 6252–6258 |
 
 - 样式：本目录 `style.css`（摘录）；完整样式表见 `../_shared/base.css`
 
