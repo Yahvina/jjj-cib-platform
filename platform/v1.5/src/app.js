@@ -2334,7 +2334,7 @@ function cfgBestConf(ms){
   return best;
 }
 function cfgChosen(){ return PALLC().filter(p=>cfgSel[p.n]); }
-function cfgRemovePolicy(nm){ delete cfgSel[nm]; if(cfgOpen===nm) cfgOpen=null; cfgNotice=''; renderConfigPolicy(); }
+function cfgRemovePolicy(nm){ delete cfgSel[nm]; if(cfgOpen===nm) cfgOpen=null; cfgNotice=''; render(); }
 function cfgDrawerHTML(){
   /* 同一个抽屉两种视角：政策视角（从第 1 步点政策卡进来）与变量视角（从第 2 步点变量名进来）。 */
   if(cfgMapOpen) return cfgMapDrawerHTML(cfgMapOpen);
@@ -2500,9 +2500,9 @@ function cfgTglDeptIdx(i){
   const d=polDeptList()[i]; if(d===undefined) return;
   const k=cfgDeptSel.indexOf(d);
   if(k>=0) cfgDeptSel.splice(k,1); else cfgDeptSel.push(d);
-  cfgOpen=null; renderConfigPolicy();
+  cfgOpen=null; render();
 }
-function cfgClearDepts(){ cfgDeptSel=[]; cfgOpen=null; renderConfigPolicy(); }
+function cfgClearDepts(){ cfgDeptSel=[]; cfgOpen=null; render(); }
 function cfgTglPolicyIdx(i,ev){
   if(ev&&ev.stopPropagation) ev.stopPropagation();
   const p=PALLC()[i]; if(!p) return;
@@ -2517,9 +2517,9 @@ function cfgOpenPolicyIdx(i,ev){
   renderConfigPolicy();
   render();
 }
-function cfgCloseDetail(){ cfgOpen=null; renderConfigPolicy(); }
+function cfgCloseDetail(){ cfgOpen=null; render(); }
 function cfgClearPolicies(){
-  cfgSel={}; cfgOpen=null; renderConfigPolicy(); toast('已清空已选政策');
+  cfgSel={}; cfgOpen=null; render(); toast('已清空已选政策');
 }
 function cfgSelectAll(){
   const arr=cfgArr();
@@ -5450,6 +5450,7 @@ function renderBayes(){
    已有情景需要重新检验；省略 = 不动结果（只改界面、措辞、性能或新增旁路分析）。
    与 git 提交对应；此处只列入对外可讲、能被核对的事项。 */
 const CHANGELOG=[
+ {d:'2026-10-29',k:'修复',x:'政策详情页关不掉',y:'v1.7.5 把抽屉从「第 1 步的 renderConfigPolicy 里渲染」改成「由 render 统一渲染」时，漏改了关闭这条路：cfgCloseDetail、cfgRemovePolicy、cfgClearDepts、cfgClearPolicies 以及取消命中提示那一处，仍然在调 renderConfigPolicy。这个函数已经不再画抽屉，于是 cfgOpen 清掉了、抽屉却还停在屏幕右边。五处一并改成 render()。教训是这类"把渲染搬走"的改动要顺着状态的每一个写入点走一遍，不是只改入口。test_v162 补第 4b 组：hook render 计数，断言 closeDetail 必须触发整页重绘——原来那条 bug 用"cfgOpen 变成 null"是测不出来的，因为值早就清了。'},
  {d:'2026-10-29',k:'界面',x:'视觉改版第一批：冷灰画布 + 白卡片 + 深色框架 + 蓝强调',y:'用户的判断是「颜色太接近、低饱和、一片一片、没有层次」。实测确认了三条：纸的三阶只差 3.8 个明度点（96.2 / 98.5 / 100），卡片是暖白而不是白；强调色 #2F4858 的 chroma 只有 0.041，在纸底上读起来就是灰；数据色阶 −3 是 L45、+3 是 L57.8，同样强度左边更黑——这是语义错误，不只是不好看。这一批换整套色板：画布降到 L95 冷灰、卡片提到 L100 纯白浮在画布之上（原来卡片比画布只亮 1.5 点），墨从三阶改四阶，线分细（84）硬（62）两档，强调色换成 #1B589E（chroma 0.129），数据阶两侧统一到 L52/62/74。另外补上一件原方案漏掉的事：整页没有一处暗，眼睛就没落点。所以顶栏与左轨改深色（#1C252D / #2A343D）连成一个框，结果摘要做成深色带反白——全站只有这两处深色，多了又会变回一片。本批只动 styles.css：:root 重写 + 末尾追加覆盖层，index.html 与 app.js 零改动，35/35 通过。'},
  {d:'2026-10-29',k:'界面',x:'说明文字收进标题悬停，正文只留结论与数据',y:'又回到"每块下面挂一行小字解释"的老毛病：三个流程标题下各有一行导语，「差异对比」下有一行统计口径，导出区底部有一段四句话的注意事项，第 2 步底部还有区间口径与结果型变量两行。这些字看第二遍就是噪声，占的却是一屏里的主要位置。现在：三步标题下的导语整段删除，全部并入标题的悬停框；「差异对比」的说明改为悬停标题才显示，且按实际结果动态生成（几组自洽、几个变量分叉）；导出区那段并入「导出」标题悬停；第 2 步的两行删掉，"结果型变量由模型算出"并入「确认设定」标题。判断矩阵没有判断时不再写"生成结果后结果页会说明"，判 0 对这件事统计条已经写明。变量依据抽屉里空的「依据来源类型」一节也删了。正文现在只剩结论、数据与控制。'},
  {d:'2026-10-29',k:'功能',x:'确认设定页可查变量依据：点变量名，看是谁把它推到这里',y:'第 1 步点政策能看到「政策详情」，回答的是"这条政策影响什么"；但反过来"这个变量凭什么进来"没有入口——用户只能看到一个覆盖 12/19 的数字，不知道这 12 个是怎么来的。现在第 2 步每个变量名可点（后面另给一个「依据」链接），右侧滑出变量视角：模型对应、命中几条政策、依据强度、每条政策的名称与依据原文、数据侧核验块、这条变量能取哪几档、当前取哪档。抽屉原先挂在第 1 步的 pane 里，第 2 步时父元素隐藏、拉不出来，所以移到 main 之外，两个视角共用，开关与刷新统一交给 render。「依据来源类型」明确标为待补——政策库只标了政策↔变量这条对应关系有多确定，没标每条依据属于政策原文、论文实证还是历史数据，这一栏不代填。不动打分、区间与枚举。'},
@@ -6037,6 +6038,13 @@ const VERSIONS=[
     'body.wizard .pane 从 max-width 1000 且左对齐改成 max-width 1120 且左右 auto 居中'
     ,'原因：左轨占掉 212px 后，内容固定 1000px 紧贴左边，1500 宽的屏右边空出 200 多像素，两侧不对称'
     ,'只改 styles.css，35/35 通过'
+   ]}
+  ,{v:'v1.8.3',d:'2026-10-29',tag:'',sum:'修：政策详情页关不掉',ev:'本批提交',
+   items:[
+    'v1.7.5 把抽屉从「第 1 步的 renderConfigPolicy 里渲染」改成「由 render 统一渲染」时，漏改了 5 个关闭/清空函数'
+    ,'cfgCloseDetail、cfgRemovePolicy、cfgClearDepts、cfgClearPolicies、以及取消命中提示那一处，都还在调 renderConfigPolicy——它已经不再渲染抽屉，于是 cfgOpen 清了而抽屉留在屏幕上'
+    ,'五处一并改成 render()'
+    ,'test_v162 加第 4b 组：hook render 计数，断言 closeDetail 必须触发整页重绘。原来那条 bug 靠"cfgOpen 变成 null"是测不出来的'
    ]}
 ];
 /* 当前版本号只有一个来源：VERSIONS 的最后一条（数组按时间从旧到新排列）。

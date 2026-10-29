@@ -98,6 +98,17 @@ chk(pickTxt.indexOf('没取到档位') < 0, '不说「还有 N 个变量没取�
 chk((pickTxt.indexOf('不冲突') >= 0) || (pickTxt.indexOf('冲突在') >= 0), '给出不冲突/冲突在 N 个变量的结论', '');
 
 console.log();
+console.log('=== 4b. 关闭政策详情必须触发整页重绘（抽屉由 render 管，只调 renderConfigPolicy 关不掉） ===');
+{
+  let rc = 0; const orig = render;
+  render = function(){ rc++; return orig.apply(null, arguments); };
+  cfgOpen = '某某政策'; cfgCloseDetail();
+  chk(cfgOpen === null, 'closeDetail 清空 cfgOpen', String(cfgOpen));
+  chk(rc > 0, 'closeDetail 触发整页 render（否则抽屉留在原地关不掉）', 'rc=' + rc);
+  render = orig;
+}
+
+console.log();
 console.log('=== 5. 配置模式只跑参与集：sel.desc 19 个变量时 cimResult.ds===cfgInputNames() ===');
 resetCfg(P1);
 const i5 = cfgInputNames();
