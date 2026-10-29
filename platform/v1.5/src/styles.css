@@ -1496,3 +1496,6 @@ body.wizard .steps,.steps{display:flex;flex-direction:column;}
 /* 深框与浅纸的交界加一条结构线，过渡不硬 */
 .topbar{border-bottom:2px solid var(--pri);}
 body.wizard .steps{border-right:1px solid #141B21;}
+
+/* 内容区在剩余空间里居中：原先 max-width 1000 且左对齐，宽屏下右边留一大片空 */
+body.wizard .pane{max-width:1120px;margin-left:auto;margin-right:auto;}

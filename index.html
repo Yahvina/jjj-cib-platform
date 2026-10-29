@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>京津冀政策情景快速评估平台 · 原型 v1.8.1</title>
+<title>京津冀政策情景快速评估平台 · 原型 v1.8.2</title>
   <style>
 :root{
   /* 冷灰科研纸（v1.8 起）：画布 95 / 卡片 100 / 井 90，卡片浮在画布之上。
@@ -1503,6 +1503,9 @@ body.wizard .steps,.steps{display:flex;flex-direction:column;}
 /* 深框与浅纸的交界加一条结构线，过渡不硬 */
 .topbar{border-bottom:2px solid var(--pri);}
 body.wizard .steps{border-right:1px solid #141B21;}
+
+/* 内容区在剩余空间里居中：原先 max-width 1000 且左对齐，宽屏下右边留一大片空 */
+body.wizard .pane{max-width:1120px;margin-left:auto;margin-right:auto;}
 
 </style>
 </head>
@@ -8284,6 +8287,12 @@ const VERSIONS=[
     '左轨改成纵向 flex，「去研究模式」「保存进度 / 回情景配置」这些出口用 margin-top:auto 贴到底部'
     ,'原因：左轨从浅灰改成深色后，下半截原本看不见的空白露了出来，看着像「缺了一块」。让空白落在内容与出口之间，它就从「没画完」变成「留白」'
     ,'顶栏底部换 2px 强调色细线，深框与浅纸的交界不再硬切'
+    ,'只改 styles.css，35/35 通过'
+   ]}
+  ,{v:'v1.8.2',d:'2026-10-29',tag:'',sum:'内容区在剩余空间里居中，宽屏右边不再空一大片',ev:'本批提交',
+   items:[
+    'body.wizard .pane 从 max-width 1000 且左对齐改成 max-width 1120 且左右 auto 居中'
+    ,'原因：左轨占掉 212px 后，内容固定 1000px 紧贴左边，1500 宽的屏右边空出 200 多像素，两侧不对称'
     ,'只改 styles.css，35/35 通过'
    ]}
 ];
