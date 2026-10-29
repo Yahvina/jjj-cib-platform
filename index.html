@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>京津冀政策情景快速评估平台 · 原型 v1.7.5</title>
+<title>京津冀政策情景快速评估平台 · 原型 v1.7.6</title>
   <style>
 :root{
   /* 纸墨：暖白纸面 + 墨黑字 + 靛青结构色 + 赭石强调 */
@@ -1883,8 +1883,7 @@ main .stbox .hd{background:transparent;border-bottom:1px solid var(--line);}
 <!-- ============ v1.6.0 三步情景配置 ============ -->
 <section class="pane" id="cfg0">
   <div class="cfg-kicker">情景配置 · 01</div>
-  <h2 class="pt">选政策</h2>
-  <p class="pd">这一步选的是这套评估包含哪些政策工具，不决定力度。<span class="tip" tabindex="0" data-tip="从政策库中选出本次要评估的政策组合。平台只展示政策已经映射到的变量。「依据强度」表示这条对应关系有多确定，不是政策本身的档位。">依据强度怎么看</span></p>
+  <h2 class="pt tip wide" tabindex="0" data-tip="这一步选的是这套评估包含哪些政策工具，不决定力度。从政策库中选出本次要评估的政策组合，平台只展示政策已经映射到的变量。「依据强度」表示这条对应关系有多确定，不是政策本身的档位。">选政策</h2>
   <div class="cfg-rule">
     <div class="cfg-r1"><b>区间口径</b><span id="cfgScopeText"></span></div>
     <div class="cfg-r2" id="cfgScopeBtns"></div>
@@ -1911,8 +1910,7 @@ main .stbox .hd{background:transparent;border-bottom:1px solid var(--line);}
 
 <section class="pane" id="cfg1">
   <div class="cfg-kicker">情景配置 · 02</div>
-  <h2 class="pt">确认设定</h2>
-  <p class="pd">这一步决定每条政策把哪个变量推到哪一档。<span class="tip" tabindex="0" data-tip="只展开被选中政策命中的变量。政策主张先保留「提高 / 维持 / 降低 / 未指定」，默认未指定；选了主张只会给一条建议档，点「按主张取」才落档。最终档位需要人工确认，平台不自动推断，也不把依据强度当作档位。">这里要确认什么</span></p>
+  <h2 class="pt tip wide" tabindex="0" data-tip="这一步决定每条政策把哪个变量推到哪一档。只展开被选中政策命中的变量；政策主张选完只给一条建议档，点「按主张取」才落档，最终档位需要人工确认，平台不自动推断，也不把依据强度当作档位。结果型变量由模型算出，不作为政策输入，不在这里设档。">确认设定</h2>
   <div id="cfgSrcBar"></div>
   <div id="cfgSettingStat"></div>
   <div id="cfgScoreBar"></div>
@@ -1927,8 +1925,7 @@ main .stbox .hd{background:transparent;border-bottom:1px solid var(--line);}
 
 <section class="pane" id="cfg2">
   <div class="cfg-kicker">情景配置 · 03</div>
-  <h2 class="pt">看结果并导出</h2>
-  <p class="pd">这一步判断这套设定摆在一起自不自洽。<span class="tip" tabindex="0" data-tip="这里给出平台在当前设定与当前判断下算出的结果。平台只做自洽性检验，不做预测，也不推荐某一套方案。导出的是下游模型可读的情景配置文件。">结果怎么读</span></p>
+  <h2 class="pt tip wide" tabindex="0" data-tip="这一步判断这套设定摆在一起自不自洽。平台只做自洽性检验，不做预测，也不推荐某一套方案；导出的是下游模型可读的情景配置文件。">看结果并导出</h2>
   <div class="card">
     <h3>结果摘要</h3>
     <div id="cfgResultSummary"></div>
@@ -1938,11 +1935,11 @@ main .stbox .hd{background:transparent;border-bottom:1px solid var(--line);}
     <div id="cfgPick"></div>
   </div>
   <div class="card">
-    <h3>差异对比</h3>
+    <h3 id="cfgDiffH" class="tip wide" tabindex="0">差异对比</h3>
     <div id="cfgDiff"></div>
   </div>
   <div class="card">
-    <h3>导出</h3>
+    <h3 class="tip wide" tabindex="0" data-tip="同一组设定可以按下界 / 中点 / 上界导出。数值只覆盖 2035 锚点，2025 与 2030 需要按政策里程碑插值。结构化参数表每一行都带情景标识，跨情景混用会破坏一致性。">导出</h3>
     <div id="cfgExport"></div>
   </div>
   <div class="cfgfoot">
@@ -4592,9 +4589,6 @@ function cfgMapDrawerHTML(nm){
       +(s===pick?'　←　当前':'')+'</span>').join('')+'</div>'
     +'<div class="ptnote">当前取「'+attrEsc(pick||'未定')+'」。档位是枚举空间，取哪一档在确认设定里定。</div>'
     +'</details>';
-  h+='<details class="cfgfold"><summary>依据来源类型</summary>'
-    +'<div class="ptnote">政策库现在只标了「政策↔变量」这条对应关系有多确定（依据强度），'
-    +'没有标每条依据属于政策原文、论文实证还是历史数据。这一栏待数据集侧补字段后再显示，不代填。</div></details>';
   return h;
 }
 function openMapDrawer(nm){
@@ -5000,21 +4994,18 @@ function renderConfigSetting(){
         +'</div></div>';
     });
     const cold=allDescs().filter(x=>!cov[x.n]&&x.t!=='结果型');
-    h+='<div class="ptnote" style="margin-bottom:10px;">区间口径见第一步，它只影响数值区间，不影响这次的政策集合。</div>';
     h+='<details class="cfgcold"><summary>本次未涉及，取默认档（'+cold.length+' 个变量）</summary>'
       +'<div class="cfgcoldb">'
       +(cold.length?cold.map(x=>'<span class="pill">'+attrEsc(x.n)+'</span>').join(''):'<span class="ptnote">没有</span>')
       +'</div></details>';
-    const resN=cfgResultNames();
-    h+='<div class="ptnote" style="margin-top:10px;">结果型变量'
-      +(resN.length?('（'+resN.map(attrEsc).join('、')+'）'):'')
-      +'由模型算出，不作为政策输入，不在这里设档。</div>';
     host.innerHTML=h;
   }
   if(hint){
+    /* 没有判断时不写"生成结果后结果页会说明"这类预告——判 0 对这件事统计条已经写明。
+       有判断时只报事实。 */
     hint.innerHTML=cfgHasScores()
       ? ('当前判断矩阵已有 '+cfgJudgedN()+' 条判断；未验证的格保持留空，不按 0 处理。')
-      : '当前判断矩阵还没有判断，生成结果后结果页会说明这一点。';
+      : '';
   }
 }
 /* 本次参与变量范围内的判定力。拒出结论当且仅当命中三条之一：
@@ -5278,9 +5269,12 @@ function renderConfigResult(){
         if(used.length>1) items.push({d:d,used:used,tot:tot,n:used.length});
       });
       items.sort((a,b)=>b.n-a.n);
-      let h='<div class="ptnote" style="margin-bottom:12px;">在 '+r.count+' 组自洽设定里，'
+      /* 这段说明进标题悬停，不再占正文。 */
+      const dh=document.getElementById('cfgDiffH');
+      if(dh) dh.setAttribute('data-tip','在 '+r.count+' 组自洽设定里，'
         +(items.length?('有 '+items.length+' 个变量没有定死，其余变量各档一致。'):'所有变量都取同一档。')
-        +'百分比是这一档在自洽设定里出现的比例。</div>';
+        +'百分比是这一档在自洽设定里出现的比例。');
+      let h='';
       items.forEach(it=>{
         h+='<div class="cfgd-row"><div class="cfgd-name">'+attrEsc(it.d)+'</div><div class="cfgd-bar">'
           +it.used.map((u,k)=>'<span class="cfgd-seg s'+(k%3)+'" style="flex:'+u.c
@@ -5313,9 +5307,7 @@ function renderConfigResult(){
         +'<button class="btn pri" onclick="genMain()">'+genMainLabel()+'</button>'
         +'<button class="btn" onclick="downloadAll()">导出全部自洽情景</button>'
         +'<button class="btn" onclick="cfgOpenReport()">生成情景报告</button>'
-        +'</div>'
-        +'<div class="ptnote" style="margin-top:10px;">同一组设定可以按下界 / 中点 / 上界导出；数值只覆盖 2035 锚点，'
-        +'2025 与 2030 需要按政策里程碑插值。结构化参数表每一行都带情景标识，跨情景混用会破坏一致性。</div>';
+        +'</div>';
     }
   }
 }
@@ -7661,6 +7653,7 @@ function renderBayes(){
    已有情景需要重新检验；省略 = 不动结果（只改界面、措辞、性能或新增旁路分析）。
    与 git 提交对应；此处只列入对外可讲、能被核对的事项。 */
 const CHANGELOG=[
+ {d:'2026-10-29',k:'界面',x:'说明文字收进标题悬停，正文只留结论与数据',y:'又回到"每块下面挂一行小字解释"的老毛病：三个流程标题下各有一行导语，「差异对比」下有一行统计口径，导出区底部有一段四句话的注意事项，第 2 步底部还有区间口径与结果型变量两行。这些字看第二遍就是噪声，占的却是一屏里的主要位置。现在：三步标题下的导语整段删除，全部并入标题的悬停框；「差异对比」的说明改为悬停标题才显示，且按实际结果动态生成（几组自洽、几个变量分叉）；导出区那段并入「导出」标题悬停；第 2 步的两行删掉，"结果型变量由模型算出"并入「确认设定」标题。判断矩阵没有判断时不再写"生成结果后结果页会说明"，判 0 对这件事统计条已经写明。变量依据抽屉里空的「依据来源类型」一节也删了。正文现在只剩结论、数据与控制。'},
  {d:'2026-10-29',k:'功能',x:'确认设定页可查变量依据：点变量名，看是谁把它推到这里',y:'第 1 步点政策能看到「政策详情」，回答的是"这条政策影响什么"；但反过来"这个变量凭什么进来"没有入口——用户只能看到一个覆盖 12/19 的数字，不知道这 12 个是怎么来的。现在第 2 步每个变量名可点（后面另给一个「依据」链接），右侧滑出变量视角：模型对应、命中几条政策、依据强度、每条政策的名称与依据原文、数据侧核验块、这条变量能取哪几档、当前取哪档。抽屉原先挂在第 1 步的 pane 里，第 2 步时父元素隐藏、拉不出来，所以移到 main 之外，两个视角共用，开关与刷新统一交给 render。「依据来源类型」明确标为待补——政策库只标了政策↔变量这条对应关系有多确定，没标每条依据属于政策原文、论文实证还是历史数据，这一栏不代填。不动打分、区间与枚举。'},
  {d:'2026-10-29',k:'文案',x:'按钮与状态文案收回书面语',y:'「建好了，回情景配置 →」这种把完成语写进按钮的做法不合适：按钮只说动作，状态由页面自己表达。改为「回情景配置 →」。同一批把状态说明里的口语收回书面语——「还没建立矩阵」改「未建立独立矩阵」，下拉里的「（还没合并）」改「（未合并）」，取档提示「可再改」改「可修改」。只改界面文字，不动任何逻辑。'},
  {d:'2026-10-29',k:'体验',x:'建完独立矩阵就地给「回情景配置」，并去掉重复的多人说明',y:'从配置第 2 步点「去第 4 步建立」过来的人，建完矩阵后找不到回路——上一版把入口放在左轨底部，是一行和「保存进度」同款的下划线小字，眼睛在页面中间的操作区扫不到。现在矩阵建立成功后，就在「重建独立矩阵／已建立 N 份」旁边给一个实底按钮「建好了，回情景配置 →」，只在选过政策时出现（从首页直接进来的没有配置可回）；左轨底部那个也改成实心块。顺带修掉一处重复：expDetail 与 ensBox 各渲染一段几乎一样的多人说明，页面上并排两条「N 人独立打分」，现在建立矩阵后只留 ensBox 一条，"应判 N 条"并入其中。新增 test_v164 第 7 组两条断言守这两个入口的显示条件。不动打分、区间与枚举。'},
@@ -8213,6 +8206,15 @@ const VERSIONS=[
     ,'变量视角给出：模型对应、命中几条政策、依据强度、每条政策的名称与依据原文、数据侧核验块、这条变量能取哪几档、当前取哪档'
     ,'「依据来源类型」明确标为待补：政策库只标了对应关系有多确定，没标每条依据属于政策原文／论文／历史数据，不代填'
     ,'抽屉的开关与刷新统一由 render 负责，不再挂在 renderConfigPolicy 里（否则第 2 步看不见）'
+   ]}
+  ,{v:'v1.7.6',d:'2026-10-29',tag:'',sum:'说明文字收进标题悬停，正文只留结论与数据',ev:'本批提交',
+   items:[
+    '三个流程标题（选政策／确认设定／看结果并导出）下面那行说明整段删除，全部并入标题的悬停框'
+    ,'结果页「差异对比」下面的说明行删除，改为悬停标题才显示——文字按实际结果动态生成（几组自洽、几个变量分叉）'
+    ,'导出区底部那段说明（下界／中点／上界、2035 锚点、跨情景混用）并入「导出」标题悬停'
+    ,'第 2 步底部两行删除：「区间口径见第一步，它只影响数值区间」「结果型变量由模型算出，不作为政策输入」——后者并入「确认设定」标题悬停'
+    ,'判断矩阵没有判断时不再写「生成结果后结果页会说明这一点」，判 0 对这件事统计条已经写明'
+    ,'变量依据抽屉里空的「依据来源类型」一节删除，只留有用条目'
    ]}
 ];
 /* 当前版本号只有一个来源：VERSIONS 的最后一条（数组按时间从旧到新排列）。

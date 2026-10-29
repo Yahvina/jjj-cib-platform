@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>京津冀政策情景快速评估平台 · 原型 v1.7.5</title>
+<title>京津冀政策情景快速评估平台 · 原型 v1.7.6</title>
   <link rel="stylesheet" href="src/styles.css">
 </head>
 <body>
@@ -434,8 +434,7 @@
 <!-- ============ v1.6.0 三步情景配置 ============ -->
 <section class="pane" id="cfg0">
   <div class="cfg-kicker">情景配置 · 01</div>
-  <h2 class="pt">选政策</h2>
-  <p class="pd">这一步选的是这套评估包含哪些政策工具，不决定力度。<span class="tip" tabindex="0" data-tip="从政策库中选出本次要评估的政策组合。平台只展示政策已经映射到的变量。「依据强度」表示这条对应关系有多确定，不是政策本身的档位。">依据强度怎么看</span></p>
+  <h2 class="pt tip wide" tabindex="0" data-tip="这一步选的是这套评估包含哪些政策工具，不决定力度。从政策库中选出本次要评估的政策组合，平台只展示政策已经映射到的变量。「依据强度」表示这条对应关系有多确定，不是政策本身的档位。">选政策</h2>
   <div class="cfg-rule">
     <div class="cfg-r1"><b>区间口径</b><span id="cfgScopeText"></span></div>
     <div class="cfg-r2" id="cfgScopeBtns"></div>
@@ -462,8 +461,7 @@
 
 <section class="pane" id="cfg1">
   <div class="cfg-kicker">情景配置 · 02</div>
-  <h2 class="pt">确认设定</h2>
-  <p class="pd">这一步决定每条政策把哪个变量推到哪一档。<span class="tip" tabindex="0" data-tip="只展开被选中政策命中的变量。政策主张先保留「提高 / 维持 / 降低 / 未指定」，默认未指定；选了主张只会给一条建议档，点「按主张取」才落档。最终档位需要人工确认，平台不自动推断，也不把依据强度当作档位。">这里要确认什么</span></p>
+  <h2 class="pt tip wide" tabindex="0" data-tip="这一步决定每条政策把哪个变量推到哪一档。只展开被选中政策命中的变量；政策主张选完只给一条建议档，点「按主张取」才落档，最终档位需要人工确认，平台不自动推断，也不把依据强度当作档位。结果型变量由模型算出，不作为政策输入，不在这里设档。">确认设定</h2>
   <div id="cfgSrcBar"></div>
   <div id="cfgSettingStat"></div>
   <div id="cfgScoreBar"></div>
@@ -478,8 +476,7 @@
 
 <section class="pane" id="cfg2">
   <div class="cfg-kicker">情景配置 · 03</div>
-  <h2 class="pt">看结果并导出</h2>
-  <p class="pd">这一步判断这套设定摆在一起自不自洽。<span class="tip" tabindex="0" data-tip="这里给出平台在当前设定与当前判断下算出的结果。平台只做自洽性检验，不做预测，也不推荐某一套方案。导出的是下游模型可读的情景配置文件。">结果怎么读</span></p>
+  <h2 class="pt tip wide" tabindex="0" data-tip="这一步判断这套设定摆在一起自不自洽。平台只做自洽性检验，不做预测，也不推荐某一套方案；导出的是下游模型可读的情景配置文件。">看结果并导出</h2>
   <div class="card">
     <h3>结果摘要</h3>
     <div id="cfgResultSummary"></div>
@@ -489,11 +486,11 @@
     <div id="cfgPick"></div>
   </div>
   <div class="card">
-    <h3>差异对比</h3>
+    <h3 id="cfgDiffH" class="tip wide" tabindex="0">差异对比</h3>
     <div id="cfgDiff"></div>
   </div>
   <div class="card">
-    <h3>导出</h3>
+    <h3 class="tip wide" tabindex="0" data-tip="同一组设定可以按下界 / 中点 / 上界导出。数值只覆盖 2035 锚点，2025 与 2030 需要按政策里程碑插值。结构化参数表每一行都带情景标识，跨情景混用会破坏一致性。">导出</h3>
     <div id="cfgExport"></div>
   </div>
   <div class="cfgfoot">
