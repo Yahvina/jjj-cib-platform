@@ -114,6 +114,19 @@ chk(cfgSrcLabel() === '合并（3 份）', '人数设置大于已建份数时按
 ens = null; expertN = 1;
 
 console.log();
+console.log('=== 7. 建完矩阵就地给「回情景配置」 ===');
+resetCfg(P3);
+expertN = 3;
+ens = { people: [{ name: '专家 A', cim: {} }, { name: '专家 B', cim: {} }, { name: '专家 C', cim: {} }],
+  active: 0, merged: null };
+renderEnsBox();
+chk((EL['ensBox'].innerHTML || '').indexOf('回情景配置') >= 0, '建立后话框里出现回配置入口', '');
+resetCfg([]);
+renderEnsBox();
+chk((EL['ensBox'].innerHTML || '').indexOf('回情景配置') < 0, '没选政策时不显示回配置（没地方可回）', '');
+ens = null; expertN = 1;
+
+console.log();
 console.log(bad === 0 ? '全部通过' : bad + ' 项未通过');
 if (bad) process.exit(1);
 `;

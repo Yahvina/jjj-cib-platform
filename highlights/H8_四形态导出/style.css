@@ -120,6 +120,12 @@ main .card > h3 .tag{font-weight:400;color:var(--tx3);}
 
 .rail-foot .btn:hover{color:var(--tx);border-bottom-color:var(--tx);}
 
+/* 回情景配置要给一块实底：左轨里其余按钮是下划线文字链，它也得能一眼看到。 */
+.rail-foot .btn.pri{background:var(--pri);color:#fff;border:0;border-radius:var(--r);
+  padding:8px 10px;justify-content:center;margin-top:8px;}
+
+.rail-foot .btn.pri:hover{background:var(--pri-d);color:#fff;}
+
 /* 选项卡：白底，选中用左侧赭条 */
 .opt{background:transparent;border-radius:2px;}
 

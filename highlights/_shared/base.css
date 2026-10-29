@@ -1300,6 +1300,10 @@ main .cim thead th{background:transparent;border-bottom:1px solid var(--line);}
   border-radius:0;height:auto;padding:0 0 6px;justify-content:flex-start;
   font-size:13px;color:var(--tx3);}
 .rail-foot .btn:hover{color:var(--tx);border-bottom-color:var(--tx);}
+/* 回情景配置要给一块实底：左轨里其余按钮是下划线文字链，它也得能一眼看到。 */
+.rail-foot .btn.pri{background:var(--pri);color:#fff;border:0;border-radius:var(--r);
+  padding:8px 10px;justify-content:center;margin-top:8px;}
+.rail-foot .btn.pri:hover{background:var(--pri-d);color:#fff;}
 
 /* 第 7 步顶栏：去框，改横线与字重 */
 .p6nav{background:transparent;border:0;border-bottom:1px solid var(--line);

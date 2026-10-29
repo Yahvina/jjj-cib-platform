@@ -11,17 +11,17 @@
 
 | 函数／常量 | 行号 |
 |---|---|
-| `LAYER_BUDGET` | 1114–1180 |
-| `rangeOf` | 1083–1088 |
-| `solveLayer` | 1116–1180 |
-| `allowUnder` | 1090–1107 |
-| `runLayered` | 1181–1209 |
-| `renderLay` | 1217–1282 |
-| `buildIMP` | 4923–4947 |
-| `evalCombo` | 4949–4962 |
-| `mulberry` | 4881–4888 |
-| `comboSample` | 4900–4921 |
-| `cloneCim` | 4963–4971 |
+| `LAYER_BUDGET` | 1116–1182 |
+| `rangeOf` | 1085–1090 |
+| `solveLayer` | 1118–1182 |
+| `allowUnder` | 1092–1109 |
+| `runLayered` | 1183–1211 |
+| `renderLay` | 1219–1284 |
+| `buildIMP` | 4929–4953 |
+| `evalCombo` | 4955–4968 |
+| `mulberry` | 4887–4894 |
+| `comboSample` | 4906–4927 |
+| `cloneCim` | 4969–4977 |
 | `ST` | 622–622 |
 | `defsOf` | 564–596 |
 | `rngTxt` | 623–627 |

@@ -124,4 +124,10 @@ details.fold>summary{display:none;}
 
 .rail-foot .btn:hover{color:var(--tx);border-bottom-color:var(--tx);}
 
+/* 回情景配置要给一块实底：左轨里其余按钮是下划线文字链，它也得能一眼看到。 */
+.rail-foot .btn.pri{background:var(--pri);color:#fff;border:0;border-radius:var(--r);
+  padding:8px 10px;justify-content:center;margin-top:8px;}
+
+.rail-foot .btn.pri:hover{background:var(--pri-d);color:#fff;}
+
 .cfgcard .btn{flex:none;}
