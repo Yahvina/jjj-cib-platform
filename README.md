@@ -181,6 +181,7 @@ git add -A; git commit -m "简述这次改了什么"; git push origin main
 | v1.8.1 | 2026-10-29 | **左轨补满：出口贴底、中间是留白；顶栏加一条结构线**：① 左轨改纵向 flex，「去研究模式」「保存进度 / 回情景配置」用 `margin-top:auto` 贴到底部。② 原因是左轨从浅灰改深色后，下半截原本看不见的空白露了出来，看着像「缺了一块」；让空白落在内容与出口之间，它就从「没画完」变成「留白」。③ 顶栏底部换 2px 强调色细线，深框与浅纸的交界不再硬切。只改 `styles.css`。 |
 | v1.8.2 | 2026-10-29 | **内容区在剩余空间里居中，宽屏右边不再空一大片**：`body.wizard .pane` 从 `max-width:1000px` 且左对齐，改成 `max-width:1120px` 且左右 `auto` 居中。原因是左轨占掉 212px 后，内容固定 1000px 紧贴左边，1500 宽的屏右边空出 200 多像素，两侧不对称，看着像页面没铺满。只改 `styles.css`。 |
 | v1.8.3 | 2026-10-29 | **修：政策详情页关不掉**：v1.7.5 把抽屉从「第 1 步的 `renderConfigPolicy` 里渲染」改成「由 `render` 统一渲染」时，漏改了关闭这条路——`cfgCloseDetail`、`cfgRemovePolicy`、`cfgClearDepts`、`cfgClearPolicies` 以及取消命中提示那一处，仍在调 `renderConfigPolicy`，于是 `cfgOpen` 清了、抽屉留在屏幕右边。五处一并改成 `render()`。`test_v162` 补第 4b 组：hook `render` 计数，断言 `closeDetail` 必须触发整页重绘——原来那条 bug 用「`cfgOpen` 变成 null」测不出来，因为值早就清了。 |
+| v1.8.4 | 2026-10-29 | **修：首页顶部冒出七步流程左轨**：v1.8.0 给左轨做深色时，选择器写成 `body.wizard .steps,.steps`——多出来的 `.steps` 把左轨无条件设成 `display:flex`，正好盖掉原文件里的 `.steps{display:none}`，于是首页长出整条七步左轨。两条覆盖都收回成只作用于 `body.wizard`；另在 `renderSteps()` 加守卫，非研究/非配置模式时清空 `#steps` 内容，双保险。 |
 
 **每一版都单独留档**，避免后续迭代把已经做好的功能覆盖掉。
 
