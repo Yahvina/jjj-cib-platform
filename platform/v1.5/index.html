@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>京津冀政策情景快速评估平台 · 原型 v1.8.6</title>
+<title>京津冀政策情景快速评估平台 · 原型 v1.8.7</title>
   <link rel="stylesheet" href="src/styles.css">
 </head>
 <body>
@@ -327,7 +327,11 @@
     <div class="sp"></div>
     <span class="p6stat" id="p6stat"></span>
     <button class="btn sm" id="p6allBtn" onclick="p6All()">全部展开</button>
+    <button class="btn sm" onclick="openP6Drawer()">本次检视</button>
   </div>
+
+  <!-- 参与描述符、判断覆盖、口径与导出格式等元信息，收进这里 -->
+  <div class="cfgdrawer" id="p6Drawer"></div>
 
   <div class="card" data-grp="concl">
     <h3>检验结果</h3>

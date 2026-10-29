@@ -6,7 +6,7 @@
 
 ## 代码位置（v1.5 工作副本）
 
-- HTML：`_src/v15/index.html` 第 332–334、339–342 行
+- HTML：`_src/v15/index.html` 第 336–338、343–346 行
 - 逻辑：`_src/v15/src/app.js`
 
 | 函数／常量 | 行号 |
@@ -33,10 +33,10 @@
 | `toggleScen` | 1565–1565 |
 | `impactVal` | 954–962 |
 | `pairIndexTable` | 1082–1089 |
-| `p6Apply` | 6276–6286 |
-| `p6Group` | 6287–6295 |
-| `p6All` | 6296–6296 |
-| `p6Status` | 6297–6303 |
+| `p6Apply` | 6284–6294 |
+| `p6Group` | 6295–6303 |
+| `p6All` | 6304–6304 |
+| `p6Status` | 6305–6311 |
 
 - 样式：本目录 `style.css`（摘录）；完整样式表见 `../_shared/base.css`
 
