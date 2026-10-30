@@ -16,7 +16,7 @@
 | `fmtNum` | 286–290 |
 | `renderCmp` | 345–356 |
 | `renderHomeGrid` | 313–344 |
-| `enterWizard` | 2201–2219 |
+| `enterWizard` | 2206–2224 |
 
 - 样式：本目录 `style.css`（摘录）；完整样式表见 `../_shared/base.css`
 

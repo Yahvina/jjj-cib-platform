@@ -210,7 +210,8 @@ function selectedCombo(ds, pickMap){
 }
 
 function checkSelected(ds, pickMap){
-  const cb=selectedCombo(ds, pickMap);
+  const cb=selectedCombo(ds, pickMap)||[];
+  if(!cb.length) return {missing:(ds||[]).length||1};
   const missing=cb.filter(x=>x<0).length;
   if(missing) return {missing:missing};
   if(!pickMap){
@@ -234,6 +235,10 @@ function checkSelected(ds, pickMap){
 }
 
 function checkResult(){
+  /* 只归研究模式管：配置模式的结果由 renderConfigResult 渲染，p6 是隐藏的。
+     以前无条件跑，配置模式里一旦 selectedCombo 返回 undefined 就整条 render 链崩掉，
+     表现为「点生成结果后页面切过去了但内容是旧的/空的」。 */
+  if(viewMode!=='research'||docPg) return;
   const ds=Object.keys(sel.desc);
   if(ds.length<2){ el('checkResult','<div class="empty">先在第 3 步勾选至少两个描述符</div>'); return; }
   if(!cimResult){
@@ -310,7 +315,7 @@ function checkResult(){
 function rangeStat(){
   if(!cimResult) return null;
   const ds=cimResult.ds;
-  const inRange=cimResult.consistent.filter(cb=>
+  const inRange=(cimResult.consistent||[]).filter(cb=>
     ds.every((d,i)=>{ const s=selIdxOf(d); return !s.length||s.indexOf(cb[i])>=0; }));
   return {n:rangeSize(ds), ok:inRange.length, total:cimResult.count,
     anySel:ds.some(d=>selIdxOf(d).length)};

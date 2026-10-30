@@ -1413,7 +1413,8 @@ function selectedCombo(ds, pickMap){
    改为报"范围里有多少种组合最终是自洽的"，这才是 B 方案该给的回答。
    给了 pickMap（配置模式）就绕过多选分支，直接算「你选的那组」——研究模式 B 方案语义不变。 */
 function checkSelected(ds, pickMap){
-  const cb=selectedCombo(ds, pickMap);
+  const cb=selectedCombo(ds, pickMap)||[];
+  if(!cb.length) return {missing:(ds||[]).length||1};
   const missing=cb.filter(x=>x<0).length;
   if(missing) return {missing:missing};
   if(!pickMap){
@@ -1440,7 +1441,7 @@ function checkSelected(ds, pickMap){
 function rangeStat(){
   if(!cimResult) return null;
   const ds=cimResult.ds;
-  const inRange=cimResult.consistent.filter(cb=>
+  const inRange=(cimResult.consistent||[]).filter(cb=>
     ds.every((d,i)=>{ const s=selIdxOf(d); return !s.length||s.indexOf(cb[i])>=0; }));
   return {n:rangeSize(ds), ok:inRange.length, total:cimResult.count,
     anySel:ds.some(d=>selIdxOf(d).length)};
@@ -1448,6 +1449,10 @@ function rangeStat(){
 let allScen=false;   // 是否展开全部自洽情景（默认只列前 6 个，避免几百组把页面拖慢）
 function toggleAllScen(){ allScen=!allScen; render(); }
 function checkResult(){
+  /* 只归研究模式管：配置模式的结果由 renderConfigResult 渲染，p6 是隐藏的。
+     以前无条件跑，配置模式里一旦 selectedCombo 返回 undefined 就整条 render 链崩掉，
+     表现为「点生成结果后页面切过去了但内容是旧的/空的」。 */
+  if(viewMode!=='research'||docPg) return;
   const ds=Object.keys(sel.desc);
   if(ds.length<2){ el('checkResult','<div class="empty">先在第 3 步勾选至少两个描述符</div>'); return; }
   if(!cimResult){
@@ -5566,6 +5571,7 @@ function renderBayes(){
    已有情景需要重新检验；省略 = 不动结果（只改界面、措辞、性能或新增旁路分析）。
    与 git 提交对应；此处只列入对外可讲、能被核对的事项。 */
 const CHANGELOG=[
+ {d:'2026-10-30',k:'修复',x:'配置模式生成结果后页面切过去但结果是空的',y:'真正根因：checkResult() 是研究模式第 7 步的渲染函数，却挂在 render() 里无条件调用。配置模式下 selectedCombo 取不到完整选中状态返回 undefined，紧接着 cb.filter 抛 TypeError，render 链在 renderConfigResult 之前断掉——页面骨架已切到第 3 步（上一版把切换提前了），但结果摘要还是上一次的内容「还没有生成结果」，自洽数却来自已算好的 cimResult，看起来就是「只显示自洽数、内容不渲染」。修法：① checkResult 加模式守卫，只归研究模式管；② checkSelected 对 selectedCombo 返回值兜底；③ rangeStat 对 consistent 兜底。验证：选 4 条政策、定档、生成 → 摘要正常显示「3 组互不冲突的设定 / 从 81 种组合里筛出」。'},
  {d:'2026-10-30',k:'修复',x:'点「生成结果」卡在确认设定页不跳结果页',y:'render() 里 pane 切换排在全部内容渲染之后——任何一处内容渲染抛错，页面就停在原步骤，但状态已切到下一步，于是出现「显示着自洽数却没跳页」的错位。三层修复：① render() 的骨架切换（pane 显隐、左轨、导航、footbar）整体提前到函数最前，内容抛错也不再阻塞切页；② 内容渲染整体包 try/catch，抛错时 toast「部分内容渲染失败：<原因>」；③ cfgRun 的 runCIM 单独包 try/catch，检验抛错时 toast「检验失败：<原因>」并照常切到结果页。修复后即使还有隐藏错误，页面也会落位、错误信息可见。'},
  {d:'2026-10-30',k:'界面',x:'logo 改小方框版（Gᴺ 蓝色）',y:'v2.0.1 把整个品牌区改成三段式大 logo，用户看后拍板不如原来好看。改回：品牌文字恢复「京津冀 · 政策情景 SCENARIO」，只把前面的小方框从矩阵图形（旧赭色 #8C5A3C 中心块）换成导师 logo 的 Gᴺ——蓝底圆角方块、白色 G、右上角小 N，形状照搬导师的专属 logo，颜色从绿换成平台蓝 #1B589E。文字一个字没动。'},
  {d:'2026-10-30',k:'界面',x:'品牌 logo 对齐导师版式',y:'导师的专属 logo 是「方块 G + 格润气候治理 / GREEN 2026 / climate governance」三段式；平台采用同一版式，内容与颜色换成自己的：主蓝方块「京」（京津冀）、中文名「京津冀情景平台」、品牌色行「CIB 2026」（对应其 GREEN 2026 的方法缩写位）、小副标「scenario assessment」。旧顶栏的 22px 矩阵小图标并入 logo 链接（点 logo 回概览），它身上的旧赭色字面值 #8C5A3C 一并清掉。另外把检验结果卡片里「还有 N 个描述符没勾状态」的提醒删了——不勾＝不设限本来就是规则，规则不需要每次检验都复述。'},
@@ -6251,6 +6257,14 @@ const VERSIONS=[
     ,'修复一：render() 骨架切换（pane 显隐、左轨、导航高亮、footbar）整体提前到函数最前——内容渲染抛错也不再阻塞切页，用户永远落在目标步骤'
     ,'修复二：内容渲染整体包 try/catch，抛错时 toast「部分内容渲染失败：<原因>」并 console.error——错误可见，反馈时能带上具体信息'
     ,'修复三：cfgRun 里的 runCIM 单独包 try/catch，检验本身抛错时 toast「检验失败：<原因>」并照常切到结果页（显示闸门/空态）'
+   ]},
+  ,{v:'v2.0.4',d:'2026-10-30',tag:'',sum:'修：配置模式点生成结果后页面切过去了但结果是空的（checkResult 在配置模式下崩溃中断整条渲染链）',ev:'本批提交',
+   items:[
+    '真正根因：checkResult() 是研究模式第 7 步的渲染函数，但 render() 里无条件调用它。配置模式下 selectedCombo 取不到完整选中状态返回 undefined，紧接着 cb.filter 抛 TypeError——render 链在 renderConfigResult 之前断掉，页面骨架已经切到第 3 步（v2.0.3 的提前切换），但结果摘要还是上一次的内容（「还没有生成结果」），自洽数却来自 cimResult 已算好的值，于是看起来像「只显示自洽数、内容不渲染」'
+    ,'修一：checkResult 加模式守卫——只归研究模式管，配置模式的结果由 renderConfigResult 负责（p6 本来就是隐藏的，渲染它没有意义）'
+    ,'修二：checkSelected 对 selectedCombo 的返回值兜底（||[] 且空则按 missing 处理），不再让一个 undefined 打断整条 render'
+    ,'修三：rangeStat 对 cimResult.consistent 兜底 ||[]'
+    ,'验证：配置模式选 4 条政策、定档、生成 → 结果摘要正常显示「3 组互不冲突的设定 / 从 81 种组合里筛出」，你选的那组表与差异对比图都在'
    ]},
 ]
 /* 当前版本号只有一个来源：VERSIONS 的最后一条（数组按时间从旧到新排列）。
