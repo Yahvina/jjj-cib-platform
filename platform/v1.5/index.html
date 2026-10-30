@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>京津冀政策情景快速评估平台 · 原型 v2.1.1</title>
+<title>京津冀政策情景快速评估平台 · 原型 v2.1.2</title>
   <link rel="stylesheet" href="src/styles.css">
 </head>
 <body>
@@ -46,9 +46,7 @@
       <button role="menuitem" onclick="closeMenu();openDiscuss()">讨论日志</button>
       <button role="menuitem" onclick="closeMenu();openChangelog()">版本更新日志</button>
       <button role="menuitem" onclick="closeMenu();backToCmp()">回到概览</button>
-      <button role="menuitem" onclick="closeMenu();openScn()">情景库</button>
-      <button role="menuitem" onclick="closeMenu();saveCfg()">保存配置</button>
-      <button role="menuitem" onclick="closeMenu();loadCfg()">载入配置</button>
+      <button role="menuitem" onclick="closeMenu();openScn()">我的情景</button>
       <button role="menuitem" onclick="closeMenu();aboutApp()">关于</button>
     </div>
   </div>
@@ -761,7 +759,7 @@
 
 <div class="modal" id="scnModal" onclick="if(event.target===this)closeId('scnModal')">
   <div class="mbox" style="max-width:820px;">
-    <div class="mhead"><b>情景库</b><div class="sp"></div>
+    <div class="mhead"><b>我的情景</b><div class="sp"></div>
       <button class="btn sm" onclick="closeId('scnModal')">关闭</button></div>
     <div class="mbody" id="scnBody" style="font-size:15px;line-height:1.85;"></div>
   </div>

@@ -1634,3 +1634,14 @@ body.wizard .pane{max-width:1120px;margin-left:auto;margin-right:auto;}
   #pcmp .band{padding:28px 24px;}
   #pcmp .band .bq{font-size:18px;}
 }
+
+/* ============ 我的情景面板（v2.1.2）：单槽进度 + 命名情景合到一处 ============ */
+.scnprev{background:var(--bg);border:1px solid var(--line);border-left:3px solid var(--pri);
+  border-radius:3px;padding:16px 18px;margin-bottom:14px;}
+.scnprev .sphead{display:flex;align-items:baseline;gap:10px;}
+.scnprev .sphead b{font-size:15px;font-weight:600;color:var(--tx);}
+.scnprev .spdesc{font-size:13px;line-height:1.7;color:var(--tx3);margin-top:6px;}
+.scnprev .spact{display:flex;gap:10px;margin-top:12px;flex-wrap:wrap;}
+.scnnote{font-size:12px;line-height:1.75;color:var(--tx3);margin:0 0 16px;
+  padding:10px 12px;background:var(--panel2);border-radius:3px;}
+.scnnote b{color:var(--tx2);font-weight:600;}
