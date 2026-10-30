@@ -1,0 +1,27 @@
+<!-- H9 ｜ 选描述符：清单 + 抽屉（页面不再随选择变长） ｜ 摘自 _src/v15/index.html 第 180–205 行 -->
+<section class="pane" id="p2">
+  <h2 class="tip wide pt" tabindex="0" data-tip="每个描述符只取一个状态。点某一行的「设置」打开它的状态面板，含取值区间，可编辑——勾选的档位就是这个描述符的可信范围，一致性检验只在这个范围里找自洽情景，一个都不勾＝不设限（全部档位都参与）；结果型由模型算出、不能勾选。">选择描述符与状态</h2>
+
+  <div class="p2bar">
+    <div class="p2stat" id="p2stat"></div>
+    <div class="sp"></div>
+    <button class="btn pri sm" onclick="openAddDrawer()">＋ 添加描述符</button>
+  </div>
+  <div class="scopebar">
+    <span class="slb">区间视角</span>
+    <span class="scopebtns" id="scopeBtns"></span>
+    <span class="tip snote-h" tabindex="0" data-tip="同一描述符在不同辖区可以有不同档位边界：北京三产 86% 与河北 55%，用一套区间就会错位。">?</span>
+  </div>
+  <div class="descList" id="descList"></div>
+  <div id="outPanel"></div>
+
+  <!-- 添加（树多选）与设置（单个描述符的状态）共用这一个抽屉 -->
+  <div class="cfgdrawer" id="p2Drawer"></div>
+
+  <div class="card">
+    <h3>描述符框架</h3>
+    <details class="fold"><summary>为什么换一套行业也能跑</summary><div class="foldbody">这套算法不认「京津冀」——它只认一组描述符、每档区间、两两判断。所以描述符集可以整体导出/导入：
+      换一套行业或区域，同一套流程照跑。落地靠本地数据，通用性就靠这一层。</div></details>
+    <div id="fwBox"></div>
+  </div>
+</section>

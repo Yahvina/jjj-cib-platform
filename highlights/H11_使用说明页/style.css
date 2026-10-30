@@ -1,0 +1,92 @@
+/* H11 ｜ 使用说明页：五区八节，侧栏标出读到哪 ｜ 相关样式摘录
+   设计令牌（:root）永远带上；完整样式表见 ../_shared/base.css。 */
+
+:root{
+  /* 冷灰科研纸（v1.8 起）：画布 95 / 卡片 100 / 井 90，卡片浮在画布之上。
+     原来是暖米纸、三阶只差 3.8 个明度点，屏幕上分不出层次。 */
+  --bg:#EBEFF2; --panel:#FFFFFF; --panel2:#D9DFE3;
+  --line:#C5CBD0; --line2:#DDE2E6;
+  --tx:#080E13; --tx2:#242A2F; --tx3:#4E5358;
+  --pri:#1B589E; --pri-d:#003B7A; --pri-s:#DBE9FC; --pri-b:#A9C0DE;
+  --ok:#1B589E; --ok-s:#DBE9FC; --ok-b:#A9C0DE;
+  --wn:#713E1E; --wn-s:#F6E8DE; --wn-b:#DEBDA5;
+  --rd:#972F27; --rd-s:#F9EBE9; --rd-b:#E9BAB5;
+  /* CIB 双极色阶：蓝（抑制）— 纸灰（无）— 赭（促进），两侧同明度，只差色相 */
+  --s-3:#386CA0; --s-2:#608AB5; --s-1:#96AEC7;
+  --s0:#E1E5E8;
+  --s1:#C3A392; --s2:#AE785A; --s3:#965630;
+  --r:3px; --r2:5px;
+  --sh:0 1px 2px rgba(8,14,19,.06);
+  --sh2:0 2px 6px rgba(8,14,19,.08);
+  --sh3:0 10px 30px rgba(8,14,19,.14);
+  --ease:cubic-bezier(.2,.7,.3,1);
+  --warm:var(--wn);
+  /* 深色框架：全站唯一的重色，用在顶栏与结果摘要。没有它，整页只有一堆等重的浅色。 */
+  --dark:#1C252D; --dark-2:#2A343D; --dark-ink:#E6ECF2; --dark-ink2:#93A0AC;
+}
+
+.docpg .doc-nav{position:sticky;top:76px;align-self:start;}
+
+.docpg .doc-nav a{display:block;position:relative;font-size:13px;color:var(--tx3);
+  text-decoration:none;padding:6px 0;}
+
+.docpg .doc-nav a:hover{color:var(--tx);}
+
+/* 当前读到哪一节：左侧立一道短竖线，不单靠变色 */
+.docpg .doc-nav a.on{color:var(--tx);}
+
+.docpg .doc-nav a.on::before{content:"";position:absolute;left:-14px;top:9px;bottom:9px;
+  width:2px;background:var(--wn);}
+
+.docpg .doc-nav a.on span{color:var(--wn);}
+
+/* 侧栏分区标题：把 8 节归为简介/使用手册/算法说明/案例/参考五段 */
+.docpg .doc-nav .dn-g{font-size:12px;letter-spacing:.12em;color:var(--tx3);
+  padding:14px 0 3px;border-top:1px solid var(--line2);margin-top:8px;}
+
+.docpg .doc-nav .dn-g:first-child{border-top:0;margin-top:0;padding-top:0;}
+
+/* 正文分区标签 */
+.docpg .doc-body .dgrp{font-size:12px;letter-spacing:.14em;color:var(--tx3);
+  margin:40px 0 -28px;}
+
+.docpg .doc-body .dgrp + h2{margin-top:34px;padding-top:0;}
+
+.docpg .doc-body .dnote{font-size:13.5px;line-height:1.9;color:var(--tx3);
+  border-left:2px solid var(--line);padding-left:14px;margin:14px 0 4px;}
+
+.docpg .doc-body h2{font-size:21px;font-weight:400;margin:44px 0 12px;padding-top:8px;}
+
+.docpg .doc-body h2:first-child{margin-top:0;}
+
+.docpg .doc-body h3{font-size:15px;font-weight:600;margin:22px 0 6px;font-family:inherit;}
+
+.docpg .doc-body p{font-size:15px;line-height:1.95;color:var(--tx2);margin-bottom:12px;}
+
+.docpg .doc-body b{color:var(--tx);font-weight:600;}
+
+.docpg .doc-body code{font-family:ui-monospace,Consolas,monospace;font-size:13px;
+  background:var(--panel2);padding:1px 5px;border-radius:2px;}
+
+.docpg .doc-body table{width:100%;border-collapse:collapse;margin:10px 0 18px;font-size:14px;}
+
+.docpg .doc-body th{text-align:left;font-weight:600;color:var(--tx3);
+  padding:8px 12px 8px 0;border-bottom:1px solid var(--line);}
+
+.docpg .doc-body td{padding:8px 12px 8px 0;border-bottom:1px solid var(--line2);
+  color:var(--tx2);line-height:1.8;vertical-align:top;}
+
+.docpg .doc-nav .dn-g{display:none;}
+
+.docpg .doc-nav{position:static;display:flex;flex-wrap:wrap;gap:14px;}
+
+.docpg .doc-nav a span{display:inline-block;width:24px;font-family:ui-monospace,Consolas,monospace;
+  font-size:12px;color:var(--line);letter-spacing:.06em;}
+
+.docpg .doc-nav a:hover span{color:var(--tx3);}
+
+/* 侧栏号位列：使用说明是「01」两位数，日志两页是日期与版本号（v1.5.1 更宽），
+   固定 24px 会把版本号挤成两行，改成下限 24px、需要时自己撑开。 */
+.docpg .doc-nav a span{width:auto;min-width:24px;padding-right:8px;}
+
+.docpg .doc-body th{background:transparent!important;}

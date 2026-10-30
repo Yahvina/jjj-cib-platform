@@ -1,0 +1,157 @@
+/* H9 ｜ 选描述符：清单 + 抽屉（页面不再随选择变长） ｜ 相关样式摘录
+   设计令牌（:root）永远带上；完整样式表见 ../_shared/base.css。 */
+
+:root{
+  /* 冷灰科研纸（v1.8 起）：画布 95 / 卡片 100 / 井 90，卡片浮在画布之上。
+     原来是暖米纸、三阶只差 3.8 个明度点，屏幕上分不出层次。 */
+  --bg:#EBEFF2; --panel:#FFFFFF; --panel2:#D9DFE3;
+  --line:#C5CBD0; --line2:#DDE2E6;
+  --tx:#080E13; --tx2:#242A2F; --tx3:#4E5358;
+  --pri:#1B589E; --pri-d:#003B7A; --pri-s:#DBE9FC; --pri-b:#A9C0DE;
+  --ok:#1B589E; --ok-s:#DBE9FC; --ok-b:#A9C0DE;
+  --wn:#713E1E; --wn-s:#F6E8DE; --wn-b:#DEBDA5;
+  --rd:#972F27; --rd-s:#F9EBE9; --rd-b:#E9BAB5;
+  /* CIB 双极色阶：蓝（抑制）— 纸灰（无）— 赭（促进），两侧同明度，只差色相 */
+  --s-3:#386CA0; --s-2:#608AB5; --s-1:#96AEC7;
+  --s0:#E1E5E8;
+  --s1:#C3A392; --s2:#AE785A; --s3:#965630;
+  --r:3px; --r2:5px;
+  --sh:0 1px 2px rgba(8,14,19,.06);
+  --sh2:0 2px 6px rgba(8,14,19,.08);
+  --sh3:0 10px 30px rgba(8,14,19,.14);
+  --ease:cubic-bezier(.2,.7,.3,1);
+  --warm:var(--wn);
+  /* 深色框架：全站唯一的重色，用在顶栏与结果摘要。没有它，整页只有一堆等重的浅色。 */
+  --dark:#1C252D; --dark-2:#2A343D; --dark-ink:#E6ECF2; --dark-ink2:#93A0AC;
+}
+
+.chk{width:15px;height:15px;border-radius:4px;border:1.5px solid var(--line);
+  flex:none;display:flex;align-items:center;justify-content:center;background:#fff;cursor:pointer;}
+
+.on .chk,.chk.on{background:var(--pri);border-color:var(--pri);}
+
+.tree{max-height:660px;overflow:auto;border:1px solid var(--line);border-radius:var(--r);}
+
+.tl1,.tl2{display:flex;align-items:center;gap:9px;padding:9px 12px;cursor:pointer;
+  user-select:none;font-size:13px;}
+
+.tl2{padding-left:26px;font-weight:500;}
+
+.tl3{display:flex;align-items:flex-start;gap:9px;padding:8px 12px 8px 46px;
+  border-top:1px dashed var(--line2);font-size:13px;}
+
+.tl3.dis{opacity:.5;}
+
+.tl3 .nm{flex:1;cursor:pointer;}
+
+.tl3 .nm:hover{color:var(--pri);}
+
+.tl3 .meta{font-size:12px;color:var(--tx3);display:block;margin-top:2px;
+  font-family:ui-monospace,Consolas,monospace;}
+
+.stbox{border:1px solid var(--line);border-radius:var(--r);margin-bottom:10px;overflow:hidden;background:#fff;}
+
+.stbox .hd{padding:9px 12px;background:var(--panel2);border-bottom:1px solid var(--line2);
+  font-size:13px;font-weight:600;display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+
+.stbox .hd .src{margin-left:auto;font-size:12px;font-weight:400;color:var(--ok);}
+
+.strow{display:flex;align-items:center;gap:9px;padding:8px 12px;font-size:13px;
+  border-bottom:1px solid var(--line2);cursor:pointer;}
+
+.strow:last-child{border-bottom:none;}
+
+.strow:hover{background:var(--panel2);}
+
+/* ---- 状态半定量化（v1.2）：每个状态挂取值区间，可改可增删 ---- */
+.strow{cursor:default;}
+
+.strow .stnm{flex:1;cursor:pointer;}
+
+.strow .stnm .cus{font-style:normal;font-size:12px;color:var(--pri);background:var(--pri-s);
+  border-radius:99px;padding:1px 6px;margin-left:6px;}
+
+.rngwrap{cursor:pointer;}
+
+.rngwrap:hover .rng{border-color:var(--pri);color:var(--pri);}
+
+/* 区间视角切换（区域级 / 北京 / 天津 / 河北） */
+.scopebar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;background:var(--panel2);
+  padding:9px 12px;border-radius:7px;margin-bottom:11px;}
+
+.scopebar .slb{font-size:13px;color:var(--tx2);flex:none;}
+
+.scopebar .snote{font-size:12px;color:var(--tx3);flex:1 1 100%;line-height:1.7;margin-top:2px;}
+
+/* ================= v1.3 UI 升级层：滚动条 / 选中态 / 交互反馈 ================= */
+/* 细滚动条：所有内滚区域统一，避免默认粗滚动条破坏面板质感 */
+.tree::-webkit-scrollbar,.cimscroll::-webkit-scrollbar,.pollist::-webkit-scrollbar,
+.tabwrap::-webkit-scrollbar,.robtbl::-webkit-scrollbar,pre.out::-webkit-scrollbar,
+.mbody::-webkit-scrollbar{width:8px;height:8px;}
+
+.tree::-webkit-scrollbar-thumb,.cimscroll::-webkit-scrollbar-thumb,.pollist::-webkit-scrollbar-thumb,
+.tabwrap::-webkit-scrollbar-thumb,.robtbl::-webkit-scrollbar-thumb,pre.out::-webkit-scrollbar-thumb,
+.mbody::-webkit-scrollbar-thumb{background:#CBD3CF;border-radius:99px;border:2px solid transparent;
+  background-clip:content-box;}
+
+.tree::-webkit-scrollbar-thumb:hover,.cimscroll::-webkit-scrollbar-thumb:hover,
+.pollist::-webkit-scrollbar-thumb:hover,.tabwrap::-webkit-scrollbar-thumb:hover,
+.mbody::-webkit-scrollbar-thumb:hover{background:#B3BEC1;background-clip:content-box;border:2px solid transparent;}
+
+.tree::-webkit-scrollbar-track,.cimscroll::-webkit-scrollbar-track,.pollist::-webkit-scrollbar-track{background:transparent;}
+
+.opt .chk{transition:background .15s var(--ease),border-color .15s var(--ease);}
+
+/* 树与列表行：hover 更明确 */
+.tl1:hover,.tl2:hover{background:var(--panel2);}
+
+.tl2:hover{background:var(--well);}
+
+.tl3:hover{background:var(--bg);}
+
+/* 状态选择是单选：用圆形勾选标记，和可多选的复选框区分开 */
+.chk.rad{border-radius:50%;}
+
+.on .chk,.chk.on{background:var(--wn);border-color:var(--wn);}
+
+.chk{border-radius:2px;}
+
+/* 描述符树与右侧面板：去边框，用细线分节 */
+main .tree{border:0;border-radius:0;border-top:1px solid var(--line);}
+
+/* overflow 必须开着：状态卡里的解释收进了悬停提示，而 .tip::after 是绝对定位的，
+   被 overflow:hidden 裁掉就只剩半个气泡。这里边框与圆角都已去掉，无需再裁。 */
+main .stbox{border:0;border-radius:0;border-top:1px solid var(--line);background:transparent;
+  overflow:visible;}
+
+main .stbox .hd{background:transparent;border-bottom:1px solid var(--line);}
+
+/* 第 3 步：清单 + 抽屉。原来右栏每个描述符一整块设置（约 300px），选 10 个就 3000px，
+   左栏的树只有 660px，滚到一半就脱节。现在一行一个描述符。 */
+.p2bar{display:flex;align-items:center;gap:14px;margin:4px 0 14px;flex-wrap:wrap;}
+
+.p2stat{display:flex;gap:18px;font-size:13px;color:var(--tx3);flex-wrap:wrap;}
+
+.p2stat b{color:var(--tx);font-variant-numeric:tabular-nums;}
+
+.descList{background:var(--panel);border:1px solid var(--line);border-radius:var(--r2);overflow:hidden;}
+
+.drow{display:flex;align-items:center;gap:14px;padding:11px 16px;border-bottom:1px solid var(--line2);}
+
+.drow:last-child{border-bottom:0;}
+
+.drow:hover{background:var(--bg);}
+
+.dnm{font-size:15px;color:var(--tx);font-weight:600;}
+
+.dmeta{font-size:12px;color:var(--tx3);margin-top:2px;}
+
+.dmeta b{color:var(--tx2);font-weight:600;}
+
+.p2empty{padding:28px 16px;text-align:center;color:var(--tx3);font-size:13px;}
+
+.p2nav{display:flex;align-items:center;gap:10px;margin:12px 0 4px;}
+
+.p2navc{font-size:12px;color:var(--tx3);font-variant-numeric:tabular-nums;}
+
+.p2treecnt{font-size:12px;color:var(--tx3);margin:10px 0 8px;}

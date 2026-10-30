@@ -1,0 +1,43 @@
+<!-- H10 ｜ 九个工具收进一个工作台（正文只留结论） ｜ 摘自 _src/v15/index.html 第 387–428 行 -->
+  <div class="advmodal" id="advModal" onclick="if(event.target===this)closeAdv()">
+    <div class="advframe">
+      <div class="advhead"><b>进阶分析</b><span class="advsub">筛选 · 矛盾 · 可靠性 · 工具箱</span>
+        <button class="btn sm" onclick="closeAdv()">关闭</button></div>
+      <div class="advbody">
+        <div class="advnav" id="advNav"></div>
+        <div class="advmain">
+          <section class="advpane" data-t="filter">
+            <div class="advnote">给部分描述符指定你关心的取值，正文里的情景地图与分析工具就只看命中的子集。<b>筛选只影响展示，不改变检验结果本身。</b>改完关闭弹窗即可看到地图更新。</div>
+            <div id="filtBox"></div>
+          </section>
+          <section class="advpane" data-t="conf">
+            <div id="confList"></div>
+          </section>
+          <section class="advpane" data-t="robust"><div id="robBox"></div></section>
+          <section class="advpane" data-t="ens">
+            <div class="advnote">分歧怎么裁定：选 2 人或 3 人独立打分时，这里把各份矩阵摆在一起——一致的条目自动合并，分歧的条目列出来逐条裁定，裁定结果写回主矩阵，可直接进入一致性检验。</div>
+            <div id="ensPanel"></div>
+          </section>
+          <section class="advpane" data-t="corr">
+            <div class="advnote">φ 系数只描述「在当前这套判断下这些档如何组合」（＋100% 同起同落、−100% 此消彼长、0 无关联），不说明因果；情景数很少时系数可能是假象。</div>
+            <div id="corrBox"></div>
+          </section>
+          <section class="advpane" data-t="prof">
+            <div class="advnote">把每一个档逐个固定为强制条件，重算自洽情景并与基准对比：− 表示被它挤掉的可能，整行标空表示这条冲击下没有任何自洽情景。本版「强制」是硬约束，只会缩小情景集，不会新增。</div>
+            <div id="profBox"></div>
+          </section>
+          <section class="advpane" data-t="impactFig">
+            <div class="advnote">把当前打分画成一张图：节点是描述符档位，线的粗细是影响强弱。</div>
+            <div id="impactFig"></div>
+          </section>
+          <section class="advpane" data-t="path">
+            <div class="advnote">把「起点 → 终点」之间所有 2～3 段的传导链找出来；一条链有多强，取决于它最弱的那一段。跨层传导（国家→区域→省）同样计入。</div>
+            <div id="pathBox"></div>
+          </section>
+          <section class="advpane" data-t="tabFig">
+            <div class="tabwrap" id="tabFig"></div>
+          </section>
+        </div>
+      </div>
+    </div>
+  </div>

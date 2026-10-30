@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>文档 · 京津冀政策情景快速评估平台</title>
+<style>
+:root{--bg:#EBEFF2;--card:#fff;--line:#C5CBD0;--line2:#DDE2E6;
+ --i1:#080E13;--i2:#242A2F;--i3:#4E5358;--i4:#767B7F;--pri:#1B589E;--pri-s:#DBE9FC;
+ --dark:#1C252D;--dark2:#2A343D;
+ --sans:-apple-system,"PingFang SC","Microsoft YaHei",system-ui,sans-serif;}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--i2);font:15px/1.8 var(--sans)}
+header{background:var(--dark);color:#E6ECF2;padding:16px 28px;display:flex;align-items:center;gap:12px;
+  border-bottom:2px solid var(--pri)}
+.mark{width:26px;height:26px;border-radius:4px;background:var(--pri);color:#fff;
+  display:flex;align-items:center;justify-content:center;font:700 15px Georgia,serif}
+header b{font-size:15px;letter-spacing:.02em}
+header span{font-size:12px;color:#93A0AC}
+.wrap{max-width:880px;margin:0 auto;padding:44px 28px 80px}
+h1{font-size:28px;font-weight:600;color:var(--i1);margin:0 0 8px}
+.lead{color:var(--i3);font-size:14px;margin:0 0 32px;max-width:64ch}
+h2{font-size:16px;font-weight:600;color:var(--i1);margin:34px 0 12px;
+  padding-bottom:8px;border-bottom:1px solid var(--line)}
+a.doc{display:block;background:var(--card);border:1px solid var(--line);border-radius:4px;
+  padding:14px 18px;margin-bottom:10px;text-decoration:none;color:inherit;transition:border-color .12s}
+a.doc:hover{border-color:var(--pri)}
+a.doc .t{font-size:15px;font-weight:600;color:var(--i1)}
+a.doc .d{font-size:13px;color:var(--i3);margin-top:3px}
+a.doc .k{font:11px ui-monospace,Consolas,monospace;color:var(--i4);float:right;margin-top:2px}
+.note{background:var(--card);border-left:3px solid var(--pri);padding:12px 16px;
+  font-size:13px;color:var(--i3);margin:22px 0}
+.back{display:inline-block;margin-top:28px;font-size:13px;color:var(--pri);text-decoration:none}
+</style></head><body>
+<header><span class="mark">G</span><b>京津冀政策情景快速评估平台</b><span>· 文档</span></header>
+<div class="wrap">
+  <h1>文档目录</h1>
+  <p class="lead">平台的技术说明与功能详解。文档按版本留档，改动原因写在每份文档开头；最新一版在列表最上方。</p>
+
+  <h2>技术文档</h2>
+  <a class="doc" href="技术文档_v1.5.html"><span class="k">v1.5</span>
+    <div class="t">技术文档 v1.5（最新）</div>
+    <div class="d">描述符体系、CIB 判定算法、参数生成四形态、跨层求解、基准与锚定</div></a>
+  <a class="doc" href="技术文档_v1.3.html"><span class="k">v1.3</span>
+    <div class="t">技术文档 v1.3</div>
+    <div class="d">v1.3 时期的口径，保留以便对照改动</div></a>
+  <a class="doc" href="技术文档_v1.2.html"><span class="k">v1.2</span>
+    <div class="t">技术文档 v1.2</div>
+    <div class="d">历史版本</div></a>
+  <a class="doc" href="技术文档_v1.1.html"><span class="k">v1.1</span>
+    <div class="t">技术文档 v1.1</div>
+    <div class="d">最早一版，仅作留档</div></a>
+
+  <h2>功能说明</h2>
+  <a class="doc" href="平台功能详解_v1.3.html"><span class="k">v1.3</span>
+    <div class="t">平台功能详解</div>
+    <div class="d">逐步说明七个步骤各做什么、输入什么、输出什么</div></a>
+  <a class="doc" href="平台是什么.md"><span class="k">md</span>
+    <div class="t">平台是什么</div>
+    <div class="d">一页纸介绍：解决什么问题、给谁用、怎么读结果</div></a>
+
+  <div class="note">数据与测试代码在 <code>data/</code> 与 <code>tests/</code>，不是网页，直接看仓库即可。</div>
+
+  <a class="back" href="../">← 回到平台</a>
+</div></body></html>

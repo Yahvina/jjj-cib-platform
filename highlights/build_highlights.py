@@ -158,7 +158,7 @@ def line_ranges(seq):
 def html_block(spec):
     kind = spec['kind']
     if kind == 'section':
-        i, j = slice_by_id(HTML_L, spec['id'])
+        i, j = slice_by_id(HTML_L, spec['id'], spec.get('tag', 'section'))
     elif kind == 'card':
         i, j = slice_card_by_heading(HTML_L, spec['heading'])
     elif kind == 'details':
@@ -612,6 +612,58 @@ SPEC = [
                  'expertN', 'toast', 'render'],
         css=['.out', '.fmtnote', '.tag', '.btn', '.opt', '.chk'],
     ),
+    dict(
+        dir='H9_选描述符清单与抽屉',
+        no='H9', title='选描述符：清单 + 抽屉（页面不再随选择变长）',
+        why='原来左右两栏并置：左边描述符树固定 660px，右边每个已选描述符一整块状态设置（约 300px）。'
+            '选 10 个时右栏到 3003px，左栏早在 660px 就滚完了，两栏彻底脱节，下面的「描述符框架」'
+            '被顶到 3700px 处。现在主区只有一列：顶部一行「已选 N 个 · 应判 M 条」＋「添加描述符」，'
+            '下面是清单，每个描述符一行（名称、档位覆盖、当前档、设置）。重内容进抽屉——点「添加」'
+            '出搜索与树（可多选、可全选／清空），点行内「设置」出该描述符的状态面板，底部带「上一项／'
+            '下一项」可连改。实测 10 个描述符整页 1381px，比原来短 2.7 倍，增长从「每多一个 +300px」'
+            '变成「+52px」。点抽屉以外的空白处即可关闭。',
+        need='描述符越选越多时，页面不能跟着失控；但状态的区间与已知值又必须能改。',
+        kind='section', id='p2',
+        js=['sel', 'renderDescList', 'renderP2Stat', 'renderP2Drawer', 'renderTree',
+            'renderTreeCnt', 'renderStates', 'descSelAll', 'descClearAll', 'descStep',
+            'openDescDrawer', 'openAddDrawer', 'closeP2Drawer', 'selDesc', 'tglState'],
+        globals=['sel', 'rngScope', 'render', 'TICK'],
+        css=['.p2bar', '.p2stat', '.descList', '.drow', '.dnm', '.dmeta', '.p2empty',
+             '.p2nav', '.p2treecnt', '.tree', '.tl2', '.tl3', '.chk', '.stbox', '.strow',
+             '.stnm', '.rngwrap', '.scopebar'],
+    ),
+    dict(
+        dir='H10_进阶分析工作台',
+        no='H10', title='九个工具收进一个工作台（正文只留结论）',
+        why='第 7 步一度是 9 张卡加两个抽屉：结论、可靠性四张、工具箱三块、筛选与矛盾，'
+            '读结果的人要在这些之间滚很久。现在正文只留 5 张卡（检验结果一句话、情景地图、'
+            '导出、报告、配置摘要），其余九件收进一个近全屏的工作台弹窗——左栏九个 tab 按三组'
+            '分（深挖／可靠性／工具箱），右侧内容，每块顶上留一句「怎么读这张图」的常驻说明。'
+            '工程上最省风险的一步是：九个容器的 id 原样保留、弹窗 DOM 常驻（关着只是 display:none），'
+            '八个渲染函数一行没改。',
+        need='深度工具不能跟结论抢版面，但也不能被删掉——它们得有个正式的去处。',
+        kind='section', id='advModal', tag='div',
+        js=['openAdv', 'closeAdv', 'advGo', 'renderAdv', 'ADV_TABS'],
+        globals=['advOpen', 'advTab', 'render'],
+        css=['.advmodal', '.advframe', '.advhead', '.advsub', '.advbody', '.advnav',
+             '.advgrp', '.advtab', '.advmain', '.advpane', '.advnote'],
+    ),
+    dict(
+        dir='H11_使用说明页',
+        no='H11', title='使用说明页：五区八节，侧栏标出读到哪',
+        why='说明不摊在操作面上，集中在同一页里，按 EPS 的结构切成五区八节——简介、使用手册'
+            '（七步流程）、算法说明（判定与算法／跨层与锚定／导出与模型）、案例、参考（术语对照、'
+            '版本与讨论日志）。侧栏在滚动时标出当前读到哪一节：进页时缓存八个标题的文档位置，'
+            '滚动只比「谁越过了判定线」，不用 IntersectionObserver——它的 rootMargin 下边距只能'
+            '靠百分比起算，视口高度不够时会一条都不触发。第三区叫「算法说明」不叫「方法学」：'
+            '该区只讲平台怎么算，而真正的方法学要回答「关系依据什么判定、高低分段从哪来、由谁验证」，'
+            '那三条在评分规则定稿前不写。',
+        need='平台要能讲清自己怎么算，又不能把还没定稿的东西说成定稿。',
+        kind='section', id='pdoc',
+        js=['openDoc', 'docSpy', 'docSpyPaint', 'docSpyOff', 'backToCmp'],
+        globals=['docPg'],
+        css=['.doc-nav', '.dn-g', '.doc-body', '.dgrp', '.dnote'],
+    ),
 ]
 
 
@@ -705,9 +757,9 @@ def gen_index():
         '<meta name="viewport" content="width=device-width,initial-scale=1">\n'
         '<title>平台亮点模块索引 · 京津冀政策情景快速评估平台 %s</title>\n'
         '<style>\n'
-        ':root{--bg:#FBFAF7;--panel:#FFFFFF;--line:#E3DCD0;--line2:#EFEAE1;\n'
-        '  --tx:#1B1A17;--tx2:#55504A;--tx3:#6E675D;\n'
-        '  --pri:#2F4858;--pri-s:#ECF0F2;--pri-b:#C3D0D6;--wn:#8C5A3C;--wn-s:#F7F0E8;}\n'
+        ':root{--bg:#EBEFF2;--panel:#FFFFFF;--line:#C5CBD0;--line2:#DDE2E6;\n'
+        '  --tx:#080E13;--tx2:#242A2F;--tx3:#4E5358;\n'
+        '  --pri:#1B589E;--pri-s:#DBE9FC;--pri-b:#A9C0DE;--wn:#713E1E;--wn-s:#F6E8DE;\n'  '--dk:#1C252D;--dki:#E6ECF2;--dki2:#93A0AC;}\n'
         '*{box-sizing:border-box;margin:0;padding:0;}\n'
         'body{background:var(--bg);color:var(--tx);font-family:-apple-system,"Segoe UI",'
         '"Microsoft YaHei",sans-serif;font-size:14px;line-height:1.75;padding:36px 20px 64px;}\n'
