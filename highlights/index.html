@@ -89,7 +89,7 @@ code{font-family:ui-monospace,Consolas,monospace;background:var(--line2);padding
     <div class="hd"><span class="no">H6</span><span class="nm">矛盾组合与处理建议（闭环）</span></div>
     <p class="need">发现了矛盾还得能闭环，否则只是个报错框。</p>
     <p class="why">不只报矛盾，还要说清「为什么矛盾」「改成什么就不矛盾」「采纳后重跑」。v1.5 起不再只看用户选中的那几个档位，而是过所有描述符对，列出全部互斥对（上限 40 对，超出会标注已截断），另单列「孤立档位」。两者不同义：孤立档位是它自己站不住（任何自洽情景里都没出现），互斥对是两档各自都行、凑一起不行。建议是算出来的——从自洽集里找与其中一边共存过的另一档，点一下就真的改状态并重跑。</p>
-    <div class="loc">_src/v15/index.html 第 426–428 行　·　app.js 里 9 个声明</div>
+    <div class="loc">_src/v15/index.html 第 431–433 行　·　app.js 里 9 个声明</div>
     <div class="files"><span>fragment.html</span><span>logic.js</span><span>style.css</span><span>README.md</span></div>
   </div>
 
@@ -105,7 +105,7 @@ code{font-family:ui-monospace,Consolas,monospace;background:var(--line2);padding
     <div class="hd"><span class="no">H8</span><span class="nm">四种形态的导出（配置／参数表／叙事／后验）</span></div>
     <p class="need">求出来的自洽情景要能真的落到下游模型里，且不能把耦合拆散。</p>
     <p class="why">导出不是一个格式，是四种用途：模型配置文件（GCAM 真实 ScenarioComponents 结构、真实文件名；CHEER 侧标注 CSV→GDX 的转换路径）、结构化参数表、定性叙事稿、贝叶斯后验表。参数表带情景号（scenario,param,value）——CIB 求出的是一组互相咬合的自洽组合，导成一行一个参数等于把耦合又拆回独立参数，下游按行取值会读出彼此矛盾的组合。装配文件不确定的描述符会明确标注需人工补齐，不静默兜底。</p>
-    <div class="loc">_src/v15/index.html 第 376–381 行　·　app.js 里 31 个声明</div>
+    <div class="loc">_src/v15/index.html 第 359–364 行　·　app.js 里 31 个声明</div>
     <div class="files"><span>fragment.html</span><span>logic.js</span><span>style.css</span><span>README.md</span></div>
   </div>
 

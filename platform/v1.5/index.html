@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>京津冀政策情景快速评估平台 · 原型 v1.9.0</title>
+<title>京津冀政策情景快速评估平台 · 原型 v2.0.0</title>
   <link rel="stylesheet" href="src/styles.css">
 </head>
 <body>
@@ -321,19 +321,19 @@
   <div class="p6nav">
     <div class="p6tabs">
       <button class="p6tab sel" data-g="concl" onclick="p6Group('concl')">结论<span>2</span></button>
-      <button class="p6tab" data-g="rel" onclick="p6Group('rel')">可靠性<span>4</span></button>
       <button class="p6tab" data-g="out" onclick="p6Group('out')">交付<span>3</span></button>
     </div>
     <div class="sp"></div>
     <span class="p6stat" id="p6stat"></span>
     <button class="btn sm" id="p6allBtn" onclick="p6All()">全部展开</button>
-    <button class="btn sm" onclick="openP6Drawer('meta')">本次检视</button>
-    <button class="btn sm" onclick="openP6Drawer('filter')">情景筛选</button>
-    <button class="btn sm" onclick="openP6Drawer('conf')">矛盾组合</button>
+    <button class="btn sm" onclick="openP6Drawer()">本次检视</button>
+    <button class="btn sm pri" onclick="openAdv()">进阶分析</button>
   </div>
 
   <!-- 参与描述符、判断覆盖、口径与导出格式等元信息，收进这里 -->
   <div class="cfgdrawer" id="p6Drawer"></div>
+
+
 
   <div class="card" data-grp="concl">
     <h3>检验结果</h3>
@@ -352,26 +352,9 @@
     <div id="mapFig"></div>
   </div>
 
-  <div class="card" data-grp="rel">
-    <h3><span class="tip wide" tabindex="0" data-tip="这一步用于评估结论稳定性：按每条判断的置信度随机把它改 1 档——低把握调整频率较高、高把握调整较少——重算几十轮，考察两件事。① 哪些状态较稳健：出现率一直高的，说明结论并非偶然；② 哪条判断影响最大、最需要复核：单独调整 ±1 就会使大量已有结论失效的，最需要优先复核。这不是概率，不应读成「这个情景有 70% 的可能发生」；它衡量的是判断的晃动会不会改变结论。">稳健性检验</span></h3>
-    <div id="robBox"></div>
-  </div>
 
-  <div class="card" data-grp="rel">
-    <h3>集成与分歧</h3>
-    <p class="hintline"><span class="tip" tabindex="0" data-tip="选 2 人或 3 人独立打分时，这里把各份矩阵摆在一起：一致的条目自动合并，分歧的条目列出来逐条裁定。 裁定结果写回主矩阵，可直接进入一致性检验。">分歧怎么裁定</span></p>
-    <div id="ensPanel"></div>
-  </div>
 
-  <div class="card" data-grp="rel">
-    <h3><span class="tip wide" tabindex="0" data-tip="哪些档经常一同出现？这张表用 φ 系数回答：＋100% 表示两者要么同时出现、要么同时不出现；−100% 表示此消彼长；0 表示没有关联。它只描述「在当前这套判断下，这些档如何组合」，不说明因果——因果仍要看交叉影响矩阵和传导链。情景数很少时，系数可能是假象，手册原话是 may lead to artificial results。">相关性分析</span></h3>
-    <div id="corrBox"></div>
-  </div>
 
-  <div class="card" data-grp="rel">
-    <h3><span class="tip wide" tabindex="0" data-tip="这张表回答「如果某一档被固定为强制条件，剩余哪些可能」。平台会把每一个档逐个固定为某一档，重算一遍自洽情景，再与未固定时的基准对比：− 表示被它挤掉的可能，整行标空表示这条冲击下没有任何自洽情景。本版把「强制」实现为硬约束，数学上强制只会缩小情景集，所以不会出现「新增」；德国软件里的 ＋ 标记来自它把外部冲击当作会改写矩阵的影响来处理，那是另一种建模方式，本版未采用。">影响谱</span></h3>
-    <div id="profBox"></div>
-  </div>
 
   <div class="card" data-grp="out">
     <h3>生成结果与导出 <span class="tag" id="fmtTag">XML</span></h3>
@@ -398,29 +381,51 @@
     <div id="timeline"></div>
   </div>
 
-  <details class="card toolbox" id="toolBox">
-    <summary>分析工具箱<span>3</span></summary>
-    <div class="toolboxbody">
-      <div class="card">
-        <h3>影响关系图</h3>
-        <p class="hintline"><span class="tip" tabindex="0" data-tip="把当前打分画成一张关系图：每个描述符是一个节点，连线代表影响。赭色是促进、靛色是抑制， 线越粗表示影响越强。鼠标悬停任一连线，可以看到这条判断的依据。">线怎么读</span></p>
-        <div id="impactFig"></div>
-      </div>
-      <div class="card">
-        <h3>影响路径分析</h3>
-        <details class="fold"><summary>间接传导怎么找</summary><div class="foldbody">两个描述符之间没有直接打分，不代表它们互不影响——影响可以通过第三个描述符<b>间接传导</b>。
-          这里把「起点 → 终点」之间所有 2～3 段的传导链找出来，并按<b>最弱环节</b>排序：
-          一条链有多强，取决于它最弱的那一段。<b>跨层传导（国家目标 → 省域结构 → 市级排放）本质就是路径问题。</b></div></details>
-        <div id="pathBox"></div>
-      </div>
-      <div class="card">
-        <h3>情景表</h3>
-        <p class="hintline"><span class="tip" tabindex="0" data-tip="列是自洽情景，行是描述符。相邻情景里取同一个状态的格子会自动合并，并用颜色区分—— 几十个情景的异同一眼扫出来。">同色格子什么意思</span></p>
-        <div class="tabwrap" id="tabFig"></div>
+</section>
+  <!-- 进阶分析工作台：九个工具 tab，打开才占屏，正文只留结论、地图与导出 -->
+  <div class="advmodal" id="advModal" onclick="if(event.target===this)closeAdv()">
+    <div class="advframe">
+      <div class="advhead"><b>进阶分析</b><span class="advsub">筛选 · 矛盾 · 可靠性 · 工具箱</span>
+        <button class="btn sm" onclick="closeAdv()">关闭</button></div>
+      <div class="advbody">
+        <div class="advnav" id="advNav"></div>
+        <div class="advmain">
+          <section class="advpane" data-t="filter">
+            <div class="advnote">给部分描述符指定你关心的取值，正文里的情景地图与分析工具就只看命中的子集。<b>筛选只影响展示，不改变检验结果本身。</b>改完关闭弹窗即可看到地图更新。</div>
+            <div id="filtBox"></div>
+          </section>
+          <section class="advpane" data-t="conf">
+            <div id="confList"></div>
+          </section>
+          <section class="advpane" data-t="robust"><div id="robBox"></div></section>
+          <section class="advpane" data-t="ens">
+            <div class="advnote">分歧怎么裁定：选 2 人或 3 人独立打分时，这里把各份矩阵摆在一起——一致的条目自动合并，分歧的条目列出来逐条裁定，裁定结果写回主矩阵，可直接进入一致性检验。</div>
+            <div id="ensPanel"></div>
+          </section>
+          <section class="advpane" data-t="corr">
+            <div class="advnote">φ 系数只描述「在当前这套判断下这些档如何组合」（＋100% 同起同落、−100% 此消彼长、0 无关联），不说明因果；情景数很少时系数可能是假象。</div>
+            <div id="corrBox"></div>
+          </section>
+          <section class="advpane" data-t="prof">
+            <div class="advnote">把每一个档逐个固定为强制条件，重算自洽情景并与基准对比：− 表示被它挤掉的可能，整行标空表示这条冲击下没有任何自洽情景。本版「强制」是硬约束，只会缩小情景集，不会新增。</div>
+            <div id="profBox"></div>
+          </section>
+          <section class="advpane" data-t="impactFig">
+            <div class="advnote">把当前打分画成一张图：节点是描述符档位，线的粗细是影响强弱。</div>
+            <div id="impactFig"></div>
+          </section>
+          <section class="advpane" data-t="path">
+            <div class="advnote">把「起点 → 终点」之间所有 2～3 段的传导链找出来；一条链有多强，取决于它最弱的那一段。跨层传导（国家→区域→省）同样计入。</div>
+            <div id="pathBox"></div>
+          </section>
+          <section class="advpane" data-t="tabFig">
+            <div class="tabwrap" id="tabFig"></div>
+          </section>
+        </div>
       </div>
     </div>
-  </details>
-</section>
+  </div>
+
   <!-- 亮点页 H6 的切片宿主：矛盾闭环的入口已收进顶部「矛盾组合」按钮（抽屉渲染），
        这里只保留静态骨架供 highlights 切片，运行时不显示、不参与分组。 -->
   <div style="display:none"><div class="card"><h3>矛盾组合与处理建议</h3>

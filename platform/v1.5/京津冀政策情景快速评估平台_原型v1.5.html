@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>京津冀政策情景快速评估平台 · 原型 v1.9.0</title>
+<title>京津冀政策情景快速评估平台 · 原型 v2.0.0</title>
   <style>
 :root{
   /* 冷灰科研纸（v1.8 起）：画布 95 / 卡片 100 / 井 90，卡片浮在画布之上。
@@ -1526,6 +1526,34 @@ body.wizard .pane{max-width:1120px;margin-left:auto;margin-right:auto;}
 .p2navc{font-size:12px;color:var(--tx3);font-variant-numeric:tabular-nums;}
 .p2treecnt{font-size:12px;color:var(--tx3);margin:10px 0 8px;}
 
+/* ============ 进阶分析工作台（v2.0.0） ============
+   九个工具收进一个近全屏弹窗：左栏 tab（带分组小标题），右侧内容。
+   正文只留结论、地图与导出——看结果的人不被深水区工具打扰。 */
+.advmodal{display:none;position:fixed;inset:0;z-index:900;
+  background:rgba(8,14,19,.42);}
+.advmodal.on{display:flex;align-items:center;justify-content:center;}
+.advframe{width:min(1180px,94vw);height:min(820px,90vh);background:var(--panel);
+  border-radius:6px;overflow:hidden;display:flex;flex-direction:column;
+  box-shadow:0 24px 80px rgba(8,14,19,.35);}
+.advhead{background:var(--dark);color:var(--dark-ink);padding:13px 20px;
+  display:flex;align-items:center;gap:12px;border-bottom:2px solid var(--pri);}
+.advhead b{font-size:16px;}
+.advsub{font-size:12px;color:var(--dark-ink2);flex:1;}
+.advbody{flex:1;display:flex;min-height:0;}
+.advnav{width:172px;flex:none;background:var(--dark-2);padding:10px 8px;
+  overflow-y:auto;border-right:1px solid #141B21;}
+.advgrp{font-size:11px;color:#7E8B97;padding:12px 10px 4px;letter-spacing:.1em;}
+.advtab{display:block;width:100%;text-align:left;font:13px var(--sans);
+  color:#B6C1CC;background:none;border:0;border-radius:3px;
+  padding:8px 10px;cursor:pointer;}
+.advtab:hover{background:rgba(255,255,255,.07);color:#fff;}
+.advtab.on{background:rgba(91,155,224,.18);color:#fff;font-weight:600;}
+.advmain{flex:1;overflow-y:auto;padding:20px 24px;background:var(--bg);}
+.advpane{display:none;}
+.advpane.on{display:block;}
+.advnote{background:var(--panel2);border-left:3px solid var(--pri);border-radius:0 3px 3px 0;
+  padding:11px 14px;font-size:13px;color:var(--tx2);margin-bottom:16px;line-height:1.7;}
+
 </style>
 </head>
 <body>
@@ -1843,19 +1871,19 @@ body.wizard .pane{max-width:1120px;margin-left:auto;margin-right:auto;}
   <div class="p6nav">
     <div class="p6tabs">
       <button class="p6tab sel" data-g="concl" onclick="p6Group('concl')">结论<span>2</span></button>
-      <button class="p6tab" data-g="rel" onclick="p6Group('rel')">可靠性<span>4</span></button>
       <button class="p6tab" data-g="out" onclick="p6Group('out')">交付<span>3</span></button>
     </div>
     <div class="sp"></div>
     <span class="p6stat" id="p6stat"></span>
     <button class="btn sm" id="p6allBtn" onclick="p6All()">全部展开</button>
-    <button class="btn sm" onclick="openP6Drawer('meta')">本次检视</button>
-    <button class="btn sm" onclick="openP6Drawer('filter')">情景筛选</button>
-    <button class="btn sm" onclick="openP6Drawer('conf')">矛盾组合</button>
+    <button class="btn sm" onclick="openP6Drawer()">本次检视</button>
+    <button class="btn sm pri" onclick="openAdv()">进阶分析</button>
   </div>
 
   <!-- 参与描述符、判断覆盖、口径与导出格式等元信息，收进这里 -->
   <div class="cfgdrawer" id="p6Drawer"></div>
+
+
 
   <div class="card" data-grp="concl">
     <h3>检验结果</h3>
@@ -1874,26 +1902,9 @@ body.wizard .pane{max-width:1120px;margin-left:auto;margin-right:auto;}
     <div id="mapFig"></div>
   </div>
 
-  <div class="card" data-grp="rel">
-    <h3><span class="tip wide" tabindex="0" data-tip="这一步用于评估结论稳定性：按每条判断的置信度随机把它改 1 档——低把握调整频率较高、高把握调整较少——重算几十轮，考察两件事。① 哪些状态较稳健：出现率一直高的，说明结论并非偶然；② 哪条判断影响最大、最需要复核：单独调整 ±1 就会使大量已有结论失效的，最需要优先复核。这不是概率，不应读成「这个情景有 70% 的可能发生」；它衡量的是判断的晃动会不会改变结论。">稳健性检验</span></h3>
-    <div id="robBox"></div>
-  </div>
 
-  <div class="card" data-grp="rel">
-    <h3>集成与分歧</h3>
-    <p class="hintline"><span class="tip" tabindex="0" data-tip="选 2 人或 3 人独立打分时，这里把各份矩阵摆在一起：一致的条目自动合并，分歧的条目列出来逐条裁定。 裁定结果写回主矩阵，可直接进入一致性检验。">分歧怎么裁定</span></p>
-    <div id="ensPanel"></div>
-  </div>
 
-  <div class="card" data-grp="rel">
-    <h3><span class="tip wide" tabindex="0" data-tip="哪些档经常一同出现？这张表用 φ 系数回答：＋100% 表示两者要么同时出现、要么同时不出现；−100% 表示此消彼长；0 表示没有关联。它只描述「在当前这套判断下，这些档如何组合」，不说明因果——因果仍要看交叉影响矩阵和传导链。情景数很少时，系数可能是假象，手册原话是 may lead to artificial results。">相关性分析</span></h3>
-    <div id="corrBox"></div>
-  </div>
 
-  <div class="card" data-grp="rel">
-    <h3><span class="tip wide" tabindex="0" data-tip="这张表回答「如果某一档被固定为强制条件，剩余哪些可能」。平台会把每一个档逐个固定为某一档，重算一遍自洽情景，再与未固定时的基准对比：− 表示被它挤掉的可能，整行标空表示这条冲击下没有任何自洽情景。本版把「强制」实现为硬约束，数学上强制只会缩小情景集，所以不会出现「新增」；德国软件里的 ＋ 标记来自它把外部冲击当作会改写矩阵的影响来处理，那是另一种建模方式，本版未采用。">影响谱</span></h3>
-    <div id="profBox"></div>
-  </div>
 
   <div class="card" data-grp="out">
     <h3>生成结果与导出 <span class="tag" id="fmtTag">XML</span></h3>
@@ -1920,29 +1931,51 @@ body.wizard .pane{max-width:1120px;margin-left:auto;margin-right:auto;}
     <div id="timeline"></div>
   </div>
 
-  <details class="card toolbox" id="toolBox">
-    <summary>分析工具箱<span>3</span></summary>
-    <div class="toolboxbody">
-      <div class="card">
-        <h3>影响关系图</h3>
-        <p class="hintline"><span class="tip" tabindex="0" data-tip="把当前打分画成一张关系图：每个描述符是一个节点，连线代表影响。赭色是促进、靛色是抑制， 线越粗表示影响越强。鼠标悬停任一连线，可以看到这条判断的依据。">线怎么读</span></p>
-        <div id="impactFig"></div>
-      </div>
-      <div class="card">
-        <h3>影响路径分析</h3>
-        <details class="fold"><summary>间接传导怎么找</summary><div class="foldbody">两个描述符之间没有直接打分，不代表它们互不影响——影响可以通过第三个描述符<b>间接传导</b>。
-          这里把「起点 → 终点」之间所有 2～3 段的传导链找出来，并按<b>最弱环节</b>排序：
-          一条链有多强，取决于它最弱的那一段。<b>跨层传导（国家目标 → 省域结构 → 市级排放）本质就是路径问题。</b></div></details>
-        <div id="pathBox"></div>
-      </div>
-      <div class="card">
-        <h3>情景表</h3>
-        <p class="hintline"><span class="tip" tabindex="0" data-tip="列是自洽情景，行是描述符。相邻情景里取同一个状态的格子会自动合并，并用颜色区分—— 几十个情景的异同一眼扫出来。">同色格子什么意思</span></p>
-        <div class="tabwrap" id="tabFig"></div>
+</section>
+  <!-- 进阶分析工作台：九个工具 tab，打开才占屏，正文只留结论、地图与导出 -->
+  <div class="advmodal" id="advModal" onclick="if(event.target===this)closeAdv()">
+    <div class="advframe">
+      <div class="advhead"><b>进阶分析</b><span class="advsub">筛选 · 矛盾 · 可靠性 · 工具箱</span>
+        <button class="btn sm" onclick="closeAdv()">关闭</button></div>
+      <div class="advbody">
+        <div class="advnav" id="advNav"></div>
+        <div class="advmain">
+          <section class="advpane" data-t="filter">
+            <div class="advnote">给部分描述符指定你关心的取值，正文里的情景地图与分析工具就只看命中的子集。<b>筛选只影响展示，不改变检验结果本身。</b>改完关闭弹窗即可看到地图更新。</div>
+            <div id="filtBox"></div>
+          </section>
+          <section class="advpane" data-t="conf">
+            <div id="confList"></div>
+          </section>
+          <section class="advpane" data-t="robust"><div id="robBox"></div></section>
+          <section class="advpane" data-t="ens">
+            <div class="advnote">分歧怎么裁定：选 2 人或 3 人独立打分时，这里把各份矩阵摆在一起——一致的条目自动合并，分歧的条目列出来逐条裁定，裁定结果写回主矩阵，可直接进入一致性检验。</div>
+            <div id="ensPanel"></div>
+          </section>
+          <section class="advpane" data-t="corr">
+            <div class="advnote">φ 系数只描述「在当前这套判断下这些档如何组合」（＋100% 同起同落、−100% 此消彼长、0 无关联），不说明因果；情景数很少时系数可能是假象。</div>
+            <div id="corrBox"></div>
+          </section>
+          <section class="advpane" data-t="prof">
+            <div class="advnote">把每一个档逐个固定为强制条件，重算自洽情景并与基准对比：− 表示被它挤掉的可能，整行标空表示这条冲击下没有任何自洽情景。本版「强制」是硬约束，只会缩小情景集，不会新增。</div>
+            <div id="profBox"></div>
+          </section>
+          <section class="advpane" data-t="impactFig">
+            <div class="advnote">把当前打分画成一张图：节点是描述符档位，线的粗细是影响强弱。</div>
+            <div id="impactFig"></div>
+          </section>
+          <section class="advpane" data-t="path">
+            <div class="advnote">把「起点 → 终点」之间所有 2～3 段的传导链找出来；一条链有多强，取决于它最弱的那一段。跨层传导（国家→区域→省）同样计入。</div>
+            <div id="pathBox"></div>
+          </section>
+          <section class="advpane" data-t="tabFig">
+            <div class="tabwrap" id="tabFig"></div>
+          </section>
+        </div>
       </div>
     </div>
-  </details>
-</section>
+  </div>
+
   <!-- 亮点页 H6 的切片宿主：矛盾闭环的入口已收进顶部「矛盾组合」按钮（抽屉渲染），
        这里只保留静态骨架供 highlights 切片，运行时不显示、不参与分组。 -->
   <div style="display:none"><div class="card"><h3>矛盾组合与处理建议</h3>
@@ -7839,6 +7872,7 @@ function renderBayes(){
    已有情景需要重新检验；省略 = 不动结果（只改界面、措辞、性能或新增旁路分析）。
    与 git 提交对应；此处只列入对外可讲、能被核对的事项。 */
 const CHANGELOG=[
+ {d:'2026-10-30',k:'界面',x:'第 7 步终局形态：九个工具收进「进阶分析」工作台',y:'正文只留 5 张卡：检验结果一句话、情景地图、生成结果与导出、情景报告、本次配置摘要。情景筛选、矛盾组合（原两个抽屉）、稳健性检验、集成与分歧、相关性分析、影响谱（原可靠性 4 卡）、影响关系图、影响路径分析、情景表（原工具箱 3 块）共九件，收进一个近全屏的工作台弹窗——左栏九个 tab 按三组分（深挖／可靠性／工具箱），右侧内容，像正式工具台而不像一排侧滑抽屉。九个容器的 id 原样保留、弹窗 DOM 常驻（关着只是 display:none），八个渲染函数零改动，这是整批最省风险的一步。每块工具的方法说明（φ 系数、影响谱的强制语义等）以常驻提示行留在弹窗内。p6tab 从三个变两个，可靠性组连同 tab 撤销。'},
  {d:'2026-10-30',k:'界面',x:'第 7 步加「本次检视」抽屉',y:'照情景配置结果页的做法，把第 7 步散落的元信息收进一个抽屉：参与检验的描述符（N / 19，逐个列出）、应判 / 已判 / 判为 0、低置信度、已审核、判断来源、区间口径、目标模型、导出格式、数据侧核验覆盖（映射有工具级记录的条数）。正文只留结论数字、情景地图与导出按钮。点空白关闭与其他抽屉一致。'},
  {d:'2026-10-30',k:'功能',x:'选描述符加全选/清空、点空白关抽屉、修勾选跳顶',y:'三个都来自实际使用。① 抽屉加「全选 / 清空」：全选＝所有非结果型进参与集（17 个），清空＝归零。两个都走轻量路径（只改勾选框与统计，不 render）——第一版走了 render，结果刚弹开的抽屉立刻被自己关掉：按钮的旧 DOM 随抽屉重建脱离文档树，document 的「点空白关闭」监听把那次点击误判成点在抽屉外。② 点抽屉以外的空白处也能关，不必找关闭按钮；政策详情抽屉同样适用。③ 勾选跳回顶部的根因是 selDesc 每次都 render()，树整个重建、scrollTop 归零——现在抽屉里的勾选走轻量路径，只切该项勾选框、刷新统计与清单，树不重建，滚动位置天然保留。'},
  {d:'2026-10-30',k:'界面',x:'研究模式第 3 步改成「清单 + 抽屉」',y:'原来左右两栏并置：左边描述符树固定 660px，右边是每个已选描述符一整块状态设置（约 300px）。选 10 个时右栏到 3003px，左栏早在 660px 就滚完了，两栏彻底脱节，下面的「描述符框架」被顶到 3700px 处。现在主区只有一列：顶部一行「已选 N 个 · 应判 M 条 ＋ 添加描述符」，下面是清单，每个描述符一行（名称、档位覆盖、当前档、设置），行高约 52px。重内容进抽屉，与政策详情共用同一种：点「＋ 添加描述符」出搜索与树（多选），点某行「设置」出该描述符的状态面板（区间、档位、已知值、自定义状态），底部带「上一项 / 下一项」，可以连着改十个不用反复开关。实测 10 个描述符整页 1381px，比原来的 3763px 短 2.7 倍，且增长从「每多一个 +300px」变成「+52px」。勾选与改档都会触发整页 render，抽屉重建时把 scrollTop 带过去，不会每点一次跳回顶部。renderTree / renderStates / #treeCnt 都加了「元素不在就直接返回」的守卫，因为树与状态面板现在只在抽屉打开时才存在。'},
@@ -8491,6 +8525,17 @@ const VERSIONS=[
     ,'亮点页 H6 的切片宿主：矛盾卡片移进抽屉后静态页没有宿主了，p6 后面加了一个 display:none 的骨架卡专供 highlights 切片，运行时不显示不参与分组'
     ,'test_menu 同步：明面块 10 → 9，concl 组两块，结论徽章 3 → 2，confList 改为断言由抽屉按需渲染。35/35、归档 36/36'
    ]}
+  ,{v:'v2.0.0',d:'2026-10-30',tag:'',sum:'第 7 步终局形态：正文只留结论、地图与导出；九个工具收进「进阶分析」工作台弹窗',ev:'本批提交',
+   items:[
+    '「进阶分析」= 近全屏工作台弹窗（左栏九个 tab 带分组：深挖 / 可靠性 / 工具箱；右侧内容），像正式工具台而不像侧滑抽屉'
+    ,'收进弹窗：情景筛选、矛盾组合（原两个抽屉）、稳健性检验、集成与分歧、相关性分析、影响谱（原可靠性 4 卡）、影响关系图、影响路径分析、情景表（原工具箱 3 块）'
+    ,'九个容器的 id 原样保留（filtBox/confList/robBox/…），弹窗 DOM 常驻（关着只是 display:none），八个渲染函数零改动——这是整批改动最省风险的一步'
+    ,'正文只剩 5 张卡：检验结果一句话、情景地图、生成结果与导出、情景报告、本次配置摘要；p6nav 只剩「本次检视」与「进阶分析」两个按钮'
+    ,'每块工具的方法说明（φ 系数、影响谱的强制语义等）以常驻提示行留在弹窗内，不丢'
+    ,'p6tab 从三个变两个（结论/交付），可靠性组连同 tab 一起撤销'
+    ,'el() 的 null 守卫让所有渲染函数在弹窗关着时安全跳过'
+    ,'test_menu 同步：5 卡 / 2 tab / 弹窗九容器；注意该测试默认测 v11，手动跑必须传 v15/index.html'
+   ]},
 ]
 /* 当前版本号只有一个来源：VERSIONS 的最后一条（数组按时间从旧到新排列）。
    2026-10-25 修：关于框里原先写死 v1.4，平台发到 v1.5.7 之后它还在对外显示旧版号。 */
@@ -8573,7 +8618,7 @@ function renderChangelog(){ renderVersions(); renderDiscuss(); }
    17 块按用途分四组，一次只看一组——避免一屏一屏往下划。
    「全部展开」保留通读与打印的出口。 */
 let p6grp='concl', p6allOn=false;
-const P6GNAME={concl:'结论',rel:'可靠性',out:'交付'};
+const P6GNAME={concl:'结论',out:'交付'};
 function p6Apply(){
   const sec=document.getElementById('p6');
   if(!sec||typeof sec.setAttribute!=='function') return;
@@ -8611,28 +8656,46 @@ function closeP6Drawer(){ p6Drawer=null; render(); }
 function renderP6Drawer(){
   const el=document.getElementById('p6Drawer'); if(!el) return;
   if(!p6Drawer){ el.className='cfgdrawer'; el.innerHTML=''; return; }
-  /* 整页 render 会重建抽屉，把滚动位置带过去（筛选控件每改一次就 render 一次） */
   const keep=el.scrollTop;
   el.className='cfgdrawer on';
-  if(p6Drawer==='filter'){
-    el.innerHTML='<div class="drawer-h"><div><div class="drawer-k">情景筛选</div>'
-      +'<b>给描述符指定要求取值</b></div>'
-      +'<button class="btn sm" onclick="closeP6Drawer()">关闭</button></div>'
-      +'<div class="ptnote" style="margin:8px 0 4px;">自洽情景往往几十上百个，看不过来——'
-      +'给部分描述符指定你关心的取值，下面的情景地图与分析工具箱就只看命中的子集。'
-      +'筛选只影响展示，不改变检验结果本身。</div>'
-      +'<div id="filtBox"></div>';
-    renderFilt();
-  }else if(p6Drawer==='conf'){
-    el.innerHTML='<div class="drawer-h"><div><div class="drawer-k">矛盾组合与处理建议</div>'
-      +'<b>哪些方向对不上、怎么处理</b></div>'
-      +'<button class="btn sm" onclick="closeP6Drawer()">关闭</button></div>'
-      +'<div id="confList"></div>';
-    confList();
-  }else{
-    el.innerHTML=p6MetaHTML();
-  }
+  el.innerHTML=p6MetaHTML();
   if(keep) el.scrollTop=keep;
+}
+/* ================= 进阶分析工作台 =================
+   九个工具收进一个近全屏弹窗，正文只留结论、地图与导出。
+   九个容器的 id 不变（filtBox/confList/robBox/…），渲染函数零改动——
+   弹窗 DOM 常驻（关着只是 display:none），render() 照常填充。 */
+const ADV_TABS=[
+  ['深挖',null],
+  ['filter','情景筛选'],
+  ['conf','矛盾组合'],
+  ['可靠性',null],
+  ['robust','稳健性检验'],
+  ['ens','集成与分歧'],
+  ['corr','相关性分析'],
+  ['prof','影响谱'],
+  ['工具箱',null],
+  ['impactFig','影响关系图'],
+  ['path','影响路径分析'],
+  ['tabFig','情景表'],
+];;
+let advOpen=false, advTab='filter';
+function openAdv(tab){ advOpen=true; advTab=tab||advTab||'filter'; render(); }
+function closeAdv(){ advOpen=false; render(); }
+function advGo(t){ advTab=t; render(); }
+function renderAdv(){
+  const m=document.getElementById('advModal'); if(!m) return;
+  m.classList.toggle('on',advOpen);
+  const nav=document.getElementById('advNav'); if(!nav) return;
+  let h='';
+  ADV_TABS.forEach(t=>{
+    if(!t[1]){ h+='<div class="advgrp">'+t[0]+'</div>'; return; }
+    h+='<button class="advtab'+(advTab===t[0]?' on':'')+'" onclick="advGo(\''+t[0]+'\')">'+t[1]+'</button>';
+  });
+  nav.innerHTML=h;
+  document.querySelectorAll('#advModal .advpane').forEach(p=>{
+    p.classList.toggle('on',p.getAttribute('data-t')===advTab);
+  });
 }
 function p6MetaHTML(){
   const ds=Object.keys(sel.desc);
@@ -8698,7 +8761,7 @@ function render(){
   renderGenOut();
   finalSum();
   renderChangelog();
-  p6Apply(); p6Status(); renderP6Drawer();
+  p6Apply(); p6Status(); renderP6Drawer(); renderAdv();
   renderConfigPolicy(); renderCfgSrc(); renderConfigSetting(); renderConfigResult();
   const cfgDrawerEl=document.getElementById('cfgDrawer');
   if(cfgDrawerEl){

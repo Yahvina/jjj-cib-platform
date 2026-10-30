@@ -5565,6 +5565,7 @@ function renderBayes(){
    已有情景需要重新检验；省略 = 不动结果（只改界面、措辞、性能或新增旁路分析）。
    与 git 提交对应；此处只列入对外可讲、能被核对的事项。 */
 const CHANGELOG=[
+ {d:'2026-10-30',k:'界面',x:'第 7 步终局形态：九个工具收进「进阶分析」工作台',y:'正文只留 5 张卡：检验结果一句话、情景地图、生成结果与导出、情景报告、本次配置摘要。情景筛选、矛盾组合（原两个抽屉）、稳健性检验、集成与分歧、相关性分析、影响谱（原可靠性 4 卡）、影响关系图、影响路径分析、情景表（原工具箱 3 块）共九件，收进一个近全屏的工作台弹窗——左栏九个 tab 按三组分（深挖／可靠性／工具箱），右侧内容，像正式工具台而不像一排侧滑抽屉。九个容器的 id 原样保留、弹窗 DOM 常驻（关着只是 display:none），八个渲染函数零改动，这是整批最省风险的一步。每块工具的方法说明（φ 系数、影响谱的强制语义等）以常驻提示行留在弹窗内。p6tab 从三个变两个，可靠性组连同 tab 撤销。'},
  {d:'2026-10-30',k:'界面',x:'第 7 步加「本次检视」抽屉',y:'照情景配置结果页的做法，把第 7 步散落的元信息收进一个抽屉：参与检验的描述符（N / 19，逐个列出）、应判 / 已判 / 判为 0、低置信度、已审核、判断来源、区间口径、目标模型、导出格式、数据侧核验覆盖（映射有工具级记录的条数）。正文只留结论数字、情景地图与导出按钮。点空白关闭与其他抽屉一致。'},
  {d:'2026-10-30',k:'功能',x:'选描述符加全选/清空、点空白关抽屉、修勾选跳顶',y:'三个都来自实际使用。① 抽屉加「全选 / 清空」：全选＝所有非结果型进参与集（17 个），清空＝归零。两个都走轻量路径（只改勾选框与统计，不 render）——第一版走了 render，结果刚弹开的抽屉立刻被自己关掉：按钮的旧 DOM 随抽屉重建脱离文档树，document 的「点空白关闭」监听把那次点击误判成点在抽屉外。② 点抽屉以外的空白处也能关，不必找关闭按钮；政策详情抽屉同样适用。③ 勾选跳回顶部的根因是 selDesc 每次都 render()，树整个重建、scrollTop 归零——现在抽屉里的勾选走轻量路径，只切该项勾选框、刷新统计与清单，树不重建，滚动位置天然保留。'},
  {d:'2026-10-30',k:'界面',x:'研究模式第 3 步改成「清单 + 抽屉」',y:'原来左右两栏并置：左边描述符树固定 660px，右边是每个已选描述符一整块状态设置（约 300px）。选 10 个时右栏到 3003px，左栏早在 660px 就滚完了，两栏彻底脱节，下面的「描述符框架」被顶到 3700px 处。现在主区只有一列：顶部一行「已选 N 个 · 应判 M 条 ＋ 添加描述符」，下面是清单，每个描述符一行（名称、档位覆盖、当前档、设置），行高约 52px。重内容进抽屉，与政策详情共用同一种：点「＋ 添加描述符」出搜索与树（多选），点某行「设置」出该描述符的状态面板（区间、档位、已知值、自定义状态），底部带「上一项 / 下一项」，可以连着改十个不用反复开关。实测 10 个描述符整页 1381px，比原来的 3763px 短 2.7 倍，且增长从「每多一个 +300px」变成「+52px」。勾选与改档都会触发整页 render，抽屉重建时把 scrollTop 带过去，不会每点一次跳回顶部。renderTree / renderStates / #treeCnt 都加了「元素不在就直接返回」的守卫，因为树与状态面板现在只在抽屉打开时才存在。'},
@@ -6217,6 +6218,17 @@ const VERSIONS=[
     ,'亮点页 H6 的切片宿主：矛盾卡片移进抽屉后静态页没有宿主了，p6 后面加了一个 display:none 的骨架卡专供 highlights 切片，运行时不显示不参与分组'
     ,'test_menu 同步：明面块 10 → 9，concl 组两块，结论徽章 3 → 2，confList 改为断言由抽屉按需渲染。35/35、归档 36/36'
    ]}
+  ,{v:'v2.0.0',d:'2026-10-30',tag:'',sum:'第 7 步终局形态：正文只留结论、地图与导出；九个工具收进「进阶分析」工作台弹窗',ev:'本批提交',
+   items:[
+    '「进阶分析」= 近全屏工作台弹窗（左栏九个 tab 带分组：深挖 / 可靠性 / 工具箱；右侧内容），像正式工具台而不像侧滑抽屉'
+    ,'收进弹窗：情景筛选、矛盾组合（原两个抽屉）、稳健性检验、集成与分歧、相关性分析、影响谱（原可靠性 4 卡）、影响关系图、影响路径分析、情景表（原工具箱 3 块）'
+    ,'九个容器的 id 原样保留（filtBox/confList/robBox/…），弹窗 DOM 常驻（关着只是 display:none），八个渲染函数零改动——这是整批改动最省风险的一步'
+    ,'正文只剩 5 张卡：检验结果一句话、情景地图、生成结果与导出、情景报告、本次配置摘要；p6nav 只剩「本次检视」与「进阶分析」两个按钮'
+    ,'每块工具的方法说明（φ 系数、影响谱的强制语义等）以常驻提示行留在弹窗内，不丢'
+    ,'p6tab 从三个变两个（结论/交付），可靠性组连同 tab 一起撤销'
+    ,'el() 的 null 守卫让所有渲染函数在弹窗关着时安全跳过'
+    ,'test_menu 同步：5 卡 / 2 tab / 弹窗九容器；注意该测试默认测 v11，手动跑必须传 v15/index.html'
+   ]},
 ]
 /* 当前版本号只有一个来源：VERSIONS 的最后一条（数组按时间从旧到新排列）。
    2026-10-25 修：关于框里原先写死 v1.4，平台发到 v1.5.7 之后它还在对外显示旧版号。 */
@@ -6299,7 +6311,7 @@ function renderChangelog(){ renderVersions(); renderDiscuss(); }
    17 块按用途分四组，一次只看一组——避免一屏一屏往下划。
    「全部展开」保留通读与打印的出口。 */
 let p6grp='concl', p6allOn=false;
-const P6GNAME={concl:'结论',rel:'可靠性',out:'交付'};
+const P6GNAME={concl:'结论',out:'交付'};
 function p6Apply(){
   const sec=document.getElementById('p6');
   if(!sec||typeof sec.setAttribute!=='function') return;
@@ -6337,28 +6349,46 @@ function closeP6Drawer(){ p6Drawer=null; render(); }
 function renderP6Drawer(){
   const el=document.getElementById('p6Drawer'); if(!el) return;
   if(!p6Drawer){ el.className='cfgdrawer'; el.innerHTML=''; return; }
-  /* 整页 render 会重建抽屉，把滚动位置带过去（筛选控件每改一次就 render 一次） */
   const keep=el.scrollTop;
   el.className='cfgdrawer on';
-  if(p6Drawer==='filter'){
-    el.innerHTML='<div class="drawer-h"><div><div class="drawer-k">情景筛选</div>'
-      +'<b>给描述符指定要求取值</b></div>'
-      +'<button class="btn sm" onclick="closeP6Drawer()">关闭</button></div>'
-      +'<div class="ptnote" style="margin:8px 0 4px;">自洽情景往往几十上百个，看不过来——'
-      +'给部分描述符指定你关心的取值，下面的情景地图与分析工具箱就只看命中的子集。'
-      +'筛选只影响展示，不改变检验结果本身。</div>'
-      +'<div id="filtBox"></div>';
-    renderFilt();
-  }else if(p6Drawer==='conf'){
-    el.innerHTML='<div class="drawer-h"><div><div class="drawer-k">矛盾组合与处理建议</div>'
-      +'<b>哪些方向对不上、怎么处理</b></div>'
-      +'<button class="btn sm" onclick="closeP6Drawer()">关闭</button></div>'
-      +'<div id="confList"></div>';
-    confList();
-  }else{
-    el.innerHTML=p6MetaHTML();
-  }
+  el.innerHTML=p6MetaHTML();
   if(keep) el.scrollTop=keep;
+}
+/* ================= 进阶分析工作台 =================
+   九个工具收进一个近全屏弹窗，正文只留结论、地图与导出。
+   九个容器的 id 不变（filtBox/confList/robBox/…），渲染函数零改动——
+   弹窗 DOM 常驻（关着只是 display:none），render() 照常填充。 */
+const ADV_TABS=[
+  ['深挖',null],
+  ['filter','情景筛选'],
+  ['conf','矛盾组合'],
+  ['可靠性',null],
+  ['robust','稳健性检验'],
+  ['ens','集成与分歧'],
+  ['corr','相关性分析'],
+  ['prof','影响谱'],
+  ['工具箱',null],
+  ['impactFig','影响关系图'],
+  ['path','影响路径分析'],
+  ['tabFig','情景表'],
+];;
+let advOpen=false, advTab='filter';
+function openAdv(tab){ advOpen=true; advTab=tab||advTab||'filter'; render(); }
+function closeAdv(){ advOpen=false; render(); }
+function advGo(t){ advTab=t; render(); }
+function renderAdv(){
+  const m=document.getElementById('advModal'); if(!m) return;
+  m.classList.toggle('on',advOpen);
+  const nav=document.getElementById('advNav'); if(!nav) return;
+  let h='';
+  ADV_TABS.forEach(t=>{
+    if(!t[1]){ h+='<div class="advgrp">'+t[0]+'</div>'; return; }
+    h+='<button class="advtab'+(advTab===t[0]?' on':'')+'" onclick="advGo(\''+t[0]+'\')">'+t[1]+'</button>';
+  });
+  nav.innerHTML=h;
+  document.querySelectorAll('#advModal .advpane').forEach(p=>{
+    p.classList.toggle('on',p.getAttribute('data-t')===advTab);
+  });
 }
 function p6MetaHTML(){
   const ds=Object.keys(sel.desc);
@@ -6424,7 +6454,7 @@ function render(){
   renderGenOut();
   finalSum();
   renderChangelog();
-  p6Apply(); p6Status(); renderP6Drawer();
+  p6Apply(); p6Status(); renderP6Drawer(); renderAdv();
   renderConfigPolicy(); renderCfgSrc(); renderConfigSetting(); renderConfigResult();
   const cfgDrawerEl=document.getElementById('cfgDrawer');
   if(cfgDrawerEl){

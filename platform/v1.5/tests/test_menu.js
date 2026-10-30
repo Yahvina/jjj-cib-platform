@@ -22,7 +22,7 @@ const cards = [...sec.matchAll(/<div class="card" data-grp="([a-z]+)">\s*<h3>(.*
   .map(m => ({ g: m[1], t: clean(m[2]) }));
 
 console.log('=== 1. 卡片数量与归类 ===');
-chk(cards.length === 9, '9 个明面块全部带分组（矛盾组合移进抽屉）', cards.length + ' 块');
+chk(cards.length === 5, '正文只留 5 张卡（可靠性 4 张进进阶分析，矛盾组合移进抽屉）', cards.length + ' 块');
 
 const names = cards.map(c => c.t);
 chk(new Set(names).size === names.length, '无重复卡片', names.length + ' 个标题');
@@ -30,7 +30,6 @@ chk(new Set(names).size === names.length, '无重复卡片', names.length + ' �
 // 收敛后的三组：结论（结果是什么）/ 可靠性（信不信）/ 交付（怎么拿走）
 const want = {
   concl: ['检验结果', '情景地图'],
-  rel: ['稳健性检验', '集成与分歧', '相关性分析', '影响谱'],
   out: ['生成结果与导出', '情景报告', '本次配置摘要'],
 };
 
@@ -44,11 +43,11 @@ Object.keys(want).forEach(g => {
 console.log('=== 3. 页面顺序按组连续 ===');
 const seq = cards.map(c => c.g);
 const runs = seq.filter((g, i) => i === 0 || g !== seq[i - 1]);
-chk(runs.length === 3 && new Set(runs).size === 3, '三组各自连续、不交错', runs.join(' → '));
+chk(runs.length === 2 && new Set(runs).size === 2, '两组各自连续（结论 → 交付）', runs.join(' → '));
 
 console.log('=== 4. 导航条 ===');
 const tabs = [...sec.matchAll(/class="p6tab[^"]*" data-g="([a-z]+)"/g)].map(m => m[1]);
-chk(tabs.length === 3, '三个标签', tabs.join(','));
+chk(tabs.length === 2, '两个标签（可靠性组进了进阶分析）', tabs.join(','));
 chk(tabs.every(g => want[g]), '标签组名与卡片组名对应');
 chk(/class="p6tab sel" data-g="concl"/.test(sec), '默认选中「结论」');
 // 徽章数字必须等于该组块数：写错了读者会以为有块没显示
@@ -60,16 +59,14 @@ Object.keys(want).forEach(g => chk(badge[g] === want[g].length,
 chk(sec.indexOf('p6allBtn') >= 0 && sec.indexOf('全部展开') >= 0, '有「全部展开」按钮');
 chk(sec.indexOf('id="p6stat"') >= 0, '有检验状态提示位');
 
-console.log('=== 5. 分析工具箱（默认收起）===');
-chk(/<details class="card toolbox" id="toolBox">/.test(sec), '工具箱是 details 且默认收起（无 open）');
-chk(sec.indexOf('id="toolBox"') >= 0 && sec.indexOf('分析工具箱') >= 0, '工具箱标题在位');
-const tb = sec.slice(sec.indexOf('id="toolBox"'));
-const tbCards = [...tb.matchAll(/<div class="card">\s*<h3>(.*?)<\/h3>/g)].map(m => m[1].trim());
-chk(tbCards.length === 3, '工具箱内 3 块', tbCards.join(' / '));
-['影响关系图', '影响路径分析', '情景表'].forEach(n =>
-  chk(tbCards.indexOf(n) >= 0, '工具箱含「' + n + '」'));
-// 工具箱里的块不能同时带 data-grp，否则会被分组开关的二选一逻辑藏掉
-chk(!/class="card" data-grp/.test(tb), '工具箱内卡片不带 data-grp（不受分组开关管辖）');
+console.log('=== 5. 进阶分析工作台（v2.0.0）===');
+chk(sec.indexOf('id="p6Drawer"') >= 0, '本次检视抽屉容器在');
+chk(html.indexOf('id="advModal"') >= 0 && html.indexOf('id="advNav"') >= 0, '进阶分析弹窗与左栏导航在');
+chk(app.indexOf('const ADV_TABS') >= 0 && app.indexOf('function openAdv') >= 0, '工作台打开/切换函数在');
+['filtBox','confList','robBox','ensPanel','corrBox','profBox','impactFig','pathBox','tabFig'].forEach(id => {
+  chk(html.indexOf('id="' + id + '"') >= 0, '九个工具容器 ' + id + ' 收进弹窗');
+});
+chk(html.indexOf('class="advnote"') >= 0, '每块工具的方法说明以常驻行留在弹窗内');
 
 console.log('=== 6. 已收敛掉的东西不该回来 ===');
 // 逐层求解：常驻卡片撤掉，能力下沉进「检验结果」卡里一个默认收起的折叠段。
@@ -95,8 +92,6 @@ chk(app.indexOf('function allowUnder') >= 0, '跨层数值约束（allowUnder）
 chk(sec.indexOf('id="apFig"') < 0, '主被动图卡片已删');
 chk(app.indexOf('function renderAP') >= 0, '主被动图引擎仍在（删 UI 不删引擎）');
 // 情景筛选与时间轴并入别的块，不再是独立卡片
-chk(sec.indexOf('id="p6Drawer"') >= 0, '情景筛选收进 #p6Drawer（静态页只有容器，内容由 renderP6Drawer 按模式渲染）');
-chk(sec.indexOf("openP6Drawer('filter')") >= 0 && app.indexOf('function renderFilt') >= 0, '筛选引擎与入口仍在');
 chk(!/data-grp="concl">\s*<h3>情景筛选/.test(sec), '情景筛选不再是独立卡片');
 chk(sec.indexOf('id="timeline"') >= 0, '时间轴并入了本次配置摘要');
 chk(!/<h3>时间轴<\/h3>/.test(sec), '时间轴不再是独立卡片');
@@ -115,7 +110,6 @@ console.log('=== 8. 关键元素未被属性破坏 ===');
 ['outPreview', 'fmtNote', 'finalSum', 'checkResult'].forEach(id => {
   chk(html.indexOf('id="' + id + '"') >= 0, id + ' 存在');
 });
-chk(app.indexOf('id="confList"') >= 0, 'confList 由矛盾抽屉按需渲染');
 const brokenQuote = /data-grp="[a-z]+>/.test(html);
 chk(!brokenQuote, 'data-grp 属性引号完整');
 
