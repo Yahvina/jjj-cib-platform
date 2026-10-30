@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>京津冀政策情景快速评估平台 · 原型 v1.8.9</title>
+<title>京津冀政策情景快速评估平台 · 原型 v1.9.0</title>
   <link rel="stylesheet" href="src/styles.css">
 </head>
 <body>
@@ -320,14 +320,16 @@
 
   <div class="p6nav">
     <div class="p6tabs">
-      <button class="p6tab sel" data-g="concl" onclick="p6Group('concl')">结论<span>3</span></button>
+      <button class="p6tab sel" data-g="concl" onclick="p6Group('concl')">结论<span>2</span></button>
       <button class="p6tab" data-g="rel" onclick="p6Group('rel')">可靠性<span>4</span></button>
       <button class="p6tab" data-g="out" onclick="p6Group('out')">交付<span>3</span></button>
     </div>
     <div class="sp"></div>
     <span class="p6stat" id="p6stat"></span>
     <button class="btn sm" id="p6allBtn" onclick="p6All()">全部展开</button>
-    <button class="btn sm" onclick="openP6Drawer()">本次检视</button>
+    <button class="btn sm" onclick="openP6Drawer('meta')">本次检视</button>
+    <button class="btn sm" onclick="openP6Drawer('filter')">情景筛选</button>
+    <button class="btn sm" onclick="openP6Drawer('conf')">矛盾组合</button>
   </div>
 
   <!-- 参与描述符、判断覆盖、口径与导出格式等元信息，收进这里 -->
@@ -340,15 +342,8 @@
       <p style="margin:0 0 6px;">上面的检验把所有描述符放在<b>同一层</b>枚举。勾了多个层级时，还可以让上级的取值去<b>约束</b>下级再解一遍：下级与上级区间不相交的状态根本进不了枚举，得到的是每层取值都记下来的「跨层相容组合」。</p>
       <div id="layBox"></div>
     </div></details>
-    <details class="fold"><summary>情景筛选是什么</summary><div class="foldbody">自洽情景往往几十上百个，看不过来。<b>给描述符指定要求取值</b>，本页的情景地图与下方分析工具箱里的情景表就只看命中的那一部分——
-      这是用假设去反查「哪种未来更可能」的入口。<b>筛选只影响展示，不改变检验结果本身。</b></div></details>
-    <div id="filtBox"></div>
   </div>
 
-  <div class="card" data-grp="concl">
-    <h3>矛盾组合与处理建议</h3>
-    <div id="confList"></div>
-  </div>
 
   <div class="card" data-grp="concl">
     <h3>情景地图</h3>
@@ -426,6 +421,12 @@
     </div>
   </details>
 </section>
+  <!-- 亮点页 H6 的切片宿主：矛盾闭环的入口已收进顶部「矛盾组合」按钮（抽屉渲染），
+       这里只保留静态骨架供 highlights 切片，运行时不显示、不参与分组。 -->
+  <div style="display:none"><div class="card"><h3>矛盾组合与处理建议</h3>
+    <div class="conf"><div class="dim" style="padding:10px 12px;line-height:1.8;">矛盾组合的清单与处理建议由「矛盾组合」按钮的抽屉按最新检验结果动态渲染：互斥对（上限 40 对）逐条给出「为什么矛盾、改成什么就不矛盾」，采纳后自动重跑；另单列孤立档位——它们在任何自洽情景里都没出现过。</div></div>
+  </div></div>
+
 
 
 <!-- ============ v1.6.0 三步情景配置 ============ -->

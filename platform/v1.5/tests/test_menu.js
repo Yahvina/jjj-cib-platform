@@ -22,14 +22,14 @@ const cards = [...sec.matchAll(/<div class="card" data-grp="([a-z]+)">\s*<h3>(.*
   .map(m => ({ g: m[1], t: clean(m[2]) }));
 
 console.log('=== 1. 卡片数量与归类 ===');
-chk(cards.length === 10, '10 个明面块全部带分组', cards.length + ' 块');
+chk(cards.length === 9, '9 个明面块全部带分组（矛盾组合移进抽屉）', cards.length + ' 块');
 
 const names = cards.map(c => c.t);
 chk(new Set(names).size === names.length, '无重复卡片', names.length + ' 个标题');
 
 // 收敛后的三组：结论（结果是什么）/ 可靠性（信不信）/ 交付（怎么拿走）
 const want = {
-  concl: ['检验结果', '矛盾组合与处理建议', '情景地图'],
+  concl: ['检验结果', '情景地图'],
   rel: ['稳健性检验', '集成与分歧', '相关性分析', '影响谱'],
   out: ['生成结果与导出', '情景报告', '本次配置摘要'],
 };
@@ -95,7 +95,8 @@ chk(app.indexOf('function allowUnder') >= 0, '跨层数值约束（allowUnder）
 chk(sec.indexOf('id="apFig"') < 0, '主被动图卡片已删');
 chk(app.indexOf('function renderAP') >= 0, '主被动图引擎仍在（删 UI 不删引擎）');
 // 情景筛选与时间轴并入别的块，不再是独立卡片
-chk(sec.indexOf('id="filtBox"') >= 0, '情景筛选并入了检验结果块');
+chk(sec.indexOf('id="p6Drawer"') >= 0, '情景筛选收进 #p6Drawer（静态页只有容器，内容由 renderP6Drawer 按模式渲染）');
+chk(sec.indexOf("openP6Drawer('filter')") >= 0 && app.indexOf('function renderFilt') >= 0, '筛选引擎与入口仍在');
 chk(!/data-grp="concl">\s*<h3>情景筛选/.test(sec), '情景筛选不再是独立卡片');
 chk(sec.indexOf('id="timeline"') >= 0, '时间轴并入了本次配置摘要');
 chk(!/<h3>时间轴<\/h3>/.test(sec), '时间轴不再是独立卡片');
@@ -111,9 +112,10 @@ chk(/p6Apply\(\); p6Status\(\);/.test(app), 'render 中调用分组与状态刷�
 chk(app.indexOf("sec.setAttribute('data-g'") >= 0, '分组写入 data-g');
 
 console.log('=== 8. 关键元素未被属性破坏 ===');
-['outPreview', 'fmtNote', 'finalSum', 'checkResult', 'confList'].forEach(id => {
+['outPreview', 'fmtNote', 'finalSum', 'checkResult'].forEach(id => {
   chk(html.indexOf('id="' + id + '"') >= 0, id + ' 存在');
 });
+chk(app.indexOf('id="confList"') >= 0, 'confList 由矛盾抽屉按需渲染');
 const brokenQuote = /data-grp="[a-z]+>/.test(html);
 chk(!brokenQuote, 'data-grp 属性引号完整');
 

@@ -1754,7 +1754,7 @@ function timeline(){
         <div class="cell" style="border-right:none;color:var(--tx3);">${d.a35}</div></div>`;
     }).join(''));
 }
-function el(id,h){ document.getElementById(id).innerHTML=h; }
+function el(id,h){ const e=document.getElementById(id); if(!e) return; e.innerHTML=h; }   /* 元素不在（收进抽屉/切页）就静默跳过 */
 /* 「标签 ＼ 值」那一行。全项目手拼过 30 多遍，改一次样式要改几十处，故收成一个函数。
    st 是可选的额外内联样式，只给少数需要微调的场合；值里若含 HTML 由调用方自己保证。
    注意：统计条里的 <span class="kv">（.cimstat / .ensstat）是另一种紧凑芯片样式，
@@ -6208,7 +6208,16 @@ const VERSIONS=[
     ,'正文现在一句话：在 X 种组合里（全枚举／抽样）找到 N 组自洽情景，外加重新检验按钮与计算时间'
     ,'六行数字全部移进「本次检视」抽屉的「检验覆盖」一节，随 cimResult 出现'
    ]}
-];
+  ,{v:'v1.9.0',d:'2026-10-30',tag:'',sum:'第 7 步正文再收两块：情景筛选与矛盾组合改成按钮 + 抽屉，正文只剩结论、地图与导出',ev:'本批提交',
+   items:[
+    '「情景筛选」移出检验结果卡片（连同那段「情景筛选是什么」的说明 fold），「矛盾组合与处理建议」整张卡片移除——两者都改成 p6nav 上的按钮，点开各自的抽屉'
+    ,'#p6Drawer 从单一模式改成三态：meta 本次检视 / filter 情景筛选 / conf 矛盾组合，共用一个容器；筛选引擎 renderFilt 与矛盾引擎 confList 原样保留，只是渲染目标进了抽屉'
+    ,'抽屉重建时保留 scrollTop——筛选控件每改一档都会 render 一次，不保留就会跳顶（第 3 步同款问题）'
+    ,'el() 加「元素不存在就静默返回」守卫：confList 等老函数的渲染目标进了抽屉后，抽屉关着时元素不存在，原来直接赋值会 TypeError'
+    ,'亮点页 H6 的切片宿主：矛盾卡片移进抽屉后静态页没有宿主了，p6 后面加了一个 display:none 的骨架卡专供 highlights 切片，运行时不显示不参与分组'
+    ,'test_menu 同步：明面块 10 → 9，concl 组两块，结论徽章 3 → 2，confList 改为断言由抽屉按需渲染。35/35、归档 36/36'
+   ]}
+]
 /* 当前版本号只有一个来源：VERSIONS 的最后一条（数组按时间从旧到新排列）。
    2026-10-25 修：关于框里原先写死 v1.4，平台发到 v1.5.7 之后它还在对外显示旧版号。 */
 function appVer(){ return (VERSIONS[VERSIONS.length-1]||{}).v||''; }
@@ -6322,14 +6331,34 @@ function p6Status(){
 /* ================= 第 7 步：本次检视 =================
    参与描述符、判断覆盖、口径与导出格式这些元信息原来散在几张卡片里；
    收进一个抽屉，正文只留结论、地图与导出。 */
-let p6Drawer=false;
-function openP6Drawer(){ p6Drawer=true; render(); }
-function closeP6Drawer(){ p6Drawer=false; render(); }
+let p6Drawer=null;   /* null | 'meta' 本次检视 | 'filter' 情景筛选 | 'conf' 矛盾组合 */
+function openP6Drawer(mode){ p6Drawer=mode||'meta'; render(); }
+function closeP6Drawer(){ p6Drawer=null; render(); }
 function renderP6Drawer(){
   const el=document.getElementById('p6Drawer'); if(!el) return;
   if(!p6Drawer){ el.className='cfgdrawer'; el.innerHTML=''; return; }
+  /* 整页 render 会重建抽屉，把滚动位置带过去（筛选控件每改一次就 render 一次） */
+  const keep=el.scrollTop;
   el.className='cfgdrawer on';
-  el.innerHTML=p6MetaHTML();
+  if(p6Drawer==='filter'){
+    el.innerHTML='<div class="drawer-h"><div><div class="drawer-k">情景筛选</div>'
+      +'<b>给描述符指定要求取值</b></div>'
+      +'<button class="btn sm" onclick="closeP6Drawer()">关闭</button></div>'
+      +'<div class="ptnote" style="margin:8px 0 4px;">自洽情景往往几十上百个，看不过来——'
+      +'给部分描述符指定你关心的取值，下面的情景地图与分析工具箱就只看命中的子集。'
+      +'筛选只影响展示，不改变检验结果本身。</div>'
+      +'<div id="filtBox"></div>';
+    renderFilt();
+  }else if(p6Drawer==='conf'){
+    el.innerHTML='<div class="drawer-h"><div><div class="drawer-k">矛盾组合与处理建议</div>'
+      +'<b>哪些方向对不上、怎么处理</b></div>'
+      +'<button class="btn sm" onclick="closeP6Drawer()">关闭</button></div>'
+      +'<div id="confList"></div>';
+    confList();
+  }else{
+    el.innerHTML=p6MetaHTML();
+  }
+  if(keep) el.scrollTop=keep;
 }
 function p6MetaHTML(){
   const ds=Object.keys(sel.desc);
