@@ -6,7 +6,7 @@
 
 ## 代码位置（v1.5 工作副本）
 
-- HTML：`_src/v15/index.html` 第 359–364 行
+- HTML：`_src/v15/index.html` 第 353–358 行
 - 逻辑：`_src/v15/src/app.js`
 
 | 函数／常量 | 行号 |
@@ -14,33 +14,33 @@
 | `GEN_LABEL` | 274–274 |
 | `genOf` | 275–275 |
 | `genName` | 276–276 |
-| `expMode` | 1769–1773 |
-| `expRows` | 1782–1803 |
-| `expLabel` | 1804–1804 |
-| `multiPickNote` | 1807–1813 |
-| `csvCell` | 1814–1817 |
-| `paramOf` | 1770–1773 |
-| `paramsCSV` | 1851–1868 |
-| `setExpMode` | 1870–1870 |
-| `downloadParams` | 1869–1869 |
-| `downloadParamsBtn` | 2058–2058 |
-| `narrText` | 1873–1893 |
-| `bayesCSV` | 1894–1914 |
-| `curScenInfo` | 1919–1930 |
-| `tableCSV` | 1931–1955 |
-| `genMain` | 1956–1962 |
-| `genMainLabel` | 1963–1969 |
-| `genSubHTML` | 1970–1983 |
-| `renderOutBtns` | 1985–1988 |
-| `syncGenOpts` | 1990–1998 |
-| `renderGenOut` | 1999–2023 |
-| `preview` | 1818–1850 |
-| `xmlTag` | 2024–2040 |
-| `xmlFile` | 2041–2056 |
-| `download` | 2057–2057 |
-| `downloadAll` | 2059–2072 |
-| `dl` | 2073–2079 |
-| `fmtTag` | 2080–2080 |
+| `expMode` | 1767–1771 |
+| `expRows` | 1780–1801 |
+| `expLabel` | 1802–1802 |
+| `multiPickNote` | 1805–1811 |
+| `csvCell` | 1812–1815 |
+| `paramOf` | 1768–1771 |
+| `paramsCSV` | 1849–1866 |
+| `setExpMode` | 1868–1868 |
+| `downloadParams` | 1867–1867 |
+| `downloadParamsBtn` | 2056–2056 |
+| `narrText` | 1871–1891 |
+| `bayesCSV` | 1892–1912 |
+| `curScenInfo` | 1917–1928 |
+| `tableCSV` | 1929–1953 |
+| `genMain` | 1954–1960 |
+| `genMainLabel` | 1961–1967 |
+| `genSubHTML` | 1968–1981 |
+| `renderOutBtns` | 1983–1986 |
+| `syncGenOpts` | 1988–1996 |
+| `renderGenOut` | 1997–2021 |
+| `preview` | 1816–1848 |
+| `xmlTag` | 2022–2038 |
+| `xmlFile` | 2039–2054 |
+| `download` | 2055–2055 |
+| `downloadAll` | 2057–2070 |
+| `dl` | 2071–2077 |
+| `fmtTag` | 2078–2078 |
 | `fmtNum` | 286–290 |
 
 - 样式：本目录 `style.css`（摘录）；完整样式表见 `../_shared/base.css`

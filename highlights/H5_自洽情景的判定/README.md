@@ -6,37 +6,37 @@
 
 ## 代码位置（v1.5 工作副本）
 
-- HTML：`_src/v15/index.html` 第 338–340、345–345 行
+- HTML：`_src/v15/index.html` 第 332–334、339–339 行
 - 逻辑：`_src/v15/src/app.js`
 
 | 函数／常量 | 行号 |
 |---|---|
 | `TICK` | 278–279 |
-| `mulberry` | 5042–5049 |
-| `cimSig` | 5051–5058 |
-| `comboSample` | 5061–5082 |
-| `buildIMP` | 5084–5108 |
-| `evalCombo` | 5110–5123 |
-| `cloneCim` | 5124–5132 |
+| `mulberry` | 5040–5047 |
+| `cimSig` | 5049–5056 |
+| `comboSample` | 5059–5080 |
+| `buildIMP` | 5082–5106 |
+| `evalCombo` | 5108–5121 |
+| `cloneCim` | 5122–5130 |
 | `enumCore` | 1092–1172 |
 | `runCIM` | 1174–1194 |
 | `selectedCombo` | 1403–1409 |
 | `checkSelected` | 1415–1437 |
-| `checkResult` | 1450–1524 |
+| `checkResult` | 1450–1522 |
 | `rangeStat` | 1440–1447 |
 | `toggleAllScen` | 1449–1449 |
-| `coFn` | 1565–1573 |
-| `aliveTable` | 1576–1603 |
-| `freqOf` | 1605–1617 |
-| `scenCard` | 1525–1533 |
-| `scenDetail` | 1534–1560 |
-| `toggleScen` | 1561–1561 |
+| `coFn` | 1563–1571 |
+| `aliveTable` | 1574–1601 |
+| `freqOf` | 1603–1615 |
+| `scenCard` | 1523–1531 |
+| `scenDetail` | 1532–1558 |
+| `toggleScen` | 1559–1559 |
 | `impactVal` | 954–962 |
 | `pairIndexTable` | 1082–1089 |
-| `p6Apply` | 6315–6325 |
-| `p6Group` | 6326–6334 |
-| `p6All` | 6335–6335 |
-| `p6Status` | 6336–6342 |
+| `p6Apply` | 6320–6330 |
+| `p6Group` | 6331–6339 |
+| `p6All` | 6340–6340 |
+| `p6Status` | 6341–6347 |
 
 - 样式：本目录 `style.css`（摘录）；完整样式表见 `../_shared/base.css`
 

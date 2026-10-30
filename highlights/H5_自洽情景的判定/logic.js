@@ -257,11 +257,9 @@ function checkResult(){
    +'<span class="dim" style="font-size:13px;">计算时间 '+r.ts+'</span></div>';
 
   const sc=checkSelected(r.ds);
-  if(sc.missing){
-    h+='<div class="note" style="margin-top:12px;">还有 <b>'+sc.missing+'</b> 个描述符没勾状态。'
-      +'不勾＝不设限（该描述符的全部档位都参与检验），所以检验照跑；'
-      +'但要说清「你主张的那套情景自不自洽」，得先到第 3 步把它勾出来。</div>';
-  }else if(sc.range){
+  /* 「还有 N 个描述符没勾状态」的提醒整段删（用户拍板）：不勾＝不设限本来就是规则，
+     规则不需要每次检验都复述一遍。 */
+  if(sc.range){
     /* 多选＝划定范围：这时不存在"唯一那套情景"，改答"你划的这块范围里有多少真的成立" */
     const rs=rangeStat();
     h+='<div class="rrange" style="margin-top:12px;">'
