@@ -1553,13 +1553,3 @@ body.wizard .pane{max-width:1120px;margin-left:auto;margin-right:auto;}
 
 /* ============ 品牌 logo（v2.0.1）：版式对齐格润气候治理（方块 + 中文名 / 品牌色英文行 / 小副标），
    颜色用平台自己的蓝。方块「京」= 京津冀；CIB 2026 对应其 GREEN 2026 的方法缩写位置。 */
-.topbar .brand{display:flex;align-items:center;gap:10px;}
-.topbar .brand .mark{width:36px;height:36px;flex:none;background:var(--pri);color:#fff;
-  border-radius:4px;display:inline-flex;align-items:center;justify-content:center;
-  font-size:20px;font-weight:700;letter-spacing:0;}
-.topbar .brand .bt{display:flex;flex-direction:column;line-height:1.25;}
-.topbar .brand .bn{font-size:15px;font-weight:700;color:#F4F8FB;letter-spacing:.02em;}
-.topbar .brand .be{font-size:11px;display:flex;gap:8px;align-items:baseline;}
-.topbar .brand .be b{color:#6FA8E8;font-weight:700;letter-spacing:.02em;}
-.topbar .brand .be i{font-style:normal;color:var(--dark-ink2);}
-.topbar .brand i{margin:0;}

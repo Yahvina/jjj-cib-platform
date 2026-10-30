@@ -3,13 +3,20 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>京津冀政策情景快速评估平台 · 原型 v2.0.1</title>
+<title>京津冀政策情景快速评估平台 · 原型 v2.0.2</title>
   <link rel="stylesheet" href="src/styles.css">
 </head>
 <body>
 
 <header class="topbar">
-  <a class="brand" href="#" onclick="backToCmp();return false;" title="回到概览" aria-label="京津冀情景平台 · 回到概览"><span class="mark">京</span><span class="bt"><span class="bn">京津冀情景平台</span><span class="be"><b>CIB 2026</b><i>scenario assessment</i></span></span></a>
+    <a class="mark" href="#" onclick="backToCmp();return false;" title="回到概览" aria-label="回到概览">
+    <svg width="26" height="26" viewBox="0 0 26 26" aria-hidden="true">
+      <rect x="1" y="1" width="24" height="24" rx="4" fill="#1B589E"/>
+      <text x="11" y="18.5" text-anchor="middle" font-family="Georgia,'Times New Roman',serif" font-size="13.5" font-weight="700" fill="#FFFFFF">G</text>
+      <text x="20" y="9.5" text-anchor="middle" font-family="Georgia,'Times New Roman',serif" font-size="7.5" font-weight="700" fill="#BDD4F0">N</text>
+    </svg>
+  </a>
+  <div class="brand">京津冀<i>·</i>政策情景<em>SCENARIO</em></div>
   <nav class="mainnav" id="mainNav" aria-label="主导航">
     <button data-nav="home" onclick="backToCmp()">概览</button>
     <button data-nav="config" onclick="openConfig()">情景配置</button>
