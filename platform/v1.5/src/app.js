@@ -3002,7 +3002,10 @@ function cfgRun(){
   cfgRunInfo={ts:nowStr(), mid:cfgMidInfo(), scored:cfgJudgedIn(inputs), nPol:chosen.length, pick:pick,
     src:cfgSrcLabel(), defN:inputs.filter(nm=>!!cfgDefault[nm]).length, nIn:inputs.length};
   cfgStep=2; viewMode='config'; docPg='';
-  if(cfgRunInfo.scored&&prepErr(inputs)===null) runCIM(inputs, pick);
+  if(cfgRunInfo.scored&&prepErr(inputs)===null){
+    try{ runCIM(inputs, pick); }
+    catch(err){ console.error('检验失败：', err); toast('检验失败：'+(err&&err.message||err)); cimResult=null; }
+  }
   else cimResult=null;
   render(); window.scrollTo({top:0,behavior:'smooth'});
 }
@@ -6456,6 +6459,31 @@ function p6MetaHTML(){
 
 /* ================= 主渲染 ================= */
 function render(){
+  /* ===== 骨架先切：pane 显隐、body.wizard、导航高亮只依赖 viewMode/cfgStep/cur/docPg，
+     不依赖渲染结果。放在最前面——任何一个内容渲染函数抛错，页面也已经切到目标步，
+     不会再出现「状态变了、页面还停在上一步」的卡死（用户实测：点生成结果停在确认设定）。===== */
+  const cfgDrawerEl=document.getElementById('cfgDrawer');
+  if(cfgDrawerEl){
+    const dOn=(viewMode==='config'&&!docPg)&&(cfgOpen||cfgMapOpen);
+    cfgDrawerEl.className='cfgdrawer'+(dOn?' on':'');
+    cfgDrawerEl.innerHTML=dOn?cfgDrawerHTML():'';
+  }
+  const isResearch=viewMode==='research'&&!docPg;
+  const isConfig=viewMode==='config'&&!docPg;
+  const isDocs=!!docPg;
+  const pc=document.getElementById('pcmp'); if(pc) pc.classList.toggle('on', viewMode==='home'&&!docPg);
+  document.querySelectorAll('main .pane').forEach(p=>{
+    if(p.id==='pcmp') return;
+    if(p.id==='pdoc'||p.id==='pdis'||p.id==='pver'){ p.classList.toggle('on', p.id===DOCPG_ID[docPg]); return; }
+    if(p.id==='cfg0'||p.id==='cfg1'||p.id==='cfg2'){ p.classList.toggle('on', isConfig&&p.id==='cfg'+cfgStep); return; }
+    p.classList.toggle('on', isResearch&&p.id==='p'+cur);
+  });
+  document.body.classList.toggle('wizard', isResearch||isConfig);
+  const nav=isDocs?'docs':viewMode;
+  document.querySelectorAll('#mainNav [data-nav]').forEach(b=>b.classList.toggle('on', b.dataset.nav===nav));
+  const stepEl=document.getElementById('steps'); if(stepEl) stepEl.style.display='';
+  /* ===== 内容渲染包一层：抛错只影响内容，不阻塞切页；错误可见，用户能带信息反馈 ===== */
+  try{
   syncExpCard();
   renderSteps(); renderCmp(); layerTable(); renderDescList(); renderP2Drawer();
   expDetail(); renderEnsBox(); scaleSum(); renderPolicy();
@@ -6468,30 +6496,10 @@ function render(){
   renderChangelog();
   p6Apply(); p6Status(); renderP6Drawer(); renderAdv();
   renderConfigPolicy(); renderCfgSrc(); renderConfigSetting(); renderConfigResult();
-  const cfgDrawerEl=document.getElementById('cfgDrawer');
-  if(cfgDrawerEl){
-    const dOn=(viewMode==='config'&&!docPg)&&(cfgOpen||cfgMapOpen);
-    cfgDrawerEl.className='cfgdrawer'+(dOn?' on':'');
-    cfgDrawerEl.innerHTML=dOn?cfgDrawerHTML():'';
-  }
-
-  const isResearch=viewMode==='research'&&!docPg;
-  const isConfig=viewMode==='config'&&!docPg;
-  const isDocs=!!docPg;
-  const pc=document.getElementById('pcmp'); if(pc) pc.classList.toggle('on', viewMode==='home'&&!docPg);
-  document.querySelectorAll('main .pane').forEach(p=>{
-    if(p.id==='pcmp') return;
-    if(p.id==='pdoc'||p.id==='pdis'||p.id==='pver'){ p.classList.toggle('on', p.id===DOCPG_ID[docPg]); return; }
-    if(p.id==='cfg0'||p.id==='cfg1'||p.id==='cfg2'){ p.classList.toggle('on', isConfig&&p.id==='cfg'+cfgStep); return; }
-    p.classList.toggle('on', isResearch&&p.id==='p'+cur);
-  });
-  /* docSpy 必须排在 pdoc 显隐之后：它要量各节位置，量的是隐藏元素就只能得到 0，
-     于是所有 top 都是 0、最后一节永远胜出（实测高亮卡在末节）。 */
+  }catch(err){ console.error('render 部分失败：', err); toast('部分内容渲染失败：'+(err&&err.message||err)); }
+  /* docSpy 必须排在 pdoc 显隐之后：它要量各节位置，量的是隐藏元素就只能得到 0。
+     上面 pane 切换已提前，这里天然满足。 */
   docSpy();
-  document.body.classList.toggle('wizard', isResearch||isConfig);
-  const nav=isDocs?'docs':viewMode;
-  document.querySelectorAll('#mainNav [data-nav]').forEach(b=>b.classList.toggle('on', b.dataset.nav===nav));
-  const stepEl=document.getElementById('steps'); if(stepEl) stepEl.style.display='';
   const cNow=document.getElementById('ctxNow');
   if(cNow) cNow.textContent=docPg?DOCPG_NM[docPg]
     :(viewMode==='config'?('情景配置 · 第 '+(cfgStep+1)+' 步')
