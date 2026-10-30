@@ -260,13 +260,16 @@ console.log('=== 12. 首页引文接上了去向 ===');
 // 现在它得同时交代三件事：这是示例、出处是哪份文件、这句话在模型里读作哪个描述符。
 // 只取真正的引文块。不能用「从 pcmp 到下一个 </section>」切——
 // pcmp 里第一个 <section class="hero"> 会提前收尾，而引文块在 hero 之后，压根没进切片。
-const qAt = html.indexOf('<blockquote class="quote">');
-const qEnd = qAt < 0 ? -1 : html.indexOf('</blockquote>', qAt);
-chk(qAt >= 0 && qEnd > qAt, '首页保留了引文块');
+/* v2.1.0：引文块从 <blockquote class="quote"> 改成跨内容宽度的深色带 <section class="band"> */
+const qAt = html.indexOf('<section class="band">');
+const qEnd = qAt < 0 ? -1 : html.indexOf('</section>', qAt);
+chk(qAt >= 0 && qEnd > qAt, '首页保留了引文块（深色带）');
 const qb = (qAt >= 0 && qEnd > qAt) ? html.slice(qAt, qEnd) : '';
 // 顶栏也有个 class="steps"（左轨占位），要从引文块之后往下找三步流程那个。
-chk(html.indexOf('id="homeStats"') >= 0 && html.indexOf('id="homeStats"') < qAt
-  && qAt < html.indexOf('<div class="steps">', qAt), '引文块仍在统计行与三步流程之间');
+/* v2.1.0 把顺序调成 首屏 → 引文带 → 统计 → 三步（深色带提前，做首屏后的第一个重色块） */
+chk(html.indexOf('id="homeStats"') >= 0 && qAt < html.indexOf('id="homeStats"')
+  && html.indexOf('id="homeStats"') < html.indexOf('<div class="steps">', qAt),
+  '引文带在首屏与统计之间，统计仍在三步之前');
 chk(qb.indexOf('示例') >= 0 && qb.indexOf('政策原文') >= 0, '引文块标明了这是示例');
 chk(qb.indexOf('《北京市碳排放权交易管理办法》') >= 0, '出处写成了书名');
 chk(qb.indexOf('平台读作') >= 0, '引文块有「平台读作」一行');

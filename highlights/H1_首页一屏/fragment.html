@@ -1,13 +1,13 @@
-<!-- H1 ｜ 首页：一屏讲清定位 ｜ 摘自 _src/v15/index.html 第 62–109 行 -->
+<!-- H1 ｜ 首页：一屏讲清定位 ｜ 摘自 _src/v15/index.html 第 62–123 行 -->
 <section class="pane on" id="pcmp">
   <section class="hero">
-    <div>
+    <div class="hcopy">
       <div class="kicker">FIG.00　CROSS-IMPACT BALANCE</div>
       <h1><span class="cib">CIB</span>：政策情景的<br>一致性检验</h1>
-      <p class="lead">交叉影响平衡是平台的核心方法：政策文本转为描述符取值，两两判定影响方向，枚举组合后只保留自洽者；通过检验的情景再转译为 GCAM-China 与 CHEER 的输入参数。</p>
+      <p class="lead">政策文本转为描述符取值，两两判定影响方向，枚举组合后只保留自洽者；通过检验的情景再转译为 GCAM-China 与 CHEER 的输入参数。</p>
       <div class="go">
         <a href="#" onclick="openConfig();return false;">评估一套政策组合<span class="ar">→</span></a>
-        <a class="go2" href="#" onclick="openResearch(event);return false;">做方法验证（7 步）</a>
+        <a class="go2" href="#" onclick="openResearch(event);return false;">做方法验证</a>
       </div>
     </div>
 
@@ -27,23 +27,37 @@
     </figure>
   </section>
 
-  <div class="facts" id="homeStats"></div>
-
-  <blockquote class="quote">
+  <section class="band">
     <div class="qtag">示例 · 政策原文如何进入模型</div>
-    <p>“对本市地方碳市场重点排放单位实行年度配额分配、排放报告核查、配额交易与清缴。配额以免费发放为主、有偿发放为辅。”</p>
+    <p class="bq">“对本市地方碳市场重点排放单位实行年度配额分配、排放报告核查、配额交易与清缴。配额以免费发放为主、有偿发放为辅。”</p>
     <cite>《北京市碳排放权交易管理办法》</cite>
     <div class="qmap"><span class="qfrom">平台读作</span><span class="qarrow">→</span><span class="qto">排放交易体系（ETS） → 碳价水平与碳市场覆盖</span></div>
-  </blockquote>
+  </section>
+
+  <div class="facts" id="homeStats"></div>
 
   <div class="steps">
-    <div><b>01</b><h3 class="tip" tabindex="0" data-tip="描述符是政策要设定的量；每个描述符分若干状态并挂区间，作为两两判定的对象。">界定描述符与状态</h3><p>文本 → 变量 → 档位</p></div>
-    <div><b>02</b><h3 class="tip" tabindex="0" data-tip="取 −3 至 +3，表示一行状态对一列状态的抑制或促进作用；19 个描述符共 342 对。">两两判定影响方向</h3><p>−3 … +3，342 对判断</p></div>
-    <div><b>03</b><h3 class="tip" tabindex="0" data-tip="每个状态受其余状态影响之和即其影响平衡值；影响平衡值最大、且无冲突的组合，才判为自洽情景。">求取自洽情景</h3><p>影响平衡值排序 → 留存十余组</p></div>
+    <div><b>01</b><h3 class="tip" tabindex="0" data-tip="描述符是政策要设定的量；每个描述符分若干状态并挂区间，作为两两判定的对象。">界定描述符与状态</h3><p>文本 → 变量 → 档位</p><span class="out">产出：一张变量表</span></div>
+    <div><b>02</b><h3 class="tip" tabindex="0" data-tip="取 −3 至 +3，表示一行状态对一列状态的抑制或促进作用；19 个描述符共 342 对。">两两判定影响方向</h3><p>−3 … +3，342 对判断</p><span class="out">产出：19 × 19 判定表</span></div>
+    <div><b>03</b><h3 class="tip" tabindex="0" data-tip="每个状态受其余状态影响之和即其影响平衡值；影响平衡值最大、且无冲突的组合，才判为自洽情景。">求取自洽情景</h3><p>影响平衡值排序 → 留存十余组</p><span class="out">产出：情景集与参数表</span></div>
   </div>
+
+  <section class="entries">
+    <a class="ent pri" href="#" onclick="openConfig();return false;">
+      <div class="et">评估一套政策组合</div>
+      <div class="ed">我有政策和目标，想直接得到一组互不冲突的设定，以及能直接喂给模型的参数。</div>
+      <div class="ea">进入情景配置<span class="ar">→</span></div>
+    </a>
+    <a class="ent" href="#" onclick="openResearch(event);return false;">
+      <div class="et">做方法验证</div>
+      <div class="ed">我想看每条判断怎么打、为什么这样判，以及结论在多大程度上站得住。</div>
+      <div class="ea">进入研究模式<span class="ar">→</span></div>
+    </a>
+  </section>
 
   <div class="foot">
     <span class="mono">CIB / SCENARIO ASSESSMENT</span>
     <span class="sp"></span>
+    <span>19 个描述符　·　106 条政策路径　·　京津冀三地</span>
   </div>
 </section>

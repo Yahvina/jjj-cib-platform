@@ -168,3 +168,5 @@ main .crow.hd{background:transparent;border-bottom:1px solid var(--line);}
 .on .chk,.chk.on{background:var(--wn);border-color:var(--wn);}
 
 .chk{border-radius:2px;}
+
+#pcmp .xlab{font-size:11px;padding-left:26px;}

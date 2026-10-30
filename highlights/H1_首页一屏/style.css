@@ -232,3 +232,72 @@ body.wizard .steps{display:flex;flex-direction:column;}
 .steps .rail-foot{margin-top:auto;padding-bottom:6px;}
 
 body.wizard .steps{border-right:1px solid #141B21;}
+
+/* ============ 品牌 logo（v2.0.1）：版式对齐格润气候治理（方块 + 中文名 / 品牌色英文行 / 小副标），
+   颜色用平台自己的蓝。方块「京」= 京津冀；CIB 2026 对应其 GREEN 2026 的方法缩写位置。 */
+
+/* ============ 首页改版（v2.1.0）：冷灰需要体量，纸墨风那套留白撑不住 ============
+   依据 Hallmark 的版式规范：正文占 12 栏中的 10 栏、区块要有体量（视觉 ≥360px 或三四个条目铺满）、
+   深浅交替。原来 hero 34px / 数字 26px / 三步 16px，全页等重，所以显空。 */
+#pcmp .hero{grid-template-columns:1.15fr .85fr;gap:64px;padding:18px 0 0;align-items:center;}
+
+#pcmp h1 .cib{font-weight:600;}
+
+#pcmp .lead{font-size:18px;line-height:1.75;color:var(--tx2);margin-top:22px;max-width:31em;}
+
+#pcmp .kicker{margin-bottom:18px;}
+
+#pcmp .go{margin-top:34px;display:flex;align-items:baseline;gap:24px;}
+
+#pcmp .go a{font-size:16px;}
+
+#pcmp .go a.go2{font-size:15px;color:var(--tx2);border-bottom-color:var(--line);}
+
+/* 矩阵：右列变宽后格子自然变大，只补一点内距与标签字号 */
+#pcmp .mwrap{padding:22px 22px 16px;}
+
+#pcmp .ylab{font-size:11px;}
+
+#pcmp .xlab{font-size:11px;padding-left:26px;}
+
+#pcmp .mfoot{font-size:12px;}
+
+#pcmp .cap{font-size:12px;}
+
+/* 数字行：48px、四栏均分、竖细线 */
+#pcmp .facts{display:grid;grid-template-columns:repeat(4,1fr);gap:0;margin-top:72px;
+  padding-top:26px;border-top:1px solid var(--line);}
+
+#pcmp .facts > div{padding:0 24px;border-left:1px solid var(--line2);}
+
+#pcmp .facts > div:first-child{padding-left:0;border-left:none;}
+
+#pcmp .facts b{display:block;font-size:46px;line-height:1.05;font-weight:400;letter-spacing:-.01em;
+  font-variant-numeric:tabular-nums;white-space:nowrap;}
+
+#pcmp .facts span{display:block;font-size:13px;line-height:1.6;color:var(--tx3);margin-top:10px;}
+
+/* 三步：序号 40px、加产物行 */
+#pcmp .steps{margin:84px 0 0;padding:34px 0 0;gap:0 56px;}
+
+#pcmp .steps > div{padding-right:8px;}
+
+#pcmp .steps b{font-size:40px;line-height:1;font-weight:400;color:#AEB6BD;letter-spacing:0;
+  margin-bottom:14px;}
+
+#pcmp .steps h3{font-size:18px;font-weight:600;margin-bottom:8px;}
+
+#pcmp .steps p{font-size:14px;color:var(--tx2);}
+
+#pcmp .steps .out{display:block;margin-top:16px;padding-top:12px;border-top:1px solid var(--line2);
+  font-size:12px;color:var(--tx3);}
+
+#pcmp .foot{margin:72px 0 0;}
+
+#pcmp .facts > div:nth-child(3){padding-left:0;border-left:none;}
+
+#pcmp .facts{grid-template-columns:1fr 1fr;row-gap:26px;}
+
+#pcmp .hero{grid-template-columns:1fr;gap:40px;align-items:start;}
+
+#pcmp .steps{grid-template-columns:1fr;gap:30px;}
