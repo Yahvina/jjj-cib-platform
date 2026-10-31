@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>京津冀政策情景快速评估平台 · 原型 v2.1.2</title>
+<title>京津冀政策情景快速评估平台 · 原型 v2.2.0</title>
   <link rel="stylesheet" href="src/styles.css">
 </head>
 <body>
@@ -62,10 +62,11 @@
     <div class="hcopy">
       <div class="kicker">FIG.00　CROSS-IMPACT BALANCE</div>
       <h1><span class="cib">CIB</span>：政策情景的<br>一致性检验</h1>
-      <p class="lead">政策文本转为描述符取值，两两判定影响方向，枚举组合后只保留自洽者；通过检验的情景再转译为 GCAM-China 与 CHEER 的输入参数。</p>
+      <p class="lead">政策文本转为<span class="tip" tabindex="0" data-tip="描述符＝模型里要设定的那个量，如「碳价水平与碳市场覆盖」。">描述符</span>取值，两两判定影响方向，<span class="tip" tabindex="0" data-tip="枚举＝把所有描述符的档位组合挨个算一遍，不是抽样估计。">枚举</span>组合后只保留<span class="tip" tabindex="0" data-tip="自洽＝在全部两两判定下没有一处互相矛盾。">自洽</span>者；通过检验的情景再转译为 GCAM-China 与 CHEER 的输入参数。</p>
       <div class="go">
         <a href="#" onclick="openConfig();return false;">评估一套政策组合<span class="ar">→</span></a>
         <a class="go2" href="#" onclick="openResearch(event);return false;">做方法验证</a>
+        <a class="go2" href="#" onclick="cfgLoadScenario();return false;">载入一套预置情景</a>
       </div>
     </div>
 
@@ -103,7 +104,7 @@
   <section class="entries">
     <a class="ent pri" href="#" onclick="openConfig();return false;">
       <div class="et">评估一套政策组合</div>
-      <div class="ed">我有政策和目标，想直接得到一组互不冲突的设定，以及能直接喂给模型的参数。</div>
+      <div class="ed">我有政策和目标，想直接得到一组<span class="tip" tabindex="0" data-tip="互不冲突＝自洽：这组取值在两两判定下没有一处打架。">互不冲突的设定</span>，以及能直接喂给模型的参数。</div>
       <div class="ea">进入情景配置<span class="ar">→</span></div>
     </a>
     <a class="ent" href="#" onclick="openResearch(event);return false;">
@@ -282,6 +283,7 @@
 
   <div class="card">
     <div id="ensBar"></div>
+    <div class="fillbar" id="fillBar"></div>
     <div class="cimbar">
       <button class="btn pri" id="aiBtn" onclick="aiFill()">AI 预填一版</button>
       <button class="btn" onclick="resetCim()">清空重来</button>
@@ -455,6 +457,8 @@
     <div class="cfg-r1"><b>区间口径</b><span id="cfgScopeText"></span></div>
     <div class="cfg-r2" id="cfgScopeBtns"></div>
   </div>
+  <div class="cfg-demo"><button class="btn sm" onclick="cfgLoadScenario()">载入预置情景</button>
+    <span class="tip" tabindex="0" data-tip="三条真实政策 + 6 对预置判断，载入后直接到结果页，快速看清整个流程。预置值不是定稿判断。">这是什么</span></div>
   <div class="cfg-tools">
     <div class="cfg-tools-l"><span class="cfglab">部门</span><div id="cfgDepts"></div></div>
     <div class="cfg-tools-r">
@@ -478,8 +482,8 @@
 <section class="pane" id="cfg1">
   <div class="cfg-kicker">情景配置 · 02</div>
   <h2 class="pt tip wide" tabindex="0" data-tip="这一步决定每条政策把哪个变量推到哪一档。只展开被选中政策命中的变量；政策主张选完只给一条建议档，点「按主张取」才落档，最终档位需要人工确认，平台不自动推断，也不把依据强度当作档位。结果型变量由模型算出，不作为政策输入，不在这里设档。">确认设定</h2>
-  <div id="cfgSrcBar"></div>
   <div id="cfgSettingStat"></div>
+  <div id="cfgSrcBar"></div>
   <div id="cfgScoreBar"></div>
   <div id="cfgSettingList"></div>
   <div class="cfgfoot">

@@ -83,7 +83,12 @@ $prodArg = $null
 foreach ($candDir in $prodDirs) {
   if ($prodArg) { break }
   if (-not (Test-Path $candDir)) { continue }
-  $cand = Get-ChildItem $candDir -Filter '*v1.5*.html' -File -ErrorAction SilentlyContinue |
+  # Pick the newest single-file build, without pinning a version: the artifact
+  # name follows VERSIONS (v2.2.0, v2.3.0, ...), so a hardcoded 'v1.5' filter
+  # stopped finding it the moment the version moved on. index.html is the Pages
+  # entry, not a build; exclude it by name.
+  $cand = Get-ChildItem $candDir -Filter '*.html' -File -ErrorAction SilentlyContinue |
+          Where-Object { $_.Name -ne 'index.html' } |
           Sort-Object LastWriteTime -Descending | Select-Object -First 1
   if ($cand) { $prodArg = $cand.FullName }
 }
@@ -91,7 +96,7 @@ foreach ($candDir in $prodDirs) {
 # Which argument each test takes: source by default; the doc/menu tests need a
 # built HTML file; the smoke test needs the single-file build.
 function Get-TestArg([string]$name) {
-  if ($name -eq 'test_doc.js' -or $name -eq 'test_menu.js' -or $name -eq 'test_v160.js' -or $name -eq 'test_v161.js' -or $name -eq 'test_v162.js') { return $htmlArg }
+  if ($name -eq 'test_doc.js' -or $name -eq 'test_menu.js' -or $name -eq 'test_v160.js' -or $name -eq 'test_v161.js' -or $name -eq 'test_v162.js' -or $name -eq 'test_demo.js') { return $htmlArg }
   if ($name -eq 'test_gen_smoke.js') { return $prodArg }
   return $srcArg
 }

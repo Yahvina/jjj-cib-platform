@@ -6,7 +6,7 @@
 
 ## 代码位置（v1.5 工作副本）
 
-- HTML：`_src/v15/index.html` 第 60–121 行
+- HTML：`_src/v15/index.html` 第 60–122 行
 - 逻辑：`_src/v15/src/app.js`
 
 | 函数／常量 | 行号 |
@@ -16,7 +16,7 @@
 | `fmtNum` | 286–290 |
 | `renderCmp` | 345–356 |
 | `renderHomeGrid` | 313–344 |
-| `enterWizard` | 2206–2224 |
+| `enterWizard` | 2249–2267 |
 
 - 样式：本目录 `style.css`（摘录）；完整样式表见 `../_shared/base.css`
 

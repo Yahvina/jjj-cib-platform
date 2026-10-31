@@ -73,6 +73,13 @@ html = io.open(os.path.join(SRC, 'index.html'), encoding='utf-8').read()
 css = io.open(os.path.join(SRC, 'src', 'styles.css'), encoding='utf-8').read()
 js = io.open(os.path.join(SRC, 'src', 'app.js'), encoding='utf-8').read()
 
+# 产物文件名与版本同源。原先这里写死「原型v1.5」，标题早已走到 v2.x，
+# 文件名却还停在 v1.5，交付时文件名与页面上的版本对不上号。
+# 版本号的唯一真源是 app.js 里 VERSIONS 的末条，这里只读不猜。
+_vs = re.findall(r"\{v:'(v[0-9.]+)'", js)
+assert _vs, 'VERSIONS 里读不到版本号'
+NAME = '京津冀政策情景快速评估平台_原型%s.html' % _vs[-1]
+
 assert '<link rel="stylesheet" href="src/styles.css">' in html, 'CSS 引用标记不在'
 assert '<script src="src/app.js"></script>' in html, 'JS 引用标记不在'
 html = html.replace('<link rel="stylesheet" href="src/styles.css">', '<style>\n' + css + '\n</style>')

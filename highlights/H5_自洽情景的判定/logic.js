@@ -240,7 +240,11 @@ function checkResult(){
      表现为「点生成结果后页面切过去了但内容是旧的/空的」。 */
   if(viewMode!=='research'||docPg) return;
   const ds=Object.keys(sel.desc);
-  if(ds.length<2){ el('checkResult','<div class="empty">先在第 3 步勾选至少两个描述符</div>'); return; }
+  if(ds.length<2){
+    el('checkResult', emptyState('先在第 3 步勾选至少两个描述符，才谈得上两两判定。',
+      {fn:'goto(2)', t:'去选描述符'}));
+    return;
+  }
   if(!cimResult){
     el('checkResult','<div style="font-size:13px;line-height:1.8;">'
       +'<b>还没有检验结果。</b>点下面的按钮，平台会枚举全部状态组合，逐个算出每个描述符的影响平衡值，'

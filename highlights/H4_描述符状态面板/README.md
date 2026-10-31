@@ -6,7 +6,7 @@
 
 ## 代码位置（v1.5 工作副本）
 
-- HTML：`_src/v15/index.html` 第 192–217 行
+- HTML：`_src/v15/index.html` 第 193–218 行
 - 逻辑：`_src/v15/src/app.js`
 
 | 函数／常量 | 行号 |
@@ -37,8 +37,8 @@
 | `renState` | 697–708 |
 | `delState` | 709–717 |
 | `doAddState` | 718–726 |
-| `attrEsc` | 729–734 |
-| `renderStates` | 736–815 |
+| `attrEsc` | 736–741 |
+| `renderStates` | 743–822 |
 | `renderTree` | 383–435 |
 | `toggleDetail` | 462–465 |
 | `toggleNode` | 466–469 |
@@ -48,17 +48,17 @@
 | `tglState` | 491–500 |
 | `selIdxOf` | 510–514 |
 | `rangeSize` | 516–518 |
-| `ancOf` | 968–968 |
-| `ancTxt` | 969–972 |
-| `parseAnc` | 973–981 |
-| `setAnc` | 982–990 |
-| `clearAnc` | 991–991 |
-| `ancAllowed` | 997–1007 |
-| `ancConflicts` | 1010–1024 |
-| `selRangeHTML` | 1027–1033 |
-| `ancRowHTML` | 1035–1049 |
-| `ancSummaryHTML` | 1051–1067 |
-| `ancConflictHTML` | 1070–1076 |
+| `ancOf` | 975–975 |
+| `ancTxt` | 976–979 |
+| `parseAnc` | 980–988 |
+| `setAnc` | 989–997 |
+| `clearAnc` | 998–998 |
+| `ancAllowed` | 1004–1014 |
+| `ancConflicts` | 1017–1031 |
+| `selRangeHTML` | 1034–1040 |
+| `ancRowHTML` | 1042–1056 |
+| `ancSummaryHTML` | 1058–1074 |
+| `ancConflictHTML` | 1077–1083 |
 
 - 样式：本目录 `style.css`（摘录）；完整样式表见 `../_shared/base.css`
 

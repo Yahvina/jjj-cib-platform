@@ -1649,3 +1649,32 @@ body.wizard .pane{max-width:1120px;margin-left:auto;margin-right:auto;}
 .scnnote{font-size:12px;line-height:1.75;color:var(--tx3);margin:0 0 16px;
   padding:10px 12px;background:var(--panel2);border-radius:3px;}
 .scnnote b{color:var(--tx2);font-weight:600;}
+
+/* ============ 示范情景（v2.2.0） ============ */
+.cfg-demo{display:flex;align-items:center;gap:10px;margin:0 0 14px;}
+.cfg-demo .tip{font-size:12px;color:var(--tx3);border-bottom:1px dashed var(--line);cursor:help;}
+.demonote{background:var(--pri-s);border-left:3px solid var(--pri);border-radius:0 3px 3px 0;
+  padding:10px 14px;font-size:13px;line-height:1.7;color:var(--tx2);margin:0 0 14px;}
+
+/* ============ 结果页一级结论（v2.2.0） ============ */
+.midblock{margin-top:14px;padding:12px 16px;background:var(--wn-s);border-left:3px solid var(--wn);
+  border-radius:0 3px 3px 0;font-size:13px;line-height:1.7;color:var(--tx2);}
+.midblock b{color:var(--tx);font-weight:600;}
+.midblock .midn{color:var(--tx3);}
+.midblock .midlist{margin-top:6px;color:var(--tx2);}
+/* 第一步的候选政策按钮：默认 .mini 挤成一串文字，这里给间距与边界，点得准 */
+.note .mini{margin:2px 8px 4px 0;padding:3px 10px;border:1px solid var(--line);
+  border-radius:3px;background:var(--panel);color:var(--pri);font-size:12px;cursor:pointer;}
+.note .mini:hover{border-color:var(--pri);background:var(--pri-s);}
+
+/* ============ 补判断返回条（v2.2.0 P1-1） ============ */
+.fillbar{display:none;}
+.fillbar.on{display:flex;align-items:center;gap:14px;flex-wrap:wrap;
+  background:var(--pri-s);border-left:3px solid var(--pri);border-radius:0 3px 3px 0;
+  padding:11px 14px;margin:0 0 12px;}
+.fillbar .fb-t{flex:1;font-size:13px;line-height:1.6;color:var(--tx2);}
+.fillbar .fb-t b{color:var(--tx);font-weight:600;margin-right:8px;}
+
+/* ============ 第 2 步判断进度（v2.2.0 P1-2） ============ */
+.cfgprog{font-variant-numeric:tabular-nums;border-bottom:1px dashed var(--line);cursor:help;}
+.cfg-drafthint{font-size:12px;color:var(--tx3);margin-top:7px;}

@@ -1,13 +1,14 @@
-<!-- H1 ｜ 首页：一屏讲清定位 ｜ 摘自 _src/v15/index.html 第 60–121 行 -->
+<!-- H1 ｜ 首页：一屏讲清定位 ｜ 摘自 _src/v15/index.html 第 60–122 行 -->
 <section class="pane on" id="pcmp">
   <section class="hero">
     <div class="hcopy">
       <div class="kicker">FIG.00　CROSS-IMPACT BALANCE</div>
       <h1><span class="cib">CIB</span>：政策情景的<br>一致性检验</h1>
-      <p class="lead">政策文本转为描述符取值，两两判定影响方向，枚举组合后只保留自洽者；通过检验的情景再转译为 GCAM-China 与 CHEER 的输入参数。</p>
+      <p class="lead">政策文本转为<span class="tip" tabindex="0" data-tip="描述符＝模型里要设定的那个量，如「碳价水平与碳市场覆盖」。">描述符</span>取值，两两判定影响方向，<span class="tip" tabindex="0" data-tip="枚举＝把所有描述符的档位组合挨个算一遍，不是抽样估计。">枚举</span>组合后只保留<span class="tip" tabindex="0" data-tip="自洽＝在全部两两判定下没有一处互相矛盾。">自洽</span>者；通过检验的情景再转译为 GCAM-China 与 CHEER 的输入参数。</p>
       <div class="go">
         <a href="#" onclick="openConfig();return false;">评估一套政策组合<span class="ar">→</span></a>
         <a class="go2" href="#" onclick="openResearch(event);return false;">做方法验证</a>
+        <a class="go2" href="#" onclick="cfgLoadScenario();return false;">载入一套预置情景</a>
       </div>
     </div>
 
@@ -45,7 +46,7 @@
   <section class="entries">
     <a class="ent pri" href="#" onclick="openConfig();return false;">
       <div class="et">评估一套政策组合</div>
-      <div class="ed">我有政策和目标，想直接得到一组互不冲突的设定，以及能直接喂给模型的参数。</div>
+      <div class="ed">我有政策和目标，想直接得到一组<span class="tip" tabindex="0" data-tip="互不冲突＝自洽：这组取值在两两判定下没有一处打架。">互不冲突的设定</span>，以及能直接喂给模型的参数。</div>
       <div class="ea">进入情景配置<span class="ar">→</span></div>
     </a>
     <a class="ent" href="#" onclick="openResearch(event);return false;">

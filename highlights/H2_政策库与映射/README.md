@@ -6,7 +6,7 @@
 
 ## 代码位置（v1.5 工作副本）
 
-- HTML：`_src/v15/index.html` 第 153–189 行
+- HTML：`_src/v15/index.html` 第 154–190 行
 - 逻辑：`_src/v15/src/app.js`
 
 | 函数／常量 | 行号 |
@@ -14,17 +14,17 @@
 | `POLICY` | 121–228 |
 | `POLICY_EVID` | 230–230 |
 | `POLICY_VERIF` | 237–253 |
-| `PALLC` | 3251–3251 |
+| `PALLC` | 3414–3414 |
 | `nSel` | 281–281 |
-| `renderPolicy` | 3284–3334 |
-| `pickPolicy` | 3335–3335 |
-| `polEvid` | 3337–3339 |
-| `polEvidBlock` | 3381–3381 |
-| `polSidePanel` | 3399–3439 |
-| `verifBlock` | 3459–3467 |
-| `applyPolicy` | 3472–3490 |
-| `uploadPolicy` | 3491–3513 |
-| `prepErr` | 3579–3584 |
+| `renderPolicy` | 3447–3497 |
+| `pickPolicy` | 3498–3498 |
+| `polEvid` | 3500–3502 |
+| `polEvidBlock` | 3544–3544 |
+| `polSidePanel` | 3562–3602 |
+| `verifBlock` | 3622–3630 |
+| `applyPolicy` | 3635–3653 |
+| `uploadPolicy` | 3654–3676 |
+| `prepErr` | 3742–3747 |
 
 - 样式：本目录 `style.css`（摘录）；完整样式表见 `../_shared/base.css`
 

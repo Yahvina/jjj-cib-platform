@@ -1,4 +1,4 @@
-<!-- H7 ｜ 逐层求解（下沉为折叠段） ｜ 摘自 _src/v15/index.html 第 354–357 行 -->
+<!-- H7 ｜ 逐层求解（下沉为折叠段） ｜ 摘自 _src/v15/index.html 第 356–359 行 -->
     <details class="fold" id="layFold"><summary>跨层逐层求解（勾了多个层级时才用得上）</summary><div class="foldbody">
       <p style="margin:0 0 6px;">上面的检验把所有描述符放在<b>同一层</b>枚举。勾了多个层级时，还可以让上级的取值去<b>约束</b>下级再解一遍：下级与上级区间不相交的状态根本进不了枚举，得到的是每层取值都记下来的「跨层相容组合」。</p>
       <div id="layBox"></div>

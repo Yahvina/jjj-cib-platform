@@ -6,24 +6,24 @@
 
 ## 代码位置（v1.5 工作副本）
 
-- HTML：`_src/v15/index.html` 第 192–217 行
+- HTML：`_src/v15/index.html` 第 193–218 行
 - 逻辑：`_src/v15/src/app.js`
 
 | 函数／常量 | 行号 |
 |---|---|
 | `sel` | 263–263 |
-| `renderDescList` | 830–850 |
-| `renderP2Stat` | 827–829 |
-| `renderP2Drawer` | 854–885 |
+| `renderDescList` | 837–857 |
+| `renderP2Stat` | 834–836 |
+| `renderP2Drawer` | 861–892 |
 | `renderTree` | 383–435 |
 | `renderTreeCnt` | 436–439 |
-| `renderStates` | 736–815 |
+| `renderStates` | 743–822 |
 | `descSelAll` | 444–455 |
 | `descClearAll` | 456–461 |
-| `descStep` | 886–891 |
-| `openDescDrawer` | 851–851 |
-| `openAddDrawer` | 852–852 |
-| `closeP2Drawer` | 853–853 |
+| `descStep` | 893–898 |
+| `openDescDrawer` | 858–858 |
+| `openAddDrawer` | 859–859 |
+| `closeP2Drawer` | 860–860 |
 | `selDesc` | 472–485 |
 | `tglState` | 491–500 |
 

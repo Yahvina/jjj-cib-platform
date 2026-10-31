@@ -6,14 +6,14 @@
 
 ## 代码位置（v1.5 工作副本）
 
-- HTML：`_src/v15/index.html` 第 124–150 行
+- HTML：`_src/v15/index.html` 第 125–151 行
 - 逻辑：`_src/v15/src/app.js`
 
 | 函数／常量 | 行号 |
 |---|---|
 | `LAYERS` | 255–260 |
 | `layerTable` | 359–380 |
-| `tglScale` | 2142–2148 |
+| `tglScale` | 2185–2191 |
 | `rngTxt` | 659–663 |
 | `ST` | 658–658 |
 | `defsOf` | 600–632 |

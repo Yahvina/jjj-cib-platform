@@ -6,16 +6,16 @@
 
 ## 代码位置（v1.5 工作副本）
 
-- HTML：`_src/v15/index.html` 第 520–687 行
+- HTML：`_src/v15/index.html` 第 524–691 行
 - 逻辑：`_src/v15/src/app.js`
 
 | 函数／常量 | 行号 |
 |---|---|
-| `openDoc` | 2243–2243 |
-| `docSpy` | 2276–2292 |
-| `docSpyPaint` | 2265–2275 |
-| `docSpyOff` | 2259–2264 |
-| `backToCmp` | 2225–2225 |
+| `openDoc` | 2287–2287 |
+| `docSpy` | 2320–2336 |
+| `docSpyPaint` | 2309–2319 |
+| `docSpyOff` | 2303–2308 |
+| `backToCmp` | 2268–2268 |
 
 - 样式：本目录 `style.css`（摘录）；完整样式表见 `../_shared/base.css`
 

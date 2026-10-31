@@ -87,7 +87,8 @@ function narrText(){
   if(!rows.length) return '（还没有选描述符）';
   const sc=rows.map(r=>r.state).filter(Boolean);
   const note=multiPickNote();
-  let s='【情景特征】\n本情景在'+rows.length+'个描述符上取了'+sc.length+'档，构成一组自洽的政策情景假设。'
+  let s='【来源】\n'+provLines().join('\n')+'\n\n'
+    +'【情景特征】\n本情景在'+rows.length+'个描述符上取了'+sc.length+'档，构成一组自洽的政策情景假设。'
     +'判断来自：'+cfgSrcLabel()+'。\n\n';
   if(note) s+='【注意】'+note.replace(/<[^>]+>/g,'')+'\n\n';
   s+='【逐项特征】\n';
@@ -115,7 +116,7 @@ function bayesCSV(){
     return names.indexOf(k.slice(0,i))>=0 && names.indexOf(k.slice(i+1))>=0;
   }):all;
   let s='# 贝叶斯后验 · 每条判断的后验分布\n';
-  s+='# 判断来源：'+cfgSrcLabel()+'\n';
+  provLines().forEach(l=>{ s+='# '+l+'\n'; });
   s+='# 先验 N(0, '+2.2+'²)，按置信度给噪声（高 .55 / 中 .85 / 低 1.25），网格积分得后验\n';
   s+='pair,observations,posterior_mean,sd,p05,p95,width,p_promote,p_suppress,p_flat\n';
   keys.forEach(k=>{
@@ -143,8 +144,8 @@ function tableCSV(){
   const rows=expRows();
   const info=curScenInfo();
   let s='# 结构化参数表 · 平台自动生成\n';
-  s+='# 判断来源：'+cfgSrcLabel()+'\n';
-  s+='# 取档方式：'+expLabel()+'；值只覆盖 2035 锚点\n';
+  provLines().forEach(l=>{ s+='# '+l+'\n'; });
+  s+='# 值只覆盖 2035 锚点\n';
   s+='# 同一 scenario 内的参数构成一组自洽组合；跨 scenario 混用会破坏一致性。\n';
   if(info){
     s+='# 本表全部行同属 '+info.id+'（'+info.n+' 个描述符的当前选择）';
@@ -306,7 +307,13 @@ function xmlFile(d,i){
   return '';                          // 空字符串=平台不知道该挂哪个文件，导出时单独标出
 }
 
-function download(){ dl(preview().replace(/<[^>]+>/g,''), curModel==='gcam'?'xml':'csv','JJJ-CIB-情景1'); }
+function download(){
+  /* 来源块要在剥完标签之后拼：preview() 输出的是带 <span> 高亮的 XML，
+     先拼注释会被 /<[^>]+>/ 一起删掉。 */
+  const body=preview().replace(/<[^>]+>/g,'');
+  const head=provLines().map(l=>'<!-- '+l+' -->').join('\n')+'\n';
+  dl(head+body, curModel==='gcam'?'xml':'csv','JJJ-CIB-情景1');
+}
 
 function downloadAll(){
   if(!cimResult){ toast('先在第 7 步运行一致性检验'); return; }

@@ -6,7 +6,7 @@
 
 ## 代码位置（v1.5 工作副本）
 
-- HTML：`_src/v15/index.html` 第 372–377 行
+- HTML：`_src/v15/index.html` 第 374–379 行
 - 逻辑：`_src/v15/src/app.js`
 
 | 函数／常量 | 行号 |
@@ -14,33 +14,33 @@
 | `GEN_LABEL` | 274–274 |
 | `genOf` | 275–275 |
 | `genName` | 276–276 |
-| `expMode` | 1772–1776 |
-| `expRows` | 1785–1806 |
-| `expLabel` | 1807–1807 |
-| `multiPickNote` | 1810–1816 |
-| `csvCell` | 1817–1820 |
-| `paramOf` | 1773–1776 |
-| `paramsCSV` | 1854–1871 |
-| `setExpMode` | 1873–1873 |
-| `downloadParams` | 1872–1872 |
-| `downloadParamsBtn` | 2061–2061 |
-| `narrText` | 1876–1896 |
-| `bayesCSV` | 1897–1917 |
-| `curScenInfo` | 1922–1933 |
-| `tableCSV` | 1934–1958 |
-| `genMain` | 1959–1965 |
-| `genMainLabel` | 1966–1972 |
-| `genSubHTML` | 1973–1986 |
-| `renderOutBtns` | 1988–1991 |
-| `syncGenOpts` | 1993–2001 |
-| `renderGenOut` | 2002–2026 |
-| `preview` | 1821–1853 |
-| `xmlTag` | 2027–2043 |
-| `xmlFile` | 2044–2059 |
-| `download` | 2060–2060 |
-| `downloadAll` | 2062–2075 |
-| `dl` | 2076–2082 |
-| `fmtTag` | 2083–2083 |
+| `expMode` | 1783–1787 |
+| `expRows` | 1796–1817 |
+| `expLabel` | 1818–1818 |
+| `multiPickNote` | 1821–1827 |
+| `csvCell` | 1828–1831 |
+| `paramOf` | 1784–1787 |
+| `paramsCSV` | 1865–1882 |
+| `setExpMode` | 1884–1884 |
+| `downloadParams` | 1883–1883 |
+| `downloadParamsBtn` | 2104–2104 |
+| `narrText` | 1887–1908 |
+| `bayesCSV` | 1909–1929 |
+| `curScenInfo` | 1934–1945 |
+| `tableCSV` | 1971–1995 |
+| `genMain` | 1996–2002 |
+| `genMainLabel` | 2003–2009 |
+| `genSubHTML` | 2010–2023 |
+| `renderOutBtns` | 2025–2028 |
+| `syncGenOpts` | 2030–2038 |
+| `renderGenOut` | 2039–2063 |
+| `preview` | 1832–1864 |
+| `xmlTag` | 2064–2080 |
+| `xmlFile` | 2081–2096 |
+| `download` | 2097–2103 |
+| `downloadAll` | 2105–2118 |
+| `dl` | 2119–2125 |
+| `fmtTag` | 2126–2126 |
 | `fmtNum` | 286–290 |
 
 - 样式：本目录 `style.css`（摘录）；完整样式表见 `../_shared/base.css`
@@ -60,10 +60,10 @@
 
 ## 目录外的函数依赖
 
-本模块还调用了 10 个**没有随本目录切出**的辅助函数，直接拷走本目录跑不起来；
+本模块还调用了 11 个**没有随本目录切出**的辅助函数，直接拷走本目录跑不起来；
 要跑请用完整平台，或连同下列调用一起取：
 
-`ST`　`cfgSrcLabel`　`checkSelected`　`computeBayes`　`dOf`　`defsOf`　`expNames`　`nowStr`　`selIdxOf`　`unknown`
+`ST`　`cfgSrcLabel`　`checkSelected`　`computeBayes`　`dOf`　`defsOf`　`expNames`　`nowStr`　`provLines`　`selIdxOf`　`unknown`
 
 ## 复用方式
 

@@ -6,22 +6,22 @@
 
 ## 代码位置（v1.5 工作副本）
 
-- HTML：`_src/v15/index.html` 第 354–357 行
+- HTML：`_src/v15/index.html` 第 356–359 行
 - 逻辑：`_src/v15/src/app.js`
 
 | 函数／常量 | 行号 |
 |---|---|
-| `LAYER_BUDGET` | 1230–1296 |
-| `rangeOf` | 1199–1204 |
-| `solveLayer` | 1232–1296 |
-| `allowUnder` | 1206–1223 |
-| `runLayered` | 1297–1325 |
-| `renderLay` | 1333–1398 |
-| `buildIMP` | 5106–5130 |
-| `evalCombo` | 5132–5145 |
-| `mulberry` | 5064–5071 |
-| `comboSample` | 5083–5104 |
-| `cloneCim` | 5146–5154 |
+| `LAYER_BUDGET` | 1237–1303 |
+| `rangeOf` | 1206–1211 |
+| `solveLayer` | 1239–1303 |
+| `allowUnder` | 1213–1230 |
+| `runLayered` | 1304–1332 |
+| `renderLay` | 1340–1405 |
+| `buildIMP` | 5270–5294 |
+| `evalCombo` | 5296–5309 |
+| `mulberry` | 5228–5235 |
+| `comboSample` | 5247–5268 |
+| `cloneCim` | 5310–5318 |
 | `ST` | 658–658 |
 | `defsOf` | 600–632 |
 | `rngTxt` | 659–663 |

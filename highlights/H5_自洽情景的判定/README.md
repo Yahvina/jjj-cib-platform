@@ -6,37 +6,37 @@
 
 ## 代码位置（v1.5 工作副本）
 
-- HTML：`_src/v15/index.html` 第 351–353、358–358 行
+- HTML：`_src/v15/index.html` 第 353–355、360–360 行
 - 逻辑：`_src/v15/src/app.js`
 
 | 函数／常量 | 行号 |
 |---|---|
 | `TICK` | 278–279 |
-| `mulberry` | 5064–5071 |
-| `cimSig` | 5073–5080 |
-| `comboSample` | 5083–5104 |
-| `buildIMP` | 5106–5130 |
-| `evalCombo` | 5132–5145 |
-| `cloneCim` | 5146–5154 |
-| `enumCore` | 1092–1172 |
-| `runCIM` | 1174–1194 |
-| `selectedCombo` | 1403–1409 |
-| `checkSelected` | 1415–1438 |
-| `checkResult` | 1451–1527 |
-| `rangeStat` | 1441–1448 |
-| `toggleAllScen` | 1450–1450 |
-| `coFn` | 1568–1576 |
-| `aliveTable` | 1579–1606 |
-| `freqOf` | 1608–1620 |
-| `scenCard` | 1528–1536 |
-| `scenDetail` | 1537–1563 |
-| `toggleScen` | 1564–1564 |
-| `impactVal` | 954–962 |
-| `pairIndexTable` | 1082–1089 |
-| `p6Apply` | 6406–6416 |
-| `p6Group` | 6417–6425 |
-| `p6All` | 6426–6426 |
-| `p6Status` | 6427–6433 |
+| `mulberry` | 5228–5235 |
+| `cimSig` | 5237–5244 |
+| `comboSample` | 5247–5268 |
+| `buildIMP` | 5270–5294 |
+| `evalCombo` | 5296–5309 |
+| `cloneCim` | 5310–5318 |
+| `enumCore` | 1099–1179 |
+| `runCIM` | 1181–1201 |
+| `selectedCombo` | 1410–1416 |
+| `checkSelected` | 1422–1445 |
+| `checkResult` | 1458–1538 |
+| `rangeStat` | 1448–1455 |
+| `toggleAllScen` | 1457–1457 |
+| `coFn` | 1579–1587 |
+| `aliveTable` | 1590–1617 |
+| `freqOf` | 1619–1631 |
+| `scenCard` | 1539–1547 |
+| `scenDetail` | 1548–1574 |
+| `toggleScen` | 1575–1575 |
+| `impactVal` | 961–969 |
+| `pairIndexTable` | 1089–1096 |
+| `p6Apply` | 6584–6594 |
+| `p6Group` | 6595–6603 |
+| `p6All` | 6604–6604 |
+| `p6Status` | 6605–6611 |
 
 - 样式：本目录 `style.css`（摘录）；完整样式表见 `../_shared/base.css`
 
@@ -55,10 +55,10 @@
 
 ## 目录外的函数依赖
 
-本模块还调用了 16 个**没有随本目录切出**的辅助函数，直接拷走本目录跑不起来；
+本模块还调用了 17 个**没有随本目录切出**的辅助函数，直接拷走本目录跑不起来；
 要跑请用完整平台，或连同下列调用一起取：
 
-`ST`　`TREE`　`ancAllowed`　`ancOf`　`computeBayes`　`defsOf`　`el`　`expandV`　`nowStr`　`prepErr`　`presence`　`rangeSize`　`rngTxt`　`rows`　`seen`　`selIdxOf`
+`ST`　`TREE`　`ancAllowed`　`ancOf`　`computeBayes`　`defsOf`　`el`　`emptyState`　`expandV`　`nowStr`　`prepErr`　`presence`　`rangeSize`　`rngTxt`　`rows`　`seen`　`selIdxOf`
 
 ## 复用方式
 

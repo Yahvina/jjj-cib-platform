@@ -726,6 +726,13 @@ function doAddState(nm){
 }
 /* 属性值转义。data-tip 里会出现政策原文的引号（如碳达峰方案"二、主要目标"），
    不转义会把属性提前闭合：提示被截断，后面拼的 scopeTag 等也被一并吞掉。 */
+/* 统一空态：一句人话，至多一个下一步按钮。全站空态都走这里，形态不再各写各的。 */
+function emptyState(msg, act){
+  return '<div class="empty">'+attrEsc(msg)
+    +(act&&act.fn?'<div style="margin-top:10px;"><button class="btn sm" onclick="'+act.fn+'">'
+      +attrEsc(act.t||'下一步')+'</button></div>':'')
+    +'</div>';
+}
 function attrEsc(s){
   return String(s===null||s===undefined?'':s)
     .replace(/\s+/g,' ').trim()
@@ -1454,7 +1461,11 @@ function checkResult(){
      表现为「点生成结果后页面切过去了但内容是旧的/空的」。 */
   if(viewMode!=='research'||docPg) return;
   const ds=Object.keys(sel.desc);
-  if(ds.length<2){ el('checkResult','<div class="empty">先在第 3 步勾选至少两个描述符</div>'); return; }
+  if(ds.length<2){
+    el('checkResult', emptyState('先在第 3 步勾选至少两个描述符，才谈得上两两判定。',
+      {fn:'goto(2)', t:'去选描述符'}));
+    return;
+  }
   if(!cimResult){
     el('checkResult','<div style="font-size:13px;line-height:1.8;">'
       +'<b>还没有检验结果。</b>点下面的按钮，平台会枚举全部状态组合，逐个算出每个描述符的影响平衡值，'
@@ -1878,7 +1889,8 @@ function narrText(){
   if(!rows.length) return '（还没有选描述符）';
   const sc=rows.map(r=>r.state).filter(Boolean);
   const note=multiPickNote();
-  let s='【情景特征】\n本情景在'+rows.length+'个描述符上取了'+sc.length+'档，构成一组自洽的政策情景假设。'
+  let s='【来源】\n'+provLines().join('\n')+'\n\n'
+    +'【情景特征】\n本情景在'+rows.length+'个描述符上取了'+sc.length+'档，构成一组自洽的政策情景假设。'
     +'判断来自：'+cfgSrcLabel()+'。\n\n';
   if(note) s+='【注意】'+note.replace(/<[^>]+>/g,'')+'\n\n';
   s+='【逐项特征】\n';
@@ -1905,7 +1917,7 @@ function bayesCSV(){
     return names.indexOf(k.slice(0,i))>=0 && names.indexOf(k.slice(i+1))>=0;
   }):all;
   let s='# 贝叶斯后验 · 每条判断的后验分布\n';
-  s+='# 判断来源：'+cfgSrcLabel()+'\n';
+  provLines().forEach(l=>{ s+='# '+l+'\n'; });
   s+='# 先验 N(0, '+2.2+'²)，按置信度给噪声（高 .55 / 中 .85 / 低 1.25），网格积分得后验\n';
   s+='pair,observations,posterior_mean,sd,p05,p95,width,p_promote,p_suppress,p_flat\n';
   keys.forEach(k=>{
@@ -1931,12 +1943,37 @@ function curScenInfo(){
   }
   return {id:'CUR'+(idx>=0?('-S'+(idx+1)):''), idx:idx, ok:sc.ok, n:ds.length};
 }
+/* 导出物必须自带来源：论文里要能被复现，软著里要能说明是哪一版算的。
+   五项全部现成——版本号取 VERSIONS 末条（appVer 是唯一来源），
+   参与与已判取 cfgParticipation，穷举还是抽样取 cimResult.sampled。 */
+function provLines(){
+  const ds=(cimResult&&cimResult.ds&&cimResult.ds.length)?cimResult.ds:Object.keys(sel.desc);
+  const part=cfgParticipation(ds);
+  const r=cimResult;
+  const L=[];
+  L.push('平台版本：'+appVer()+'　·　生成时间：'+nowStr());
+  L.push('判断来源：'+cfgSrcLabel());
+  /* 与界面同口径：一对只要有一个方向判过就算已判（有向条目数不能直接当对数用）。 */
+  const jp=part.pairN-(part.unjudged?part.unjudged.length:0);
+  L.push('本次参与：'+ds.length+' 个变量，'+part.pairN+' 对判断里已判 '+jp+' 对'
+    +(part.unjudged&&part.unjudged.length?('（还差 '+part.unjudged.length+' 对没判）'):''));
+  if(r){
+    L.push('枚举：'+(r.sampled
+      ? ('抽样 '+r.checked.toLocaleString()+' 种（上限 200000），组合空间 '+r.space.toLocaleString()+' 种')
+      : ('穷举 '+r.checked.toLocaleString()+' 种'+(r.space!==r.checked?('，锚定收窄后空间 '+r.space.toLocaleString()+' 种'):'')))
+      +'，自洽 '+r.count+' 种');
+  }else{
+    L.push('枚举：尚未运行检验（本文件不带检验结论）');
+  }
+  L.push('取档方式：'+expLabel());
+  return L;
+}
 function tableCSV(){
   const rows=expRows();
   const info=curScenInfo();
   let s='# 结构化参数表 · 平台自动生成\n';
-  s+='# 判断来源：'+cfgSrcLabel()+'\n';
-  s+='# 取档方式：'+expLabel()+'；值只覆盖 2035 锚点\n';
+  provLines().forEach(l=>{ s+='# '+l+'\n'; });
+  s+='# 值只覆盖 2035 锚点\n';
   s+='# 同一 scenario 内的参数构成一组自洽组合；跨 scenario 混用会破坏一致性。\n';
   if(info){
     s+='# 本表全部行同属 '+info.id+'（'+info.n+' 个描述符的当前选择）';
@@ -2057,7 +2094,13 @@ function xmlFile(d,i){
   if(n.indexOf('水')>=0) return '../input/gcamdata/xml/water_demand_industry.xml';
   return '';                          // 空字符串=平台不知道该挂哪个文件，导出时单独标出
 }
-function download(){ dl(preview().replace(/<[^>]+>/g,''), curModel==='gcam'?'xml':'csv','JJJ-CIB-情景1'); }
+function download(){
+  /* 来源块要在剥完标签之后拼：preview() 输出的是带 <span> 高亮的 XML，
+     先拼注释会被 /<[^>]+>/ 一起删掉。 */
+  const body=preview().replace(/<[^>]+>/g,'');
+  const head=provLines().map(l=>'<!-- '+l+' -->').join('\n')+'\n';
+  dl(head+body, curModel==='gcam'?'xml':'csv','JJJ-CIB-情景1');
+}
 function downloadParamsBtn(){ downloadParams(); }
 function downloadAll(){
   if(!cimResult){ toast('先在第 7 步运行一致性检验'); return; }
@@ -2226,6 +2269,7 @@ function backToCmp(){ docPg=''; viewMode='home'; inCmp=true; render(); window.sc
 /* 从研究模式打分回配置：落在「确认设定」，因为补完判断要重新点「生成结果」才有新结果。
    落在第 3 步会让旧结果看着像刚算出来的。 */
 function backToConfig(){
+  afterFill='';
   openConfig();
   if(cfgChosen().length) cfgStep=1;
   render();
@@ -2638,6 +2682,7 @@ function cfgTglDeptIdx(i){
 }
 function cfgClearDepts(){ cfgDeptSel=[]; cfgOpen=null; render(); }
 function cfgTglPolicyIdx(i,ev){
+  demoActive=false;
   if(ev&&ev.stopPropagation) ev.stopPropagation();
   const p=PALLC()[i]; if(!p) return;
   if(cfgSel[p.n]) delete cfgSel[p.n]; else cfgSel[p.n]=1;
@@ -2669,6 +2714,7 @@ function cfgFinalOf(nm){
 /* 档位下拉用 value 传索引。原先用 this.selectedIndex，而第一项是「请选择」占位，
    于是整体错一档：选「高速」存成「中速」。2026-10-29 修。 */
 function cfgSetPick(nm,v){
+  demoActive=false;
   const st=ST(nm), i=parseInt(v,10);
   if(isNaN(i)||i<0){ delete cfgPick[nm]; delete cfgTouched[nm]; delete cfgDefault[nm]; renderConfigSetting(); return; }
   const s=st[i]; if(s===undefined) return;
@@ -2789,12 +2835,23 @@ function renderConfigPolicy(){
     let h='<span class="kv"><span>当前筛选</span><span>'+cfgArr().length+' 条（全部 '+PALLC().length+' 条）</span></span>'
       +'<span class="kv"><span>覆盖变量</span><span>'+Object.keys(cov).length+' / '+allDescs().length+' 个</span></span>';
     if(inp.length<2){
-      /* 能补齐的候选政策：命中变量里含有当前参与集缺的那个变量的政策名，按命中数排。 */
-      const cand=PALLC().filter(p=>!cfgSel[p.n])
-        .map(p=>{ const hit=(p.m||[]).map(x=>x[0]).filter(nm=>{ const d=dOf(nm); return d&&d.t!=='结果型'&&inp.indexOf(nm)<0; }); return {p:p,n:new Set(hit).size}; })
-        .filter(x=>x.n>0).sort((a,b)=>b.n-a.n).slice(0,6).map(x=>x.p.n);
+      /* 候选直接可点：点一下就选进这条政策，不必回列表里找。
+         另给一条「一次覆盖全部变量」的出口——106 条里 20 条挂 0 个变量、71 条只挂 1 个，
+         从政策库进天然拼不出情景，得让用户有一步到位的选择。 */
+      const cand=PALLC().map((p,pi)=>({p:p,i:pi}))
+        .filter(o=>!cfgSel[o.p.n])
+        .map(o=>{
+          const hit=(o.p.m||[]).map(x=>x[0]).filter(nm=>{
+            const d=dOf(nm); return d&&d.t!=='结果型'&&inp.indexOf(nm)<0;
+          });
+          return {nm:o.p.n,i:o.i,n:new Set(hit).size};
+        })
+        .filter(x=>x.n>0).sort((a,b)=>b.n-a.n).slice(0,6);
       h+='<div class="note rd" style="margin-top:8px;"><b>只覆盖 '+inp.length+' 个变量，至少要 2 个。</b>'
-        +(cand.length?('可补齐的候选政策：'+cand.map(attrEsc).join('、')+'。'):'再挑一条命中别的变量的政策。')+'</div>';
+        +(cand.length?('补一条：'+cand.map(x=>
+            '<button class="mini" onclick="cfgTglPolicyIdx('+x.i+')">'+attrEsc(x.nm)+'</button>').join('')):'')
+        +'<div style="margin-top:9px;"><button class="mini" onclick="cfgCoverAll()">'
+        +'或一次选到能出结果的规模（4 个变量）→</button></div></div>';
     }
     stat.innerHTML=h;
   }
@@ -2872,9 +2929,13 @@ function renderConfigSetting(){
   const mid=cfgMidInfo();
   const part2=cfgParticipation(inputs);
   if(stat){
-    /* "够不够"看的是本次参与的对有没有判完，不是默认档占比：
-       0 对判断却显示"够"会直接把用户送进闸门。 */
-    const enough=(part2.unjudged.length===0);
+    /* 不判"够/不够"，只给进度：0 对判断说"够"会把人直接送进闸门，
+       而"不够"这个词本身又不告诉人还差多少。判了几分之几，用户自己看得懂。 */
+    /* 口径：一对只要有一个方向判过就算「已判」（与闸门的 unjudged 同一口径）。
+       part2.judged 数的是有向条目（a→b 与 b→a 各一条），不能直接除以无序对数，
+       否则 3 个变量会显示「已判 6 / 3 对（200%）」。 */
+    const jp=part2.pairN-(part2.unjudged?part2.unjudged.length:0);
+    const pct=part2.pairN?Math.round(jp/part2.pairN*1000)/10:0;
     const tip='已选 '+chosen.length+' 条政策，需要确认 '+inputs.length+' 个变量。'
       +'判断矩阵本次参与变量之间有 '+part2.judged+' 条判断（共 '+part2.pairN+' 对）。'
       +'三档变量里取默认档的占比 '+Math.round(mid.ratio*100)+'%（'+mid.n+' / '+mid.t+'）。'
@@ -2882,12 +2943,12 @@ function renderConfigSetting(){
     /* 类名必须与 styles.css 的 .cfg-statline 一致：原先写成 cfgstatline，
        第 2 步这条统计一直没吃到样式，每项各占一行。2026-10-29 修。 */
     stat.innerHTML='<div class="cfg-statline">'
-      +'<span class="kv"><span>本次参与</span><span>'+part2.pairN+' 对，已判 '+part2.judged+' 对</span></span>'
+      +'<span class="kv"><span>判断进度</span><span class="tip cfgprog" tabindex="0" data-tip="'+attrEsc(tip)+'">'
+      +'已判 '+jp+' / '+part2.pairN+' 对（'+pct+'%）</span></span>'
       +'<span class="kv"><span>需要确认的变量</span><span>'+inputs.length+' 个</span></span>'
-      +'<span class="kv"><span>判断是否够用</span><span class="tip" tabindex="0" data-tip="'+attrEsc(tip)+'">'
-      +(enough?'够':'不够')+'</span></span>'
-      +(part2.unjudged.length?'<span class="kv"><button class="btn sm" onclick="cfgGotoFillMissing()">一键去补这几对</button></span>':'')
-      +'</div>';
+      +(part2.unjudged.length?'<span class="kv"><button class="btn sm" onclick="cfgGotoFillMissing()">去补这 '+part2.unjudged.length+' 对</button></span>':'')
+      +'</div>'
+      +(part2.unjudged.length?'<div class="cfg-drafthint">可以先出一版草稿，判完再定稿。</div>':'');
   }
   if(!host) return;
   if(!inputs.length){
@@ -3003,6 +3064,65 @@ function cfgGate(ds){
       part:part, unjudged:part.unjudged};
   return {ok:true, part:part, count:r.count, checked:r.checked, ratio:ratio, unjudged:part.unjudged};
 }
+/* 预置情景：三条真实京津冀政策 + 6 对带梯度的判定 + 三个定档，一次点到结果页。
+   判定值是平台自带的起始值，不是定稿——结果页会标出来，用户一改就自动摘掉标记。
+   （界面上一律叫「预置情景」，不叫示例/示范：平台已有「载入示例框架」是另一件事。） */
+const DEMO_SCENARIO={
+  pol:['排放交易体系（ETS）','可交易可再生能源证书/配额/RPS','建筑最低能源绩效标准（MEPS）'],
+  pick:{'碳价水平与碳市场覆盖':'高位并扩围','本地可再生能源开发规模':'高开发','建筑能效标准强度':'现行标准递进'},
+  v:{
+    '碳价水平与碳市场覆盖>本地可再生能源开发规模':2,
+    '本地可再生能源开发规模>碳价水平与碳市场覆盖':1,
+    '碳价水平与碳市场覆盖>建筑能效标准强度':2,
+    '本地可再生能源开发规模>建筑能效标准强度':-2,
+    '建筑能效标准强度>碳价水平与碳市场覆盖':-1,
+    '建筑能效标准强度>本地可再生能源开发规模':1
+  },
+  why:'预置值：平台自带的起始判断，用来把流程走一遍，不是定稿'
+};
+let demoActive=false;
+/* 一次覆盖全部变量：贪心挑政策，直到所有非结果型变量都有来源。
+   配置模式的口径是"选了哪些政策"，所以这里选政策，不是往 sel.desc 里塞变量。 */
+function cfgCoverAll(){
+  const need=allDescs().filter(d=>d.t!=='结果型').map(d=>d.n);
+  /* 覆盖到「够出一版草稿」就停，不是覆盖到 19 个：15 个变量是 210 对判断、5.17 亿组合，
+     一步踩到抽样，比现在的空转更糟。4 个变量＝81 种组合，穷举、判 12 对。 */
+  const TARGET=4;
+  const got=new Set(), pick=[];
+  const cand=PALLC().map((p,i)=>({p:p,i:i}));
+  for(let guard=0; guard<60; guard++){
+    if(got.size>=Math.min(TARGET,need.length)) break;
+    let best=null, bestNew=0;
+    cand.forEach(o=>{
+      if(pick.indexOf(o)>=0) return;
+      const hit=(o.p.m||[]).map(x=>x[0]).filter(nm=>!got.has(nm)&&need.indexOf(nm)>=0);
+      if(hit.length>bestNew){ bestNew=hit.length; best=o; }
+    });
+    if(!best) break;
+    pick.push(best);
+    (best.p.m||[]).forEach(x=>{ if(need.indexOf(x[0])>=0) got.add(x[0]); });
+  }
+  cfgSel={};
+  pick.forEach(o=>{ cfgSel[o.p.n]=1; });
+  demoActive=false; cfgNotice=''; cfgGateInfo=null;
+  cfgStep=1; viewMode='config'; docPg='';
+  render();
+  toast('已选入 '+pick.length+' 条政策，覆盖 '+got.size+' / '+need.length+' 个变量');
+}
+function cfgLoadScenario(){
+  if(!PALLC().some(p=>p.n===DEMO_SCENARIO.pol[0])){ toast('政策库里找不到预置情景需要的政策'); return; }
+  cfgSel={};
+  DEMO_SCENARIO.pol.forEach(n=>{ cfgSel[n]=1; });
+  cfgPick={}; cfgTouched={};
+  Object.keys(DEMO_SCENARIO.pick).forEach(nm=>{ cfgPick[nm]=DEMO_SCENARIO.pick[nm]; cfgTouched[nm]=1; });
+  Object.keys(DEMO_SCENARIO.v).forEach(k=>{
+    cim[k]={v:DEMO_SCENARIO.v[k], conf:'中', why:DEMO_SCENARIO.why, rev:false, src:'预置情景'};
+  });
+  demoActive=true; cfgNotice=''; cfgGateInfo=null; cfgSaved=null;
+  cfgStep=1; viewMode='config'; docPg='';
+  render();
+  cfgRun();
+}
 function cfgRun(){
   cfgNotice='';
   const chosen=cfgChosen();
@@ -3061,13 +3181,44 @@ function cfgGateHelpHTML(g){
   }
   return h;
 }
-/* 待补对写进全局，跳到研究模式第 5 步（交叉影响打分，cur=4），定位高亮。 */
-let cfgFillMissing=[];
+/* 待补对写进全局，跳到研究模式第 5 步（交叉影响打分，cur=4）。
+   afterFill 记「这次过来是为了补配置模式的判断」：补完自动回结果页并重跑。
+   原来送过去就结束了，用户补完得自己找回来，等于把人扔在半路。 */
+let cfgFillMissing=[], afterFill='';
+function fillRemain(){
+  return (cfgFillMissing||[]).filter(pr=>{
+    const c=cim[pr[0]+'>'+pr[1]];
+    return !c||typeof c.v!=='number';
+  }).length;
+}
+function renderFill(){
+  const box=document.getElementById('fillBar'); if(!box) return;
+  if(afterFill!=='cfg'||viewMode!=='research'||docPg||cur!==4){ box.className='fillbar'; box.innerHTML=''; return; }
+  const t=(cfgFillMissing||[]).length, r=fillRemain();
+  box.className='fillbar on';
+  box.innerHTML='<div class="fb-t"><b>'+(r?('还差 '+r+' 对没判'):'这几对判完了')+'</b>'
+    +'<span>这次是回结果页补判断：补完自动回去重跑，本次共 '+t+' 对。</span></div>'
+    +'<button class="btn sm '+(r?'':'pri')+'" onclick="cfgReturnFromFill()">'
+    +(r?'先带着现有判断回去':'补完了，回结果页')+'</button>';
+}
+/* 最后一对填完就自动回去；留 420ms 让用户看见这一格确实填上了。 */
+function fillTick(){
+  if(afterFill!=='cfg'||fillRemain()>0) return;
+  afterFill='';
+  toast('这几对判完了，回结果页重跑');
+  setTimeout(()=>cfgReturnFromFill(true), 420);
+}
+function cfgReturnFromFill(silent){
+  afterFill='';
+  backToConfig();
+  cfgRun();
+}
 function cfgGotoFillMissing(g){
   const gg=g||cfgGateInfo||null;
   const part=(gg&&gg.part)||cfgParticipation(cfgInputNames());
   const pairs=(part.unjudged||[]).slice();
   cfgFillMissing=pairs;
+  afterFill='cfg';
   openResearch();
   /* 合并结果是一份只读的"结论矩阵"，不能拿它当草稿补判断：先落到某位专家再填。 */
   if(ens&&ens.active<0&&ens.people&&ens.people.length){
@@ -3149,16 +3300,17 @@ function renderConfigResult(){
       const gWeak=(cfgGateInfo&&cfgGateInfo.weak)||(r.checked>0&&r.count/r.checked>=0.999);
       sum.innerHTML='<div class="cfgsumtop">'
         +'<div><b class="cfgnum-big">'+r.count+(r.count>=r.consistent.length&&r.consistent.length>=200?'+':'')+'</b>'
-        +'<span class="cfgnum-t">组互不冲突的设定</span>'
-        +'<div class="cfgsum-sub">从 '+r.space.toLocaleString()+' 种组合里筛出（检查了 '
+        +'<span class="cfgnum-t">种成立</span>'
+        +'<div class="cfgsum-sub">在 '+r.space.toLocaleString()+' 种组合里筛出（检查了 '
         +r.checked.toLocaleString()+' 种'+(r.sampled?'，抽样，结果以下限计':'，全部穷举')+'）</div></div>'
         +'<div class="sp"></div>'
         +'<button class="btn sm" onclick="openCfgMeta()">本次检视</button>'
         +'</div>'
-        +(gWeak?('<div class="note" style="margin-top:12px;"><b>警示：</b>本次检算里 '
+        +(mid.list&&mid.list.length?('<div class="midblock"><b>有 '+mid.n+' 个变量本版判不出该取哪一档</b>'
+          +'<span class="midn">（'+mid.t+' 个三档变量里，上游全落在默认档；默认档不参与判定）</span>'
+          +'<div class="midlist">'+mid.list.map(nm=>'· '+attrEsc(nm)).join('<br>')+'</div></div>'):'');        +(gWeak?('<div class="note" style="margin-top:12px;"><b>警示：</b>本次检算里 '
           +Math.round(r.count/(r.checked||1)*1000)/10+'% 的组合都自洽，这套判断筛掉的不多，结果区分度有限。</div>'):'')
-        +(mid.list&&mid.list.length?('<div class="note" style="margin-top:12px;"><b>这几个变量的上游全落默认档，本版判断不出它们该取哪一档：</b><br>'
-          +mid.list.map(nm=>'· '+attrEsc(nm)).join('<br>')+'</div>'):'');
+
     }
   }
   if(pick){
@@ -3166,7 +3318,8 @@ function renderConfigResult(){
     else{
       const sc=checkSelected(r.ds, r.pickMap);
       if(sc.missing){
-        pick.innerHTML='<div class="note">还有 '+sc.missing+' 个变量没取到档位，无法核对「你选的那组」。</div>';
+        pick.innerHTML=emptyState('还有 '+sc.missing+' 个变量没取到档位，无法核对「你选的那组」。',
+          {fn:'cfgGo(1)', t:'回第二步定档'});
       }else{
         const bad=sc.rows.filter(x=>x.gap>1e-6);
         let t='<table class="cfgtable"><thead><tr><th>变量</th><th>你选的档</th><th>平衡值</th><th>是否最高</th></tr></thead><tbody>';
@@ -3203,6 +3356,7 @@ function renderConfigResult(){
         if(used.length>1) items.push({d:d,used:used,tot:tot,n:used.length});
       });
       items.sort((a,b)=>b.n-a.n);
+      const emptyDiff=!items.length;
       /* 这段说明进标题悬停，不再占正文。 */
       const dh=document.getElementById('cfgDiffH');
       if(dh) dh.setAttribute('data-tip','在 '+r.count+' 组自洽设定里，'
@@ -3215,9 +3369,18 @@ function renderConfigResult(){
             +'" title="'+attrEsc(u.s)+'：'+u.c+' 组">'+attrEsc(u.s)+' '+Math.round(u.c/it.tot*100)+'%</span>').join('')
           +'</div></div>';
       });
-      diff.innerHTML=h;
+      if(emptyDiff){
+        diff.innerHTML=emptyState(r.count===1
+          ? '只有 1 组成立，没有可对比的对象。'
+          : '这 '+r.count+' 组里每个变量的取值都一致，没有可对比的差异。',
+          {fn:'openCfgMeta()', t:'看这组的构成'});
+      }else{
+        diff.innerHTML=h;
+      }
     }
   }
+  if(demoActive&&sum) sum.insertAdjacentHTML('afterbegin',
+    '<div class="demonote">这是平台预置的起始情景：三条政策与 6 对判断都是预先配好的，用来把流程走一遍，不是定稿。换成你自己的政策后需要重新判定。</div>');
   if(exp){
     if(!r){ exp.innerHTML='<div class="empty">先有结果再导出。</div>'; }
     else{
@@ -3614,13 +3777,14 @@ function resetCim(){ clearCim(); cimSelKey=null; toast('已清空打分矩阵');
 // 点格子只选中、不代为判断：填 0 与「还没判」是两回事（10-21 录音 96 段）。
 function pickCell(s,t){ cimSelKey=s+'>'+t; renderCim(); }
 function setV(v){
+  demoActive=false;
   if(!cimSelKey) return;
   /* 合并矩阵是各专家 + 裁定算出来的结果，不能当草稿改：直接写会绕过 ensMerge，
      而且界面上看不出"这一格是谁改的"。要改先落到某位专家。 */
   if(ens&&ens.active<0){ toast('合并结果不能直接改：先在上方切到某位专家'); return; }
   if(!cim[cimSelKey]) cim[cimSelKey]={v:v,conf:'中',why:'',rev:false};   // 首次打分才算「已填」
   else { cim[cimSelKey].v=v; delete cim[cimSelKey].ai; }
-  cimResult=null; BAYES=null; renderCim();
+  cimResult=null; BAYES=null; renderCim(); fillTick();
 }
 corrResult=null;
 profResult=null;
@@ -3633,7 +3797,7 @@ function clearCell(){
   if(ens&&ens.active<0){ toast('合并结果不能直接清：先在上方切到某位专家'); return; }
   delete cim[cimSelKey]; cimResult=null; BAYES=null;
   corrResult=null; profResult=null; layeredResult=null;
-  renderCim(); toast('已清空这一格，回到「未判断」');
+  renderCim(); renderFill(); toast('已清空这一格，回到「未判断」');
 }
 
 // 某个描述符当前选定的状态及其区间——打分时先看清两端分别落在什么数值范围
@@ -5587,6 +5751,7 @@ function renderBayes(){
    已有情景需要重新检验；省略 = 不动结果（只改界面、措辞、性能或新增旁路分析）。
    与 git 提交对应；此处只列入对外可讲、能被核对的事项。 */
 const CHANGELOG=[
+ {d:'2026-10-31',k:'首次体验',x:'预置情景 / 第一步出口 / 结果页结论层级 / 补判断闭环 / 导出带来源',y:'新手第一次用要自己撞出七步：选政策 → 发现变量不够 → 看候选 → 定档 → 发现判断不够 → 去补 → 回来。这版把这条路缩到一次点击。① 首页与第一步各加一个预置情景入口：三条真实京津冀政策 + 6 对带梯度的判断 + 三个定档，一步到结果页，改一处即摘掉「预置」标记。② 覆盖变量不足时候选政策直接可点，另给「一次选到能出结果的规模（4 个变量）」——4 个变量＝81 种组合、判 12 对，穷举可跑。③ 结果页按结论层级重排：能否用 → 判不出的变量（提为一级结论）→ 你选的那组 → 差异 → 导出；空态统一成「一句人话 + 一个下一步按钮」，只有 1 组时说「没有可对比的对象」。④ 补判断闭环：从闸门进研究模式后，补完最后一对自动回结果页重跑。⑤ 第 2 步改给进度「已判 3 / 6 对（50%）」而不再说「够/不够」，统计条挪到打分来源之前。⑥ 四个导出入口都带来源块：版本、时间、判断来源、已判对数、穷举还是抽样、取档方式。⑦ 首页导语与入口卡给「描述符 / 枚举 / 自洽 / 互不冲突」加就地悬停。⑧ 产物文件名跟版本号同源，不再写死「原型v1.5」。'},
  {d:'2026-10-30',k:'界面',x:'三个存档入口合成「我的情景」',y:'菜单里「情景库」「保存配置」「载入配置」三项并列，用户分不清区别——它们存的其实是同一份快照，只是一个单槽、一个是带名字的列表。合到一个面板后差别靠位置说清：最上面是「上次的进度（时间）＋存/载」，下面是可命名、可并排比较的情景列表。并加了一句诚实提示：两类都只存在这台机器的这个浏览器里，清缓存或换设备就没了，要留档请用导出。'},
  {d:'2026-10-30',k:'界面',x:'首页的深色块撤掉',y:'v2.1.0 把政策引文做成整块深色带、主推入口做成深底卡，读起来对比过猛、也不像全站的白卡体系。改回：引文 = 白卡 + 左侧 3px 蓝条 + 深灰楷体，「平台读作」做成浅灰内块；主推入口 = 白卡 + 主蓝边（左 3px），靠边色与字重区分主次。首页现在除顶栏外没有深色块，深度靠字号（56 / 46 / 21）与白卡层次建立。'},
  {d:'2026-10-30',k:'界面',x:'首页改版：把每块的体量补上',y:'纸墨风靠纸质与暖色提供了材料感，换冷灰后这层重量没了，原来的留白就从「透气」变成「空」。对照 Hallmark 的版式规范，真正的问题是每块都不够重：hero 34px、数字 26px、三步 16px，全页几乎等重，正文只占 12 栏里的 4 栏。改法：标题抬到 56px、导语 18px；政策引文改成跨内容宽度的深色带（全页唯一重色）；数字抬到 46px 四栏均分；三步加大序号与「产出」行；新增「两种入口」双卡，把「评估一套政策」和「做方法验证」的差别讲明白。全页 1641 → 2009px，深浅交替。'},
@@ -6320,6 +6485,19 @@ const VERSIONS=[
     ,'saveCfg 给存档打 _ts 时间戳，面板因此能显示「上次保存于」；老存档没有时间戳时显示「还没有保存过」'
     ,'空态去重：原来空列表里又重复一遍「存本机浏览器」，与提示条撞车'
    ]},
+  ,{v:'v2.2.0',d:'2026-10-31',tag:'',sum:'首次使用体验一轮：预置情景、第一步出口、结果页结论层级、补判断闭环、导出带来源',ev:'本批提交',
+   items:[
+    '预置情景（原「示范情景」）：三条真实京津冀政策 + 6 对带梯度的判断 + 三个定档，一次点到结果页；首页与第一步两个入口，结果页标「平台预置的起始情景」，改一处即摘标记'
+    ,'第一步当场给出口：覆盖变量不足 2 个时，候选政策直接可点；另给「一次选到能出结果的规模（4 个变量）」——4 个变量＝81 种组合、判 12 对，穷举可跑；覆盖到 15 个变量会一步踩进抽样，反而更糟'
+    ,'结果页按结论层级重排：① 能不能用写成「7 种成立 / 在 27 种组合里筛出」② 你选的那组 ③ 判不出取哪一档的变量（从 note 提成一级结论 .midblock）④ 差异对比 ⑤ 导出'
+    ,'空态收口到 emptyState()：一句人话 + 至多一个下一步按钮；差异对比在 count===1 时说「只有 1 组成立，没有可对比的对象」，不再是一片空白'
+    ,'补判断闭环：从闸门「一键去补」进研究模式时记 afterFill，补完最后一对自动回结果页重跑；中途也能点提示条上的按钮带着现有判断回去'
+    ,'第 2 步给进度不给「够/不够」：「已判 3 / 6 对（50%）」+「可以先出一版草稿，判完再定稿」；统计条挪到打分来源之前，第一眼看到的是还差多少'
+    ,'导出物带 provenance：平台版本 + 生成时间 / 判断来源 / 参与变量与已判对数 / 穷举还是抽样 / 取档方式，四个导出入口（XML、参数表、叙事、贝叶斯）统一走 provLines()'
+    ,'首页术语就地悬停：导语里的「描述符」「枚举」「自洽」与入口卡里的「互不冲突的设定」各一个锚点，不改词'
+    ,'产物文件名与版本同源：merge 从 VERSIONS 末条读版本号，不再写死「原型v1.5」'
+    ,'清掉 _src/_tmp（1302 个文件、60 MB 早期探针，未被仓库跟踪）'
+   ]},
 ]
 /* 当前版本号只有一个来源：VERSIONS 的最后一条（数组按时间从旧到新排列）。
    2026-10-25 修：关于框里原先写死 v1.4，平台发到 v1.5.7 之后它还在对外显示旧版号。 */
@@ -6563,7 +6741,7 @@ function render(){
   syncExpCard();
   renderSteps(); renderCmp(); layerTable(); renderDescList(); renderP2Drawer();
   expDetail(); renderEnsBox(); scaleSum(); renderPolicy();
-  renderCim(); renderEnsBar(); modelDetail(); renderScopeBar(); checkResult(); renderLay(); renderFilt();
+  renderCim(); renderFill(); renderEnsBar(); modelDetail(); renderScopeBar(); checkResult(); renderLay(); renderFilt();
   renderTableau(); renderMap();
   confList(); timeline(); renderImpact(); renderPath(); renderProf(); renderCorr(); renderEnsPanel();
   renderRobust(); renderFW(); renderBayes();
