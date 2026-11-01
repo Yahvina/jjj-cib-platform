@@ -195,6 +195,15 @@ else:
 if WANT_REPO:
     ver_dir = os.path.join(REPO, 'platform', VER)
     dst_repo = wr(os.path.join(ver_dir, NAME), html)
+    # 产物名跟版本走，旧名字的成品会一直留在版本目录里堆着（v2.2.0 旁边还躺着 v1.5）。
+    # 除 index.html（归档入口）与本次产物外，目录里的其它 html 都是过期的同名物，删掉。
+    for f in os.listdir(ver_dir):
+        if f.lower().endswith('.html') and f != 'index.html' and f != NAME:
+            try:
+                os.remove(os.path.join(ver_dir, f))
+                print('  清理旧产物：%s' % f)
+            except OSError as e:
+                print('  旧产物删不掉（忽略）：%s  %s' % (f, e))
     root_index = wr(os.path.join(REPO, 'index.html'), html)
 
     if MODE == 'workspace':
@@ -238,6 +247,16 @@ if WANT_REPO:
         # run_tests.ps1 才是那个真正会失败的入口，缺了它这套测试的结论无法复现。
         if GATE_SRC and os.path.exists(GATE_SRC):
             shutil.copyfile(GATE_SRC, os.path.join(tests_dst, 'run_tests.ps1'))
+        # 只拷不删会让「改名/下线」的测试永远留在归档里——v2.2.1 撤掉 test_demo.js 后，
+        # 归档仍留着它，-Repo 闸门拿它去跑新成品，直接崩在 cfgLoadScenario 未定义上。
+        keep = set(f for f in os.listdir(TESTS_SRC) if f.startswith('test_') and f.endswith('.js'))
+        for f in sorted(os.listdir(tests_dst)):
+            if f.startswith('test_') and f.endswith('.js') and f not in keep:
+                try:
+                    os.remove(os.path.join(tests_dst, f))
+                    print('  清理下线测试：%s' % f)
+                except OSError as e:
+                    print('  下线测试删不掉（忽略）：%s  %s' % (f, e))
         print('  测试　：%s（%d 套）' % (tests_dst, n_tests))
         print('  自检　：仓库源码重新合并 = 单文件成品（逐字节一致）')
     else:
