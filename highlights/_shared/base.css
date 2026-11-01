@@ -217,6 +217,11 @@ p.pd{color:var(--tx2);font-size:15px;line-height:1.75;margin-bottom:20px;max-wid
 .caret.open{transform:rotate(90deg);}
 .tl3{display:flex;align-items:flex-start;gap:9px;padding:8px 12px 8px 46px;
   border-top:1px dashed var(--line2);font-size:13px;}
+/* 机制子项：挂到父描述符下面，再缩一级，左侧加一条细线表示从属 */
+.tl3.kid{padding-left:74px;background:linear-gradient(to right,var(--line2) 1px,transparent 1px) 58px 0/1px 100% no-repeat;}
+.tl3.kid .nm{color:var(--tx2);}
+.pill.mechk{font-size:11px;padding:0 5px;margin-left:6px;color:var(--pri);
+  background:var(--pri-s);border:1px solid var(--pri-b);}
 .tl3.dis{opacity:.5;}
 .tl3 .nm{flex:1;cursor:pointer;}
 .tl3 .nm:hover{color:var(--pri);}

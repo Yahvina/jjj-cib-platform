@@ -12,31 +12,31 @@
 | 函数／常量 | 行号 |
 |---|---|
 | `TICK` | 303–304 |
-| `mulberry` | 5241–5248 |
-| `cimSig` | 5250–5257 |
-| `comboSample` | 5260–5281 |
-| `buildIMP` | 5283–5307 |
-| `evalCombo` | 5309–5322 |
-| `cloneCim` | 5323–5331 |
-| `enumCore` | 1134–1214 |
-| `runCIM` | 1216–1236 |
-| `selectedCombo` | 1445–1451 |
-| `checkSelected` | 1457–1480 |
-| `checkResult` | 1493–1573 |
-| `rangeStat` | 1483–1490 |
-| `toggleAllScen` | 1492–1492 |
-| `coFn` | 1614–1622 |
-| `aliveTable` | 1625–1652 |
-| `freqOf` | 1654–1666 |
-| `scenCard` | 1574–1582 |
-| `scenDetail` | 1583–1609 |
-| `toggleScen` | 1610–1610 |
-| `impactVal` | 996–1004 |
-| `pairIndexTable` | 1124–1131 |
-| `p6Apply` | 6657–6667 |
-| `p6Group` | 6668–6676 |
-| `p6All` | 6677–6677 |
-| `p6Status` | 6678–6684 |
+| `mulberry` | 5261–5268 |
+| `cimSig` | 5270–5277 |
+| `comboSample` | 5280–5301 |
+| `buildIMP` | 5303–5327 |
+| `evalCombo` | 5329–5342 |
+| `cloneCim` | 5343–5351 |
+| `enumCore` | 1154–1234 |
+| `runCIM` | 1236–1256 |
+| `selectedCombo` | 1465–1471 |
+| `checkSelected` | 1477–1500 |
+| `checkResult` | 1513–1593 |
+| `rangeStat` | 1503–1510 |
+| `toggleAllScen` | 1512–1512 |
+| `coFn` | 1634–1642 |
+| `aliveTable` | 1645–1672 |
+| `freqOf` | 1674–1686 |
+| `scenCard` | 1594–1602 |
+| `scenDetail` | 1603–1629 |
+| `toggleScen` | 1630–1630 |
+| `impactVal` | 1016–1024 |
+| `pairIndexTable` | 1144–1151 |
+| `p6Apply` | 6684–6694 |
+| `p6Group` | 6695–6703 |
+| `p6All` | 6704–6704 |
+| `p6Status` | 6705–6711 |
 
 - 样式：本目录 `style.css`（摘录）；完整样式表见 `../_shared/base.css`
 

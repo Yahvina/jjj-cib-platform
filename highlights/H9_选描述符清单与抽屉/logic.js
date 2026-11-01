@@ -71,7 +71,19 @@ function renderTree(){
     let buf='', cnt=0;
     l1.c.forEach((l2,i2)=>{
       let d3='';
+      /* 机制子项挂到父描述符下面：带 par 的排到它父的下一行、缩进一级。
+         没有 par 的就是普通描述符。这样「机制分层」在树里看得见是层级，
+         而不是一堆平铺的名字（用户要拿这个给导师演示）。 */
+      const kidsOf=(nm)=>(l2.d.filter(k=>k.par===nm));
+      const order=[];
       l2.d.forEach(d=>{
+        if(d.par) return;                 // 子项稍后跟着父一起推
+        order.push({d:d, kids:kidsOf(d.n)});
+      });
+      // 父不在同一个二级类里的兜底：仍把子项列出来，不丢
+      l2.d.forEach(d=>{ if(d.par && !l2.d.some(x=>x.n===d.par)) order.push({d:d, kids:[]}); });
+      order.forEach(({d,kids})=>{
+        d.kids=kids;
         const hit=!q||(d.n+d.v).toLowerCase().indexOf(q)>=0;
         if(!hit) return;
         cnt++;
@@ -83,6 +95,14 @@ function renderTree(){
           <span class="chk ${on?'on':''}" data-id="${d.id}" onclick="${dis?'':`selDesc('${d.id}')`}">${on?TICK:''}</span>
           <span class="nm" onclick="toggleDetail('${d.id}')">${d.n}${dis?' <span class="dim">（不可作为输入）</span>':''}
             <span class="meta">${d.v}</span></span></div>`;
+        kids.forEach(k=>{
+          const kon=!!sel.desc[k.n], kdis=k.t==='结果型';
+          d3+=`<div class="tl3 kid ${kdis?'dis':''}">
+            <span class="chk ${kon?'on':''}" data-id="${k.id}" onclick="${kdis?'':`selDesc('${k.id}')`}">${kon?TICK:''}</span>
+            <span class="nm" onclick="toggleDetail('${k.id}')">${k.n}
+              <span class="pill mechk">机制</span>
+              <span class="meta">${k.v||''}</span></span></div>`;
+        });
         if(openDetail){
           d3+=`<div class="detail"><div class="dhead">
             <span>翻译依据与时间锚点<span class="pill ${cls}" style="margin-left:10px;">${d.t}</span></span>

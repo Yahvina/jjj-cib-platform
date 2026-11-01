@@ -12,20 +12,20 @@
 | 函数／常量 | 行号 |
 |---|---|
 | `sel` | 288–288 |
-| `renderDescList` | 872–892 |
-| `renderP2Stat` | 869–871 |
-| `renderP2Drawer` | 896–927 |
-| `renderTree` | 408–460 |
-| `renderTreeCnt` | 461–464 |
-| `renderStates` | 778–857 |
-| `descSelAll` | 469–480 |
-| `descClearAll` | 481–486 |
-| `descStep` | 928–933 |
-| `openDescDrawer` | 893–893 |
-| `openAddDrawer` | 894–894 |
-| `closeP2Drawer` | 895–895 |
-| `selDesc` | 497–510 |
-| `tglState` | 516–525 |
+| `renderDescList` | 892–912 |
+| `renderP2Stat` | 889–891 |
+| `renderP2Drawer` | 916–947 |
+| `renderTree` | 408–480 |
+| `renderTreeCnt` | 481–484 |
+| `renderStates` | 798–877 |
+| `descSelAll` | 489–500 |
+| `descClearAll` | 501–506 |
+| `descStep` | 948–953 |
+| `openDescDrawer` | 913–913 |
+| `openAddDrawer` | 914–914 |
+| `closeP2Drawer` | 915–915 |
+| `selDesc` | 517–530 |
+| `tglState` | 536–545 |
 
 - 样式：本目录 `style.css`（摘录）；完整样式表见 `../_shared/base.css`
 

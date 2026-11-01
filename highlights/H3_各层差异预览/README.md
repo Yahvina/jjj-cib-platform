@@ -13,10 +13,10 @@
 |---|---|
 | `LAYERS` | 280–285 |
 | `layerTable` | 384–405 |
-| `tglScale` | 2220–2226 |
-| `rngTxt` | 694–698 |
-| `ST` | 693–693 |
-| `defsOf` | 635–667 |
+| `tglScale` | 2240–2246 |
+| `rngTxt` | 714–718 |
+| `ST` | 713–713 |
+| `defsOf` | 655–687 |
 
 - 样式：本目录 `style.css`（摘录）；完整样式表见 `../_shared/base.css`
 

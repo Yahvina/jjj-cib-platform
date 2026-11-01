@@ -323,6 +323,30 @@ const clickBlk=cIdx>=0?SRC.slice(cIdx,cIdx+700):'';
 chk(clickBlk.indexOf('downZone')>=0, 'click 处理里用 mousedown 记下的区域判断', '');
 
 console.log();
+console.log('=== 10g. 机制分层在树里看得见（父子关系） ===');
+/* 用户要拿这个给导师演示：拆出来的机制必须挂在父描述符下面，
+   而不是一堆平铺的名字。 */
+const MECH_KIDS=['可再生价格干预强度','可再生数量约束强度','新能源车价格干预强度','新能源车数量约束强度','新能源车信息引导强度'];
+const withPar=MECH_KIDS.filter(n=>{ const d=dOf(n); return d&&d.par; });
+chk(withPar.length===5, '5 个机制都带 par 字段（写明挂在哪个父下）', withPar.length+'/5');
+chk(dOf('可再生价格干预强度').par==='本地可再生能源开发规模', '可再生机制的父是「本地可再生能源开发规模」', dOf('可再生价格干预强度').par);
+chk(dOf('新能源车价格干预强度').par==='新能源汽车渗透强度', '新能源车机制的父是「新能源汽车渗透强度」', dOf('新能源车价格干预强度').par);
+/* 父必须是结果型：机制是输入、父是模型算出来的结果 */
+MECH_KIDS.forEach(n=>{ const p=dOf(dOf(n).par); chk(p&&p.t==='结果型', dOf(n).par+' 是结果型（父）', p?p.t:'缺'); });
+/* 渲染：树里应出现「机制」标签与子项行。
+   注意本测试开头把 render() 换成了空函数（避免真实渲染开销），
+   所以要直接调 renderP2Drawer() 而不是 openAddDrawer()。 */
+viewMode='research'; docPg=''; inCmp=false; cur=2;
+sel.desc={};
+p2Drawer={mode:'add'};
+renderP2Drawer();
+const treeHtml=(document.getElementById('tree').innerHTML||'');
+chk(treeHtml.indexOf('mechk')>=0, '树里渲染出「机制」标签', '');
+chk(treeHtml.indexOf('tl3 kid')>=0, '树里渲染出子项行（缩进一级）', '');
+chk(treeHtml.indexOf('可再生价格干预强度')>=0, '树里有「可再生价格干预强度」', '');
+p2Drawer=null;
+
+console.log();
 console.log('=== 11. 每个 .cfgrow 可见 pill ≤2，且不含常驻术语 ===');
 resetCfg(P1);
 const i11 = cfgInputNames();
