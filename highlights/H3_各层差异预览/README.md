@@ -11,12 +11,12 @@
 
 | 函数／常量 | 行号 |
 |---|---|
-| `LAYERS` | 255–260 |
-| `layerTable` | 359–380 |
-| `tglScale` | 2185–2191 |
-| `rngTxt` | 659–663 |
-| `ST` | 658–658 |
-| `defsOf` | 600–632 |
+| `LAYERS` | 280–285 |
+| `layerTable` | 384–405 |
+| `tglScale` | 2220–2226 |
+| `rngTxt` | 694–698 |
+| `ST` | 693–693 |
+| `defsOf` | 635–667 |
 
 - 样式：本目录 `style.css`（摘录）；完整样式表见 `../_shared/base.css`
 

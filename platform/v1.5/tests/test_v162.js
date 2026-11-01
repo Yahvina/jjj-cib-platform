@@ -259,6 +259,41 @@ chk(bzRows.length > 0 && bzRows.length <= i10b.length * (i10b.length - 1),
   '贝叶斯导出只含本次参与集的对', bzRows.length + ' 行 / 上限 ' + i10b.length * (i10b.length - 1));
 
 console.log();
+console.log('=== 10e. 机制分层（第一批：拆 2 条，19 → 24） ===');
+const ALLDESC=allDescs().map(d=>d.n);
+chk(ALLDESC.length===24, '描述符 24 个（19 + 5 个机制）', ALLDESC.length);
+chk(ALLDESC.indexOf('可再生价格干预强度')>=0, '有「可再生价格干预强度」', '');
+chk(ALLDESC.indexOf('可再生数量约束强度')>=0, '有「可再生数量约束强度」', '');
+chk(ALLDESC.indexOf('新能源车价格干预强度')>=0, '有「新能源车价格干预强度」', '');
+chk(ALLDESC.indexOf('新能源车数量约束强度')>=0, '有「新能源车数量约束强度」', '');
+chk(ALLDESC.indexOf('新能源车信息引导强度')>=0, '有「新能源车信息引导强度」', '');
+chk(dOf('本地可再生能源开发规模').t==='结果型', '父「本地可再生能源开发规模」退成结果型', dOf('本地可再生能源开发规模').t);
+chk(dOf('新能源汽车渗透强度').t==='结果型', '父「新能源汽车渗透强度」退成结果型', dOf('新能源汽车渗透强度').t);
+chk(dOf('单位产品能耗限额强度').t==='参数型', '未拆的「单位产品能耗限额强度」保持参数型', dOf('单位产品能耗限额强度').t);
+/* 政策可以挂在结果型上（「它影响的量」），但不能挂在不存在的描述符上 */
+const badMap=[];
+PALLC().forEach(p=>(p.m||[]).forEach(x=>{ if(!dOf(x[0])) badMap.push(p.n+'→'+x[0]); }));
+chk(badMap.length===0, '没有任何政策挂到不存在的描述符上', badMap.slice(0,3).join(' / '));
+/* 这两个父已退成结果型：政策应改挂机制，不再直接挂它们 */
+const onParent=[];
+PALLC().forEach(p=>(p.m||[]).forEach(x=>{ if(x[0]==='本地可再生能源开发规模'||x[0]==='新能源汽车渗透强度') onParent.push(p.n+'→'+x[0]); }));
+chk(onParent.length===0, '两个父退成结果型后，不再有政策直接挂它们', onParent.slice(0,3).join(' / '));
+const cnt=n=>{let k=0;PALLC().forEach(p=>(p.m||[]).forEach(x=>{if(x[0]===n)k++;}));return k;};
+chk(cnt('可再生价格干预强度')===5, '可再生·价格干预 5 条', cnt('可再生价格干预强度'));
+chk(cnt('可再生数量约束强度')===4, '可再生·数量约束 4 条', cnt('可再生数量约束强度'));
+chk(cnt('新能源车价格干预强度')===10, '新能源车·价格干预 10 条', cnt('新能源车价格干预强度'));
+chk(cnt('新能源车数量约束强度')===3, '新能源车·数量约束 3 条', cnt('新能源车数量约束强度'));
+chk(cnt('新能源车信息引导强度')===1, '新能源车·信息引导 1 条', cnt('新能源车信息引导强度'));
+/* 每个描述符都要有区间与短名，否则矩阵表头/取档会出空 */
+const RPg=Object.keys(RANGE_PRESET), noRP=ALLDESC.filter(n=>RPg.indexOf(n)<0);
+chk(noRP.length===0, '每个描述符都有取值区间', noRP.join('/'));
+const DSg=Object.keys(DSHORT), noDS=ALLDESC.filter(n=>DSg.indexOf(n)<0);
+chk(noDS.length===0, '每个描述符都有矩阵短名', noDS.join('/'));
+/* 机制层是输入型语义：不能是结果型 */
+['可再生价格干预强度','可再生数量约束强度','新能源车价格干预强度','新能源车数量约束强度','新能源车信息引导强度']
+  .forEach(n=>chk(dOf(n).t!=='结果型', n+' 不是结果型', dOf(n).t));
+
+console.log();
 console.log('=== 11. 每个 .cfgrow 可见 pill ≤2，且不含常驻术语 ===');
 resetCfg(P1);
 const i11 = cfgInputNames();

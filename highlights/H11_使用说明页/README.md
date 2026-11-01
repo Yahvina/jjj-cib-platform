@@ -11,11 +11,11 @@
 
 | 函数／常量 | 行号 |
 |---|---|
-| `openDoc` | 2291–2291 |
-| `docSpy` | 2324–2340 |
-| `docSpyPaint` | 2313–2323 |
-| `docSpyOff` | 2307–2312 |
-| `backToCmp` | 2268–2268 |
+| `openDoc` | 2326–2326 |
+| `docSpy` | 2359–2375 |
+| `docSpyPaint` | 2348–2358 |
+| `docSpyOff` | 2342–2347 |
+| `backToCmp` | 2303–2303 |
 
 - 样式：本目录 `style.css`（摘录）；完整样式表见 `../_shared/base.css`
 

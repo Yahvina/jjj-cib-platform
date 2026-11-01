@@ -11,20 +11,20 @@
 
 | 函数／常量 | 行号 |
 |---|---|
-| `POLICY` | 121–228 |
-| `POLICY_EVID` | 230–230 |
-| `POLICY_VERIF` | 237–253 |
-| `PALLC` | 3374–3374 |
-| `nSel` | 281–281 |
-| `renderPolicy` | 3424–3474 |
-| `pickPolicy` | 3475–3475 |
-| `polEvid` | 3477–3479 |
-| `polEvidBlock` | 3521–3521 |
-| `polSidePanel` | 3539–3579 |
-| `verifBlock` | 3599–3607 |
-| `applyPolicy` | 3612–3630 |
-| `uploadPolicy` | 3631–3653 |
-| `prepErr` | 3719–3724 |
+| `POLICY` | 146–253 |
+| `POLICY_EVID` | 255–255 |
+| `POLICY_VERIF` | 262–278 |
+| `PALLC` | 3409–3409 |
+| `nSel` | 306–306 |
+| `renderPolicy` | 3459–3509 |
+| `pickPolicy` | 3510–3510 |
+| `polEvid` | 3512–3514 |
+| `polEvidBlock` | 3556–3556 |
+| `polSidePanel` | 3574–3614 |
+| `verifBlock` | 3634–3642 |
+| `applyPolicy` | 3647–3665 |
+| `uploadPolicy` | 3666–3688 |
+| `prepErr` | 3756–3761 |
 
 - 样式：本目录 `style.css`（摘录）；完整样式表见 `../_shared/base.css`
 

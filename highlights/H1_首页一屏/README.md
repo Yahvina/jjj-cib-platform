@@ -11,12 +11,12 @@
 
 | 函数／常量 | 行号 |
 |---|---|
-| `HM_P` | 302–312 |
-| `homeStatData` | 291–301 |
-| `fmtNum` | 286–290 |
-| `renderCmp` | 345–356 |
-| `renderHomeGrid` | 313–344 |
-| `enterWizard` | 2249–2267 |
+| `HM_P` | 327–337 |
+| `homeStatData` | 316–326 |
+| `fmtNum` | 311–315 |
+| `renderCmp` | 370–381 |
+| `renderHomeGrid` | 338–369 |
+| `enterWizard` | 2284–2302 |
 
 - 样式：本目录 `style.css`（摘录）；完整样式表见 `../_shared/base.css`
 

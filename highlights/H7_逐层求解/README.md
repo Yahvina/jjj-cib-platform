@@ -11,20 +11,20 @@
 
 | 函数／常量 | 行号 |
 |---|---|
-| `LAYER_BUDGET` | 1237–1303 |
-| `rangeOf` | 1206–1211 |
-| `solveLayer` | 1239–1303 |
-| `allowUnder` | 1213–1230 |
-| `runLayered` | 1304–1332 |
-| `renderLay` | 1340–1405 |
-| `buildIMP` | 5246–5270 |
-| `evalCombo` | 5272–5285 |
-| `mulberry` | 5204–5211 |
-| `comboSample` | 5223–5244 |
-| `cloneCim` | 5286–5294 |
-| `ST` | 658–658 |
-| `defsOf` | 600–632 |
-| `rngTxt` | 659–663 |
+| `LAYER_BUDGET` | 1272–1338 |
+| `rangeOf` | 1241–1246 |
+| `solveLayer` | 1274–1338 |
+| `allowUnder` | 1248–1265 |
+| `runLayered` | 1339–1367 |
+| `renderLay` | 1375–1440 |
+| `buildIMP` | 5283–5307 |
+| `evalCombo` | 5309–5322 |
+| `mulberry` | 5241–5248 |
+| `comboSample` | 5260–5281 |
+| `cloneCim` | 5323–5331 |
+| `ST` | 693–693 |
+| `defsOf` | 635–667 |
+| `rngTxt` | 694–698 |
 
 - 样式：本目录 `style.css`（摘录）；完整样式表见 `../_shared/base.css`
 
