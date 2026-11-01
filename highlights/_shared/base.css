@@ -1660,11 +1660,6 @@ body.wizard .pane{max-width:1120px;margin-left:auto;margin-right:auto;}
 .midblock b{color:var(--tx);font-weight:600;}
 .midblock .midn{color:var(--tx3);}
 .midblock .midlist{margin-top:6px;color:var(--tx2);}
-/* 第一步的候选政策按钮：默认 .mini 挤成一串文字，这里给间距与边界，点得准 */
-.note .mini{margin:2px 8px 4px 0;padding:3px 10px;border:1px solid var(--line);
-  border-radius:3px;background:var(--panel);color:var(--pri);font-size:12px;cursor:pointer;}
-.note .mini:hover{border-color:var(--pri);background:var(--pri-s);}
-
 /* ============ 第 2 步判断进度（v2.2.0 P1-2） ============ */
 .cfgprog{font-variant-numeric:tabular-nums;border-bottom:1px dashed var(--line);cursor:help;}
 .cfg-drafthint{font-size:12px;color:var(--tx3);margin-top:7px;}

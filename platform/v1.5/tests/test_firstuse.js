@@ -62,7 +62,7 @@ console.log('=== 1. 预置情景已撤：入口、常量、函数都不在了 ==
 chk(html.indexOf('cfgLoadScenario') < 0, '首页与第一步没有载入入口');
 chk(html.indexOf('预置情景') < 0, '界面文案里没有「预置情景」');
 chk(/function cfgLoadScenario\\s*\\(/.test(src) === false, '源码里没有 cfgLoadScenario');
-chk(/function cfgCoverAll\\s*\\(/.test(src), '「一次选到能出结果的规模」这个出口保留');
+chk(/function cfgCoverAll\\s*\\(/.test(src) === false, '第一步那个「一次选到能出结果的规模」出口已删');
 
 console.log();
 console.log('=== 2. 第 2 步给进度而不是「够/不够」 ===');

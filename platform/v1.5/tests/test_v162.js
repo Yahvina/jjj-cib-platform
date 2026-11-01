@@ -161,7 +161,7 @@ cfgSel = {}; cfgSel['排放交易体系（ETS）'] = 1;
 renderConfigPolicy();
 const statTxt = document.getElementById('cfgPolicyStat').innerHTML;
 chk(cfgInputNames().length < 2, '该政策只覆盖 1 个输入变量', cfgInputNames().length);
-chk(statTxt.indexOf('至少') >= 0 || statTxt.indexOf('不足') >= 0, '第一步标红提示变量不足', '');
+chk(statTxt.indexOf('至少') < 0 && statTxt.indexOf('只覆盖') < 0, '第一步不再出现「只覆盖 N 个变量」的红框（2026-11-01 用户决定删）', '');
 
 console.log();
 console.log('=== 9. 配置结果页 4 个形态选项 + genMainLabel 随形态变 ===');

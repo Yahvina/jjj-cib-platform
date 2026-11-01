@@ -2884,25 +2884,6 @@ function renderConfigPolicy(){
     const inp=cfgInputNames();
     let h='<span class="kv"><span>当前筛选</span><span>'+cfgArr().length+' 条（全部 '+PALLC().length+' 条）</span></span>'
       +'<span class="kv"><span>覆盖变量</span><span>'+Object.keys(cov).length+' / '+allDescs().length+' 个</span></span>';
-    if(inp.length<2){
-      /* 候选直接可点：点一下就选进这条政策，不必回列表里找。
-         另给一条「一次覆盖全部变量」的出口——106 条里 20 条挂 0 个变量、71 条只挂 1 个，
-         从政策库进天然拼不出情景，得让用户有一步到位的选择。 */
-      const cand=PALLC().map((p,pi)=>({p:p,i:pi}))
-        .filter(o=>!cfgSel[o.p.n])
-        .map(o=>{
-          const hit=(o.p.m||[]).map(x=>x[0]).filter(nm=>{
-            const d=dOf(nm); return d&&d.t!=='结果型'&&inp.indexOf(nm)<0;
-          });
-          return {nm:o.p.n,i:o.i,n:new Set(hit).size};
-        })
-        .filter(x=>x.n>0).sort((a,b)=>b.n-a.n).slice(0,6);
-      h+='<div class="note rd" style="margin-top:8px;"><b>只覆盖 '+inp.length+' 个变量，至少要 2 个。</b>'
-        +(cand.length?('补一条：'+cand.map(x=>
-            '<button class="mini" onclick="cfgTglPolicyIdx('+x.i+')">'+attrEsc(x.nm)+'</button>').join('')):'')
-        +'<div style="margin-top:9px;"><button class="mini" onclick="cfgCoverAll()">'
-        +'或一次选到能出结果的规模（4 个变量）→</button></div></div>';
-    }
     stat.innerHTML=h;
   }
   const hint=document.getElementById('cfg0Hint');
@@ -3113,34 +3094,6 @@ function cfgGate(ds){
       why:(flat.length?('「'+flat[0]+'」在各档位上没有被任何判断约束'):'检算空间几乎全部自洽，这版判断没有筛出任何信息'),
       part:part, unjudged:part.unjudged};
   return {ok:true, part:part, count:r.count, checked:r.checked, ratio:ratio, unjudged:part.unjudged};
-}
-/* 一次覆盖全部变量：贪心挑政策，直到所有非结果型变量都有来源。
-   配置模式的口径是"选了哪些政策"，所以这里选政策，不是往 sel.desc 里塞变量。 */
-function cfgCoverAll(){
-  const need=allDescs().filter(d=>d.t!=='结果型').map(d=>d.n);
-  /* 覆盖到「够出一版草稿」就停，不是覆盖到 19 个：15 个变量是 210 对判断、5.17 亿组合，
-     一步踩到抽样，比现在的空转更糟。4 个变量＝81 种组合，穷举、判 12 对。 */
-  const TARGET=4;
-  const got=new Set(), pick=[];
-  const cand=PALLC().map((p,i)=>({p:p,i:i}));
-  for(let guard=0; guard<60; guard++){
-    if(got.size>=Math.min(TARGET,need.length)) break;
-    let best=null, bestNew=0;
-    cand.forEach(o=>{
-      if(pick.indexOf(o)>=0) return;
-      const hit=(o.p.m||[]).map(x=>x[0]).filter(nm=>!got.has(nm)&&need.indexOf(nm)>=0);
-      if(hit.length>bestNew){ bestNew=hit.length; best=o; }
-    });
-    if(!best) break;
-    pick.push(best);
-    (best.p.m||[]).forEach(x=>{ if(need.indexOf(x[0])>=0) got.add(x[0]); });
-  }
-  cfgSel={};
-  pick.forEach(o=>{ cfgSel[o.p.n]=1; });
-  cfgNotice=''; cfgGateInfo=null;
-  cfgStep=1; viewMode='config'; docPg='';
-  render();
-  toast('已选入 '+pick.length+' 条政策，覆盖 '+got.size+' / '+need.length+' 个变量');
 }
 function cfgRun(){
   cfgNotice='';
@@ -6554,6 +6507,14 @@ const VERSIONS=[
     '政策详情三段小标题改为：政策怎么说／落到哪个机制／进了模型哪个参数（顺序与内容不变，只对齐数据集侧口径）',
     '三类描述符在配置模式改业务说法：输入型=政策直接给数、参数型=政策给目标平台换算、结果型=只能看不能输入；研究模式保留正式名',
     'TREE、106 条政策映射、打分、区间、枚举、闸门均未改动；37 套测试全绿（test_v162 增 10c/10d 两组断言）',
+  ]},
+ {v:'v2.4.1',d:'2026-11-01',tag:'',sum:'删掉第一步的红框：只覆盖 N 个变量 + 候选政策 + 一次选到能出结果的规模',ev:'本批提交',
+  items:[
+    '用户看图后决定整块删：卡片已写「影响 N 个变量」、第一步已加「政策手段」筛选轴，候选清单是重复信息',
+    '删 cfgCoverAll() 函数（贪心挑政策凑 4 个变量）与 .note .mini 两条 CSS',
+    '删掉后选 1 条政策不再有提示；覆盖不足由第 2 步的统计条与闸门说',
+    'test_v162 / test_firstuse 各一条断言原来锁着这个框，改成反向断言',
+    '37 套测试全绿',
   ]},
 ]
 /* 当前版本号只有一个来源：VERSIONS 的最后一条（数组按时间从旧到新排列）。
