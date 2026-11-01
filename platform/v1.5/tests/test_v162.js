@@ -197,6 +197,44 @@ chk(sel.desc[keepNm].states.length === 1 && sel.desc[keepNm].states[0] === ST(ke
   '已经划过的范围不被载入覆盖', JSON.stringify(sel.desc[keepNm].states));
 
 console.log();
+console.log('=== 10c. 机制轴（政策手段）===');
+resetCfg(P1);
+const mechs = polMechList();
+chk(mechs.length > 0, '机制清单非空', mechs.length + ' 类');
+chk(mechs.indexOf('补贴') >= 0, '机制清单含「补贴」', mechs.slice(0,6).join('/'));
+chk(mechs.indexOf('绩效标准') >= 0, '机制清单含「绩效标准」', '');
+const allCnt = cfgArr().length;
+cfgMechSel = ['补贴'];
+const subCnt = cfgArr().length;
+chk(subCnt > 0 && subCnt < allCnt, '按机制筛能收窄政策集合', subCnt + ' / ' + allCnt);
+chk(PALLC().filter(p => cfgMechSel.indexOf(p.g) >= 0).length === subCnt, '筛选结果恰好等于该机制的全部政策', '');
+cfgDeptSel = ['建筑'];
+const bothCnt = cfgArr().length;
+chk(bothCnt > 0 && bothCnt <= subCnt, '部门与机制是「与」的关系', bothCnt + ' <= ' + subCnt);
+cfgClearMechs();
+chk(cfgMechSel.length === 0, '清空机制筛选', '');
+cfgClearDepts();
+chk(cfgArr().length === allCnt, '清空后回到全部', cfgArr().length);
+chk((polMechTag({g:'补贴'}) || '').indexOf('补贴') >= 0, '政策卡片有机制标签', polMechTag({g:'补贴'}));
+chk(polMechTag({}) === '', '无机制时标签为空', '');
+
+console.log();
+console.log('=== 10d. 三类描述符的业务说法（配置模式）===');
+chk(tBiz('输入型').indexOf('政策直接给数') >= 0, '输入型业务说法', tBiz('输入型'));
+chk(tBiz('参数型').indexOf('政策给目标') >= 0, '参数型业务说法', tBiz('参数型'));
+chk(tBiz('结果型').indexOf('不能输入') >= 0, '结果型业务说法', tBiz('结果型'));
+chk(tBiz('未知类型') === '未知类型', '未知类型原样返回，不吞掉', tBiz('未知类型'));
+render = function(){};
+cfgSel = {}; cfgOpen = '排放交易体系（ETS）';
+const drw = cfgDrawerHTML();
+chk(drw.indexOf('政策怎么说') >= 0, '政策详情段一：政策怎么说', '');
+chk(drw.indexOf('落到哪个机制') >= 0, '政策详情段二：落到哪个机制', '');
+chk(drw.indexOf('进了模型哪个参数') >= 0, '政策详情段三：进了模型哪个参数', '');
+chk(drw.indexOf('政策是什么') < 0 && drw.indexOf('为什么这么设置合理') < 0 && drw.indexOf('模型怎么处理') < 0,
+  '旧的三段标题已不再出现', '');
+cfgOpen = null;
+
+console.log();
 console.log('=== 10b. 载入 15 个变量后，四种导出只覆盖本次参与集 ===');
 resetCfg(P1);
 sel.desc = {};

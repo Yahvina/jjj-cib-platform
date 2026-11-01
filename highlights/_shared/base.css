@@ -1362,7 +1362,11 @@ main .stbox .hd{background:transparent;border-bottom:1px solid var(--line);}
 .cfg-tools{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:12px;}
 .cfg-tools-l{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
 .cfglab{font-size:13px;color:var(--tx2);}
-#cfgDepts{display:flex;gap:6px;flex-wrap:wrap;}
+#cfgDepts,#cfgMechs{display:flex;gap:6px;flex-wrap:wrap;}
+/* 政策卡片上的机制标签：政策在用什么办法（库里的工具组别）。
+   蓝色系、比部门标签更靠左，因为政策研究者先问「这条政策在干什么」。 */
+.mech{font-size:12px;color:var(--tx);background:var(--panel2);
+  border:1px solid var(--line);border-radius:4px;padding:1px 6px;flex:none;white-space:nowrap;}
 .cfg-tools-r{display:flex;gap:6px;}
 .cfg-statline{display:flex;gap:20px;flex-wrap:wrap;padding:9px 13px;background:var(--panel);
   border:1px solid var(--line);border-radius:var(--r);margin-bottom:14px;}

@@ -2505,7 +2505,7 @@ function applyCfg(d){
    主界面只做三件事：选政策 → 确认设定 → 看结果并导出。
    CIB、交叉影响、打分矩阵、枚举这些词只在研究模式里出现。
    这里不改 expandV，不自动推断政策档位，也不把「没判」当成 0。 */
-let cfgStep=0, cfgDeptSel=[], cfgSel={}, cfgOpen=null, cfgMapOpen=null, cfgChosenFold=false, cfgNotice='';
+let cfgStep=0, cfgDeptSel=[], cfgMechSel=[], cfgSel={}, cfgOpen=null, cfgMapOpen=null, cfgChosenFold=false, cfgNotice='';
 let cfgClaim={}, cfgPick={}, cfgTouched={}, cfgSuggest={}, cfgDefault={}, cfgRunInfo=null, cfgSaved=null, cfgGateInfo=null, cfgResearchBase=null;
 const CFG_CLAIMS=['未指定','提高','维持','降低'];
 function cfgRk(c){ return c==='高'?3:(c==='中'?2:(c==='低'?1:0)); }
@@ -2527,8 +2527,8 @@ function cfgDrawerHTML(){
     +'<button class="btn sm" onclick="cfgCloseDetail()">关闭</button></div>'
     +'<div class="cfgdrawer-meta">'+attrEsc(p.c)+' · '+attrEsc(p.g||'')+(p.s?' · '+attrEsc(p.s):'')
     +' · 影响几项 '+n+(conf?' · 依据强度 '+attrEsc(conf):'')+'</div>';
-  h+='<details class="cfgfold"><summary>政策是什么</summary>'+polEvidFiles(p)+polTimeBlock(p)+'</details>';
-  h+='<details class="cfgfold"><summary>为什么这么设置合理</summary>';
+  h+='<details class="cfgfold"><summary>政策怎么说</summary>'+polEvidFiles(p)+polTimeBlock(p)+'</details>';
+  h+='<details class="cfgfold"><summary>落到哪个机制</summary>';
   if((p.m||[]).length){
     h+=(p.m||[]).map(x=>{
       const v=POLICY_VERIF[p.n+'|'+x[0]];
@@ -2538,7 +2538,7 @@ function cfgDrawerHTML(){
     }).join('');
   }else h+='<div class="ptnote">这条政策没有挂到本模型的变量上。没有映射本身是一条结论——它落在当前的变量口径之外。</div>';
   h+=polEvidMaps(p)+'</details>';
-  h+='<details class="cfgfold"><summary>模型怎么处理</summary>'+polModelBlock(p)+'</details>';
+  h+='<details class="cfgfold"><summary>进了模型哪个参数</summary>'+polModelBlock(p)+'</details>';
   return h;
 }
 /* 变量视角：从「这条变量」往回看——谁把它推到这里、依据是什么、能取哪几档。
@@ -2548,7 +2548,7 @@ function cfgMapDrawerHTML(nm){
   const pick=cfgFinalOf(nm), sts=ST(nm);
   let h='<div class="drawer-h"><div><div class="drawer-k">变量依据</div><b>'+attrEsc(nm)+'</b></div>'
     +'<button class="btn sm" onclick="closeMapDrawer()">关闭</button></div>'
-    +'<div class="cfgdrawer-meta">'+attrEsc(d.t||'—')
+    +'<div class="cfgdrawer-meta">'+attrEsc(tBiz(d.t))
     +(d.v?' · 模型对应 '+attrEsc(d.v):'')
     +' · 命中 '+ms.length+' 条政策'
     +(conf?' · 依据强度 '+attrEsc(conf):'')+'</div>';
@@ -2590,7 +2590,7 @@ function cfgRemovePolicyIdx(i){
   delete cfgSel[p.n]; if(cfgOpen===p.n) cfgOpen=null;
   renderConfigPolicy();
 }
-function cfgArr(){ return PALLC().filter(p=>!cfgDeptSel.length||polDeptHit(p,cfgDeptSel)); }
+function cfgArr(){ return PALLC().filter(p=>(!cfgDeptSel.length||polDeptHit(p,cfgDeptSel))&&(!cfgMechSel.length||cfgMechSel.indexOf(p.g)>=0)); }
 function cfgCov(){
   const c={};
   cfgChosen().forEach(p=>(p.m||[]).forEach(x=>{
@@ -2715,6 +2715,13 @@ function cfgTglDeptIdx(i){
   cfgOpen=null; render();
 }
 function cfgClearDepts(){ cfgDeptSel=[]; cfgOpen=null; render(); }
+function cfgTglMechIdx(i){
+  const g=polMechList()[i]; if(g===undefined) return;
+  const k=cfgMechSel.indexOf(g);
+  if(k>=0) cfgMechSel.splice(k,1); else cfgMechSel.push(g);
+  cfgOpen=null; render();
+}
+function cfgClearMechs(){ cfgMechSel=[]; cfgOpen=null; render(); }
 function cfgTglPolicyIdx(i,ev){
   if(ev&&ev.stopPropagation) ev.stopPropagation();
   const p=PALLC()[i]; if(!p) return;
@@ -2834,6 +2841,16 @@ function renderConfigPolicy(){
           +attrEsc(d)+' '+n+'</button>';
       }).join('');
   }
+  const mech=document.getElementById('cfgMechs');
+  if(mech){
+    const all=PALLC(), ms=polMechList();
+    mech.innerHTML='<button class="dpbtn'+(cfgMechSel.length?'':' on')+'" onclick="cfgClearMechs()">全部</button>'
+      +ms.map((g,i)=>{
+        const n=all.filter(p=>p.g===g).length;
+        return '<button class="dpbtn'+(cfgMechSel.indexOf(g)>=0?' on':'')+'" onclick="cfgTglMechIdx('+i+')">'
+          +attrEsc(g)+' '+n+'</button>';
+      }).join('');
+  }
   const list=document.getElementById('cfgPolicyList');
   if(list){
     const arr=cfgArr();
@@ -2848,7 +2865,8 @@ function renderConfigPolicy(){
           +'<span class="chk'+(on?' on':'')+'">'+(on?TICK:'')+'</span>'
           +'<span class="cfgn">'+attrEsc(p.n)+'</span>'
           +polDeptTag(p.s)
-          +'<span class="cfgnum">影响几项 '+n+'</span>'
+          +polMechTag(p)
+          +'<span class="cfgnum">影响 '+n+' 个变量</span>'
           +(conf?'<span class="conf '+cfgConfCls(conf)+'">依据强度 '+conf+'</span>'
                 :'<span class="cfgnum">无依据</span>')
           +'<button class="btn sm" onclick="cfgOpenPolicyIdx('+i+',event)">详情</button>'
@@ -2992,7 +3010,7 @@ function renderConfigSetting(){
       const ms=cov[nm]||[], conf=cfgBestConf(ms.map(o=>o.m));
       const claim=cfgClaim[nm]||'未指定', touched=!!cfgTouched[nm];
       const sug=cfgSuggest[nm]||'', isDef=!!cfgDefault[nm];
-      const tip=attrEsc('类型：'+(d.t||'—')+'；依据强度：'+(conf||'—')
+      const tip=attrEsc('类型：'+tBiz(d.t)+'；依据强度：'+(conf||'—')
         +'；政策主张：'+claim+'；影响这条变量的政策：'+(ms.map(o=>o.p.n).join('、')||'—')
         +'。'+(isDef?'取的是现状档（默认，可改）。':(touched?'档位由人工设定。':'档位待确认。'))
         +cfgWhyText(claim,pick,touched,conf));
@@ -3414,6 +3432,23 @@ function polDeptList(){
   });
   return out;
 }
+/* 三类描述符在配置模式的业务说法（CODEX_BRIEF 5.1）。
+   导师 10-21 原话「看不懂啥是参数型、输入型」（录音 50 段）——
+   所以配置模式里凡出现类型的地方都用这句，研究模式保留正式名。 */
+const T_BUS={'输入型':'政策直接给数','参数型':'政策给目标，平台换算','结果型':'只能看，不能输入'};
+function tBiz(t){ return T_BUS[t]||t||'—'; }
+/* 机制轴＝政策库 g 字段（工具组别）。导师说的「补贴／最低能效标准／能效标识是三种机制」
+   在这里就是补贴／绩效标准／比较性能效标签——106 条政策全覆盖，数据本来就有。 */
+function polMechList(){
+  const seen={}, out=[];
+  PALLC().forEach(p=>{ const g=String(p.g||'').trim(); if(g&&!seen[g]){ seen[g]=1; out.push(g); } });
+  return out;
+}
+/* 卡片上的机制标签：这是「这条政策在用什么办法」，比「影响几项」更贴政策研究者的问法。 */
+function polMechTag(p){
+  const g=String(p&&p.g||'').trim(); if(!g) return '';
+  return '<span class="mech" title="政策手段：'+attrEsc(g)+'">'+attrEsc(g)+'</span>';
+}
 function polDeptHit(p,ds){
   ds=ds||polDepts; if(!ds.length) return true;
   const own=String(p.s||'').split(/[；;]/).map(x=>x.trim()).filter(Boolean);
@@ -3544,9 +3579,9 @@ function polTimeBlock(p){
     +'<div class="ptnote">这两个位置先留着——政策库里还没有年份与执行率，等口径定了再填。</div>';
 }
 /* ===== 政策详情，一条政策分三段讲 =====
-   一段「政策是什么」：数据集里的工具记录、对应文件与引用条款、实施时间线；
-   二段「为什么这么设置合理」：它挂到哪些描述符、为什么这么挂、有没有政策原文补证；
-   三段「模型怎么处理」：这些描述符在模型里落到哪个变量、要做什么翻译。
+   一段「政策怎么说」：数据集里的工具记录、对应文件与引用条款、实施时间线；
+   二段「落到哪个机制」：它挂到哪些变量、为什么这么挂、有没有政策原文补证；
+   三段「进了模型哪个参数」：这些变量在模型里落到哪个字段、要做什么翻译。
    三段都用现成数据（工具总览、映射理由、描述符的翻译说明与变量名），不另编文案。 */
 function polSidePanel(){
   const el=document.getElementById('polSide'); if(!el) return;
@@ -3589,18 +3624,18 @@ function polSidePanel(){
    polEvidMaps(p)+
    polModelBlock(p);
 }
-/* 第三段：模型怎么处理。翻译说明与变量名都取自描述符本身，
+/* 第三段：进了模型哪个参数。翻译说明与变量名都取自描述符本身，
    结果型单独标出「由模型算出、不作输入」，免得被当成待填参数。 */
 function polModelBlock(p){
-  let h='<div class="slabel">三　模型怎么处理</div>';
+  let h='<div class="slabel">三　进了模型哪个参数</div>';
   if(!p.m.length) return h+'<div class="evbox none">这条路径没有挂到本模型的描述符上，'
     +'所以还没有可对照的模型变量与翻译动作。</div>';
   h+=p.m.map(x=>{
     const d=dOf(x[0])||{};
     const t=d.t||'参数型';
-    const kind=t==='结果型'?'<span class="mkind out">结果型 · 由模型算出，不作输入</span>'
-      :(t==='输入型'?'<span class="mkind in">输入型 · 直接给定</span>'
-      :'<span class="mkind par">参数型 · 由政策值换算</span>');
+    const kind=t==='结果型'?'<span class="mkind out">只能看，不能输入 · 由模型算出</span>'
+      :(t==='输入型'?'<span class="mkind in">政策直接给数</span>'
+      :'<span class="mkind par">政策给目标，平台换算</span>');
     return '<div class="mtbox"><div class="mtn"><b>'+x[0]+'</b>'+kind+'</div>'+
       (d.v?'<div class="mtv">模型变量：'+d.v+'</div>':'')+
       '<div class="mtt">'+(d.tr||'（该描述符未附翻译说明）')+'</div></div>';
@@ -5739,7 +5774,7 @@ function renderBayes(){
    已有情景需要重新检验；省略 = 不动结果（只改界面、措辞、性能或新增旁路分析）。
    与 git 提交对应；此处只列入对外可讲、能被核对的事项。 */
 const CHANGELOG=[
- {d:'2026-11-01',k:'界面',x:'两个模式接上：配置三步与研究七步一一对应',y:'原来两个模式只是「能互相跳」，跳过去落点却是乱的：左轨「去研究模式」写死回研究第 1 步，不管你在配置哪一步；从研究模式「回情景配置」又一律压到第 2 步，刚在检验页看到的结果回去就没了。更糟的是切模式时 cimResult 被清空，配置里刚算出的 27 种组合切到研究第 7 步会显示「还没有检验结果」。现在：① 两边按 CFG2RES=[1,4,6] / RES2CFG=[0,0,1,1,1,1,2] 固定对应，跨模式切换落位、同模式点顶栏原地不动；② 结果只在「检算的描述符集合变了」时作废，切模式不再丢结果；③ 配置结果页切到研究第 7 步直接显示同一份结果。顺带删掉补判断提示条整块（只剩自动返回，跳转前有 toast）。'},
+ {d:'2026-11-01',k:'界面',x:'选政策露出「政策手段」：卡片显示补贴／绩效标准／技术标准，另加一条按手段筛的轴',y:'政策库的 g 字段（工具组别）本来就是导师说的三种机制——补贴、绩效标准、技术标准，106 条政策全覆盖，但一直只在政策详情里露一半，列表上被「影响几项」占着位置。现在：① 政策卡片在部门标签后加机制标签，把「影响几项 2」改成「影响 2 个变量」——政策研究者先问的是「这条政策在用什么办法」，不是「影响几项」；② 第一步加第二条筛选轴「政策手段」，与部门轴是「与」关系（部门=建筑 + 手段=补贴 → 6 条），这是「按问题组织，不按流程组织」最直接的落地；③ 政策详情三段的小标题从「政策是什么／为什么这么设置合理／模型怎么处理」换成「政策怎么说／落到哪个机制／进了模型哪个参数」，顺序与内容都不动，只把口径对齐到数据集侧正在填的那份表（条款原文→模拟方法→对应参数）；④ 三类描述符在配置模式改用业务说法——输入型=政策直接给数、参数型=政策给目标平台换算、结果型=只能看不能输入（导师 10-21 原话「看不懂啥是参数型、输入型」，录音 50 段）；研究模式保留正式名。不动打分、区间、枚举与闸门；TREE 与 106 条政策映射一字未改。'}, {d:'2026-11-01',k:'界面',x:'两个模式接上：配置三步与研究七步一一对应',y:'原来两个模式只是「能互相跳」，跳过去落点却是乱的：左轨「去研究模式」写死回研究第 1 步，不管你在配置哪一步；从研究模式「回情景配置」又一律压到第 2 步，刚在检验页看到的结果回去就没了。更糟的是切模式时 cimResult 被清空，配置里刚算出的 27 种组合切到研究第 7 步会显示「还没有检验结果」。现在：① 两边按 CFG2RES=[1,4,6] / RES2CFG=[0,0,1,1,1,1,2] 固定对应，跨模式切换落位、同模式点顶栏原地不动；② 结果只在「检算的描述符集合变了」时作废，切模式不再丢结果；③ 配置结果页切到研究第 7 步直接显示同一份结果。顺带删掉补判断提示条整块（只剩自动返回，跳转前有 toast）。'},
  {d:'2026-11-01',k:'界面',x:'补判断提示条收成一句',y:'原来那句「这次是回结果页补判断：补完自动回去重跑，本次共 3 对」加一个「先带着现有判断回去」的按钮，用户指出都不有用。「带着判断回去」是在给一个不存在的选项起名——判断本来就在，「还差 3 对没判」又和下方应判／已判条数、闸门清单重复。现在只留「补完这几对会自动回结果页」一行，按钮删掉（工具条上本来就有「回情景配置 →」）。'},
  {d:'2026-11-01',k:'界面',x:'撤掉「载入一套预置情景」',y:'这个功能多余：它只是把三条政策、六个档位、六对判断一次性填进表单，让人少点几下，但结论本来就该由用户自己的政策与判断给出。全部删除——首页入口、第一步按钮与说明、DEMO_SCENARIO、cfgLoadScenario、demoActive 标记、结果页提示条与配套样式。第一步「一次选到能出结果的规模（4 个变量）」保留，那是覆盖变量不足时真正有用的出口。'},
  {d:'2026-10-31',k:'首次体验',x:'预置情景 / 第一步出口 / 结果页结论层级 / 补判断闭环 / 导出带来源',y:'新手第一次用要自己撞出七步：选政策 → 发现变量不够 → 看候选 → 定档 → 发现判断不够 → 去补 → 回来。这版把这条路缩到一次点击。① 首页与第一步各加一个预置情景入口：三条真实京津冀政策 + 6 对带梯度的判断 + 三个定档，一步到结果页，改一处即摘掉「预置」标记。② 覆盖变量不足时候选政策直接可点，另给「一次选到能出结果的规模（4 个变量）」——4 个变量＝81 种组合、判 12 对，穷举可跑。③ 结果页按结论层级重排：能否用 → 判不出的变量（提为一级结论）→ 你选的那组 → 差异 → 导出；空态统一成「一句人话 + 一个下一步按钮」，只有 1 组时说「没有可对比的对象」。④ 补判断闭环：从闸门进研究模式后，补完最后一对自动回结果页重跑。⑤ 第 2 步改给进度「已判 3 / 6 对（50%）」而不再说「够/不够」，统计条挪到打分来源之前。⑥ 四个导出入口都带来源块：版本、时间、判断来源、已判对数、穷举还是抽样、取档方式。⑦ 首页导语与入口卡给「描述符 / 枚举 / 自洽 / 互不冲突」加就地悬停。⑧ 产物文件名跟版本号同源，不再写死「原型v1.5」。'},
@@ -6511,6 +6546,15 @@ const VERSIONS=[
     ,'从「确认设定」第一次切过去时把参与变量带进研究模式（openResearch 补一次 cfgSyncToResearch）：原先只有跑过检验、cfgSaved 有快照时 sel.desc 才会被填，第一次切过去研究第 5 步是一片空白——这正是一一对应断掉的地方'
     ,'删掉补判断提示条整块（用户：没什么用）：renderFill、#fillBar、样式全删；最后一对填完仍会自动回结果页，跳转前有 toast 说明'
    ]},
+ {v:'v2.4.0',d:'2026-11-01',tag:'',sum:'选政策露出政策手段并加按手段筛；三类描述符改业务说法；政策详情三段对齐数据集侧口径',ev:'本批提交',
+  items:[
+    '政策卡片在部门标签后加机制标签（policy.g，工具组别）：补贴／绩效标准／技术标准／税收／框架性规制等 16 类，106 条政策全覆盖',
+    '「影响几项 N」改成「影响 N 个变量」——列表上让位给机制',
+    '第一步加第二条筛选轴「政策手段」，与部门轴是「与」关系；清空后回到全部 106 条',
+    '政策详情三段小标题改为：政策怎么说／落到哪个机制／进了模型哪个参数（顺序与内容不变，只对齐数据集侧口径）',
+    '三类描述符在配置模式改业务说法：输入型=政策直接给数、参数型=政策给目标平台换算、结果型=只能看不能输入；研究模式保留正式名',
+    'TREE、106 条政策映射、打分、区间、枚举、闸门均未改动；37 套测试全绿（test_v162 增 10c/10d 两组断言）',
+  ]},
 ]
 /* 当前版本号只有一个来源：VERSIONS 的最后一条（数组按时间从旧到新排列）。
    2026-10-25 修：关于框里原先写死 v1.4，平台发到 v1.5.7 之后它还在对外显示旧版号。 */
