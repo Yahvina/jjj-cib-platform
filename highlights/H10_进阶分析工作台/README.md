@@ -6,16 +6,16 @@
 
 ## 代码位置（v1.5 工作副本）
 
-- HTML：`_src/v15/index.html` 第 399–440 行
+- HTML：`_src/v15/index.html` 第 397–438 行
 - 逻辑：`_src/v15/src/app.js`
 
 | 函数／常量 | 行号 |
 |---|---|
-| `openAdv` | 6710–6710 |
-| `closeAdv` | 6711–6711 |
-| `advGo` | 6712–6712 |
-| `renderAdv` | 6713–6726 |
-| `ADV_TABS` | 6695–6708 |
+| `openAdv` | 6718–6718 |
+| `closeAdv` | 6719–6719 |
+| `advGo` | 6720–6720 |
+| `renderAdv` | 6721–6734 |
+| `ADV_TABS` | 6703–6716 |
 
 - 样式：本目录 `style.css`（摘录）；完整样式表见 `../_shared/base.css`
 

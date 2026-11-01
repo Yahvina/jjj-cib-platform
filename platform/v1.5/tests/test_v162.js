@@ -294,6 +294,35 @@ chk(noDS.length===0, '每个描述符都有矩阵短名', noDS.join('/'));
   .forEach(n=>chk(dOf(n).t!=='结果型', n+' 不是结果型', dOf(n).t));
 
 console.log();
+console.log('=== 10f. 研究模式第 3 步「设置」按钮点开不被自己关掉 ===');
+/* 用户实测 bug：点「设置」→ render() 重建 #descList → 按钮脱离 DOM →
+   document 的「点空白关闭」closest 返回 null → 刚打开的抽屉被自己关掉。
+   修法：判断放到 mousedown；这里直接验证开抽屉后的状态。 */
+render=function(){};
+viewMode='research'; docPg=''; inCmp=false; cur=2;
+sel.desc={}; sel.desc['碳价水平与碳市场覆盖']={states:[],src:''};
+renderDescList();
+chk((document.getElementById('descList').innerHTML||'').indexOf('设置')>=0, '第 3 步清单里有「设置」按钮', '');
+/* 走真实入口：点按钮会调 openDescDrawer，它内部 render() 被上面替身成空函数，
+   所以这里直接调 openDescDrawer 验状态标记本身。 */
+openDescDrawer('碳价水平与碳市场覆盖');
+chk(typeof p2Drawer==='object' && p2Drawer && p2Drawer.mode==='edit', '点设置后 p2Drawer 进入 edit 态', p2Drawer?p2Drawer.mode:'null');
+chk(p2Drawer && p2Drawer.nm==='碳价水平与碳市场覆盖', 'p2Drawer 记住了是哪个描述符', p2Drawer?p2Drawer.nm:'');
+renderP2Drawer();
+const p2cls=document.getElementById('p2Drawer').className;
+chk(p2cls.indexOf('on')>=0, '抽屉带上 on 类（不再停在屏幕外）', p2cls);
+chk((document.getElementById('p2Drawer').innerHTML||'').length>0, '抽屉里有内容', (document.getElementById('p2Drawer').innerHTML||'').length);
+closeP2Drawer();
+chk(p2Drawer===null, 'closeP2Drawer 能正常关闭', '');
+/* 源码级：关闭判断必须放在 mousedown，不能只看 click 的 closest */
+chk((global.__SRC__||'').indexOf("addEventListener('mousedown'")>=0, '关闭判断挂在 mousedown 上（防按钮脱离 DOM 后误判）', '');
+/* 文件里有多个 click 监听；要定位的是「抽屉点空白关闭」那一个，用 downZone 定位 */
+const SRC=global.__SRC__||'';
+const cIdx=SRC.indexOf('downZone=null');
+const clickBlk=cIdx>=0?SRC.slice(cIdx,cIdx+700):'';
+chk(clickBlk.indexOf('downZone')>=0, 'click 处理里用 mousedown 记下的区域判断', '');
+
+console.log();
 console.log('=== 11. 每个 .cfgrow 可见 pill ≤2，且不含常驻术语 ===');
 resetCfg(P1);
 const i11 = cfgInputNames();
@@ -341,4 +370,5 @@ console.log(bad === 0 ? '全部通过' : bad + ' 项未通过');
 if(bad) process.exit(1);
 `;
 
+global.__SRC__ = code;
 eval(code + '\n' + test);

@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>京津冀政策情景快速评估平台 · 原型 v2.5.0</title>
+<title>京津冀政策情景快速评估平台 · 原型 v2.5.1</title>
   <link rel="stylesheet" href="src/styles.css">
 </head>
 <body>
@@ -205,8 +205,6 @@
   <div class="descList" id="descList"></div>
   <div id="outPanel"></div>
 
-  <!-- 添加（树多选）与设置（单个描述符的状态）共用这一个抽屉 -->
-  <div class="cfgdrawer" id="p2Drawer"></div>
 
   <div class="card">
     <h3>描述符框架</h3>
@@ -715,6 +713,10 @@
 </main>
 
 <!-- 政策详情 / 变量依据共用同一个抽屉：放在 main 之外，两个步骤都能拉出来 -->
+<!-- 添加（树多选）与设置（单个描述符的状态）共用这一个抽屉。
+     必须挂在 main 之外：#p2 上带着 paneIn 动画的 transform，而 position:fixed 的元素
+     一旦有 transform 祖先，包含块就变成那个祖先、不再相对视口——抽屉会跑到屏幕右侧外面。 -->
+<div class="cfgdrawer" id="p2Drawer"></div>
 <div class="cfgdrawer" id="cfgDrawer"></div>
 
 <div class="footbar">
