@@ -14,17 +14,17 @@
 | `POLICY` | 121–228 |
 | `POLICY_EVID` | 230–230 |
 | `POLICY_VERIF` | 237–253 |
-| `PALLC` | 3378–3378 |
+| `PALLC` | 3403–3403 |
 | `nSel` | 281–281 |
-| `renderPolicy` | 3411–3461 |
-| `pickPolicy` | 3462–3462 |
-| `polEvid` | 3464–3466 |
-| `polEvidBlock` | 3508–3508 |
-| `polSidePanel` | 3526–3566 |
-| `verifBlock` | 3586–3594 |
-| `applyPolicy` | 3599–3617 |
-| `uploadPolicy` | 3618–3640 |
-| `prepErr` | 3706–3711 |
+| `renderPolicy` | 3436–3486 |
+| `pickPolicy` | 3487–3487 |
+| `polEvid` | 3489–3491 |
+| `polEvidBlock` | 3533–3533 |
+| `polSidePanel` | 3551–3591 |
+| `verifBlock` | 3611–3619 |
+| `applyPolicy` | 3624–3642 |
+| `uploadPolicy` | 3643–3665 |
+| `prepErr` | 3731–3736 |
 
 - 样式：本目录 `style.css`（摘录）；完整样式表见 `../_shared/base.css`
 

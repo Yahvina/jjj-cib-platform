@@ -6,18 +6,18 @@
 
 ## 代码位置（v1.5 工作副本）
 
-- HTML：`_src/v15/index.html` 第 352–354、359–359 行
+- HTML：`_src/v15/index.html` 第 351–353、358–358 行
 - 逻辑：`_src/v15/src/app.js`
 
 | 函数／常量 | 行号 |
 |---|---|
 | `TICK` | 278–279 |
-| `mulberry` | 5191–5198 |
-| `cimSig` | 5200–5207 |
-| `comboSample` | 5210–5231 |
-| `buildIMP` | 5233–5257 |
-| `evalCombo` | 5259–5272 |
-| `cloneCim` | 5273–5281 |
+| `mulberry` | 5216–5223 |
+| `cimSig` | 5225–5232 |
+| `comboSample` | 5235–5256 |
+| `buildIMP` | 5258–5282 |
+| `evalCombo` | 5284–5297 |
+| `cloneCim` | 5298–5306 |
 | `enumCore` | 1099–1179 |
 | `runCIM` | 1181–1201 |
 | `selectedCombo` | 1410–1416 |
@@ -33,10 +33,10 @@
 | `toggleScen` | 1575–1575 |
 | `impactVal` | 961–969 |
 | `pairIndexTable` | 1089–1096 |
-| `p6Apply` | 6562–6572 |
-| `p6Group` | 6573–6581 |
-| `p6All` | 6582–6582 |
-| `p6Status` | 6583–6589 |
+| `p6Apply` | 6597–6607 |
+| `p6Group` | 6608–6616 |
+| `p6All` | 6617–6617 |
+| `p6Status` | 6618–6624 |
 
 - 样式：本目录 `style.css`（摘录）；完整样式表见 `../_shared/base.css`
 

@@ -82,7 +82,7 @@ code{font-family:ui-monospace,Consolas,monospace;background:var(--line2);padding
     <div class="hd"><span class="no">H5</span><span class="nm">自洽情景的判断链</span></div>
     <p class="need">不能只给一个「自洽 12 组」的数字，得能一路点到某条判断为什么这么打。</p>
     <p class="why">回应「评分要有过程」。枚举状态组合（组合数超 20 万自动改固定种子抽样），逐组算每个状态的影响平衡值——它从其余状态承受到的总量，加粗者是本情景选定状态，▲ 是该描述符的最高分。选定状态是自己的影响平衡值里最高的那一项，且组合内无冲突，才判自洽。展开任一情景能看到它由哪些档位组成、逐条影响各打了几分、以及为什么判自洽。</p>
-    <div class="loc">_src/v15/index.html 第 352–354、359–359 行　·　app.js 里 26 个声明</div>
+    <div class="loc">_src/v15/index.html 第 351–353、358–358 行　·　app.js 里 26 个声明</div>
     <div class="files"><span>fragment.html</span><span>logic.js</span><span>style.css</span><span>README.md</span></div>
   </div>
 
@@ -90,7 +90,7 @@ code{font-family:ui-monospace,Consolas,monospace;background:var(--line2);padding
     <div class="hd"><span class="no">H6</span><span class="nm">矛盾组合与处理建议（闭环）</span></div>
     <p class="need">发现了矛盾还得能闭环，否则只是个报错框。</p>
     <p class="why">不只报矛盾，还要说清「为什么矛盾」「改成什么就不矛盾」「采纳后重跑」。v1.5 起不再只看用户选中的那几个档位，而是过所有描述符对，列出全部互斥对（上限 40 对，超出会标注已截断），另单列「孤立档位」。两者不同义：孤立档位是它自己站不住（任何自洽情景里都没出现），互斥对是两档各自都行、凑一起不行。建议是算出来的——从自洽集里找与其中一边共存过的另一档，点一下就真的改状态并重跑。</p>
-    <div class="loc">_src/v15/index.html 第 445–447 行　·　app.js 里 9 个声明</div>
+    <div class="loc">_src/v15/index.html 第 444–446 行　·　app.js 里 9 个声明</div>
     <div class="files"><span>fragment.html</span><span>logic.js</span><span>style.css</span><span>README.md</span></div>
   </div>
 
@@ -98,7 +98,7 @@ code{font-family:ui-monospace,Consolas,monospace;background:var(--line2);padding
     <div class="hd"><span class="no">H7</span><span class="nm">逐层求解（下沉为折叠段）</span></div>
     <p class="need">国家级、区域级、省级是嵌套的，下层取值必须真的受上层约束。</p>
     <p class="why">让跨层约束真正进入求解，而不只是事后比对。上级解出的每个自洽情景，其取值转成下级的约束：下级与它区间不相交的状态根本进不了枚举。上级定「目标节奏20–30%」，下级「快速清洁化 30–40%」就不会被算到。上级某情景若让下级完全无解，会单独计数——那不是程序出错，那就是结论。v1.5 把它的入口从常驻卡片改成默认收起的折叠段：不勾多层时整段不出现，能力一点没少。组合是否自洽只取决于组合自身，所以整层只判一次（25 万次预算，小空间精确、大空间固定种子抽样），再按各组允许集归桶筛选。</p>
-    <div class="loc">_src/v15/index.html 第 355–358 行　·　app.js 里 14 个声明</div>
+    <div class="loc">_src/v15/index.html 第 354–357 行　·　app.js 里 14 个声明</div>
     <div class="files"><span>fragment.html</span><span>logic.js</span><span>style.css</span><span>README.md</span></div>
   </div>
 
@@ -106,7 +106,7 @@ code{font-family:ui-monospace,Consolas,monospace;background:var(--line2);padding
     <div class="hd"><span class="no">H8</span><span class="nm">四种形态的导出（配置／参数表／叙事／后验）</span></div>
     <p class="need">求出来的自洽情景要能真的落到下游模型里，且不能把耦合拆散。</p>
     <p class="why">导出不是一个格式，是四种用途：模型配置文件（GCAM 真实 ScenarioComponents 结构、真实文件名；CHEER 侧标注 CSV→GDX 的转换路径）、结构化参数表、定性叙事稿、贝叶斯后验表。参数表带情景号（scenario,param,value）——CIB 求出的是一组互相咬合的自洽组合，导成一行一个参数等于把耦合又拆回独立参数，下游按行取值会读出彼此矛盾的组合。装配文件不确定的描述符会明确标注需人工补齐，不静默兜底。</p>
-    <div class="loc">_src/v15/index.html 第 373–378 行　·　app.js 里 31 个声明</div>
+    <div class="loc">_src/v15/index.html 第 372–377 行　·　app.js 里 31 个声明</div>
     <div class="files"><span>fragment.html</span><span>logic.js</span><span>style.css</span><span>README.md</span></div>
   </div>
 
@@ -122,7 +122,7 @@ code{font-family:ui-monospace,Consolas,monospace;background:var(--line2);padding
     <div class="hd"><span class="no">H10</span><span class="nm">九个工具收进一个工作台（正文只留结论）</span></div>
     <p class="need">深度工具不能跟结论抢版面，但也不能被删掉——它们得有个正式的去处。</p>
     <p class="why">第 7 步一度是 9 张卡加两个抽屉：结论、可靠性四张、工具箱三块、筛选与矛盾，读结果的人要在这些之间滚很久。现在正文只留 5 张卡（检验结果一句话、情景地图、导出、报告、配置摘要），其余九件收进一个近全屏的工作台弹窗——左栏九个 tab 按三组分（深挖／可靠性／工具箱），右侧内容，每块顶上留一句「怎么读这张图」的常驻说明。工程上最省风险的一步是：九个容器的 id 原样保留、弹窗 DOM 常驻（关着只是 display:none），八个渲染函数一行没改。</p>
-    <div class="loc">_src/v15/index.html 第 400–441 行　·　app.js 里 5 个声明</div>
+    <div class="loc">_src/v15/index.html 第 399–440 行　·　app.js 里 5 个声明</div>
     <div class="files"><span>fragment.html</span><span>logic.js</span><span>style.css</span><span>README.md</span></div>
   </div>
 
@@ -130,7 +130,7 @@ code{font-family:ui-monospace,Consolas,monospace;background:var(--line2);padding
     <div class="hd"><span class="no">H11</span><span class="nm">使用说明页：五区八节，侧栏标出读到哪</span></div>
     <p class="need">平台要能讲清自己怎么算，又不能把还没定稿的东西说成定稿。</p>
     <p class="why">说明不摊在操作面上，集中在同一页里，按 EPS 的结构切成五区八节——简介、使用手册（七步流程）、算法说明（判定与算法／跨层与锚定／导出与模型）、案例、参考（术语对照、版本与讨论日志）。侧栏在滚动时标出当前读到哪一节：进页时缓存八个标题的文档位置，滚动只比「谁越过了判定线」，不用 IntersectionObserver——它的 rootMargin 下边距只能靠百分比起算，视口高度不够时会一条都不触发。第三区叫「算法说明」不叫「方法学」：该区只讲平台怎么算，而真正的方法学要回答「关系依据什么判定、高低分段从哪来、由谁验证」，那三条在评分规则定稿前不写。</p>
-    <div class="loc">_src/v15/index.html 第 521–688 行　·　app.js 里 5 个声明</div>
+    <div class="loc">_src/v15/index.html 第 520–687 行　·　app.js 里 5 个声明</div>
     <div class="files"><span>fragment.html</span><span>logic.js</span><span>style.css</span><span>README.md</span></div>
   </div>
 

@@ -6,7 +6,7 @@
 
 ## 代码位置（v1.5 工作副本）
 
-- HTML：`_src/v15/index.html` 第 355–358 行
+- HTML：`_src/v15/index.html` 第 354–357 行
 - 逻辑：`_src/v15/src/app.js`
 
 | 函数／常量 | 行号 |
@@ -17,11 +17,11 @@
 | `allowUnder` | 1213–1230 |
 | `runLayered` | 1304–1332 |
 | `renderLay` | 1340–1405 |
-| `buildIMP` | 5233–5257 |
-| `evalCombo` | 5259–5272 |
-| `mulberry` | 5191–5198 |
-| `comboSample` | 5210–5231 |
-| `cloneCim` | 5273–5281 |
+| `buildIMP` | 5258–5282 |
+| `evalCombo` | 5284–5297 |
+| `mulberry` | 5216–5223 |
+| `comboSample` | 5235–5256 |
+| `cloneCim` | 5298–5306 |
 | `ST` | 658–658 |
 | `defsOf` | 600–632 |
 | `rngTxt` | 659–663 |

@@ -97,13 +97,9 @@ cfgRun();
 const gi = cfgGateInfo || cfgGate(cfgInputNames());
 chk(!!gi && gi.hard === true, '零判断被硬拦', gi ? String(gi.hard) : 'null');
 cfgGotoFillMissing(gi);
-renderFill();
 chk(afterFill === 'cfg', '记住返回意图 afterFill=cfg', String(afterFill));
 chk(cur === 4, '落到第 5 步（打分步）', 'cur=' + cur);
-const fbHtml = document.getElementById('fillBar').innerHTML;
-chk(fbHtml.indexOf('自动回结果页') >= 0, '提示条只留一句「补完自动回结果页」');
-chk(fbHtml.indexOf('<button') < 0, '提示条不再重复放「回去」按钮（工具条上已有）');
-chk(fbHtml.indexOf('还差') < 0, '不再重复显示还差几对（下方 cimStat 已有）');
+chk(html.indexOf('fillBar') < 0, '补判断提示条整块已删（容器都不在页面里）');
 const pairs = cfgFillMissing.slice();
 pairs.forEach((pr, i) => { cimSelKey = pr[0] + '>' + pr[1]; setV(i % 2 ? 1 : 2); });
 chk(pairs.length > 0 && afterFill === '', '填完自动摘掉意图（触发返回）');
@@ -123,7 +119,35 @@ const bx = bayesCSV();
 chk(bx.indexOf(appVer()) >= 0 && bx.indexOf('已判') >= 0, '贝叶斯表也带来源块');
 
 console.log();
-console.log('=== 6. 首页术语就地悬停 ===');
+console.log('=== 6. 两模式对应：切过去落在对应的那一步，结果不丢 ===');
+chk(CFG2RES.join(',') === '1,4,6' && RES2CFG.join(',') === '0,0,1,1,1,1,2', '映射表',
+  CFG2RES.join(',') + ' / ' + RES2CFG.join(','));
+seed3();
+cur = 0; cfgStep = 1; viewMode = 'config';
+openResearch();
+chk(cur === 4, '配置第 2 步 → 研究第 5 步（打分）', 'cur=' + cur);
+chk(viewMode === 'research', '已经切到研究模式');
+/* 造一份配置模式的结果，再从结果页切过去 */
+seed3();
+cfgInputNames().forEach(a=>cfgInputNames().forEach(b=>{ if(a!==b) cim[a+'>'+b]={v:1,conf:'中',why:''}; }));
+cfgRun();
+chk(cfgStep === 2 && !!cimResult, '配置模式跑到结果页', 'count=' + (cimResult && cimResult.count));
+openResearch();
+chk(cur === 6, '配置结果页 → 研究第 7 步（检验与导出）', 'cur=' + cur);
+chk(!!cimResult && cimResult.checked === 27, '结果带过去了（没有因为切模式被清空）',
+  cimResult ? (cimResult.checked + ' 种') : 'null');
+backToConfig();
+chk(cfgStep === 2, '研究第 7 步 → 回配置结果页', 'cfgStep=' + cfgStep);
+cur = 4; backToConfig();
+chk(cfgStep === 1, '研究第 5 步 → 回「确认设定」', 'cfgStep=' + cfgStep);
+/* 描述符集合变了，旧结果必须作废 */
+cfgSaved = {'随便一个不在结果里的变量': {states: []}};
+cimResult = {ds: ['碳价水平与碳市场覆盖'], checked: 1, space: 1, count: 1, consistent: []};
+restoreCfgSel();
+chk(!cimResult, '参与变量变了就作废旧结果（不拿旧结果充数）');
+
+console.log();
+console.log('=== 7. 首页术语就地悬停 ===');
 const leadAt = html.indexOf('<p class="lead">');
 chk(leadAt >= 0 && html.slice(leadAt, leadAt + 500).indexOf('data-tip') >= 0, '.lead 里有 data-tip 锚点');
 chk(html.indexOf('自洽＝在全部两两判定下') >= 0, '「自洽」有就地解释');

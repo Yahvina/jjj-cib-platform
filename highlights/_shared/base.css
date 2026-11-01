@@ -1661,11 +1661,6 @@ body.wizard .pane{max-width:1120px;margin-left:auto;margin-right:auto;}
   border-radius:3px;background:var(--panel);color:var(--pri);font-size:12px;cursor:pointer;}
 .note .mini:hover{border-color:var(--pri);background:var(--pri-s);}
 
-/* ============ 补判断返回条（v2.2.0 P1-1） ============ */
-.fillbar{display:none;}
-.fillbar.on{display:block;background:var(--pri-s);border-left:3px solid var(--pri);border-radius:0 3px 3px 0;
-  padding:9px 14px;margin:0 0 12px;font-size:13px;line-height:1.6;color:var(--tx2);}
-
 /* ============ 第 2 步判断进度（v2.2.0 P1-2） ============ */
 .cfgprog{font-variant-numeric:tabular-nums;border-bottom:1px dashed var(--line);cursor:help;}
 .cfg-drafthint{font-size:12px;color:var(--tx3);margin-top:7px;}

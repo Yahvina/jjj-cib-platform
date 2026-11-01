@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>京津冀政策情景快速评估平台 · 原型 v2.2.2</title>
+<title>京津冀政策情景快速评估平台 · 原型 v2.3.0</title>
   <style>
 :root{
   /* 冷灰科研纸（v1.8 起）：画布 95 / 卡片 100 / 井 90，卡片浮在画布之上。
@@ -1664,11 +1664,6 @@ body.wizard .pane{max-width:1120px;margin-left:auto;margin-right:auto;}
   border-radius:3px;background:var(--panel);color:var(--pri);font-size:12px;cursor:pointer;}
 .note .mini:hover{border-color:var(--pri);background:var(--pri-s);}
 
-/* ============ 补判断返回条（v2.2.0 P1-1） ============ */
-.fillbar{display:none;}
-.fillbar.on{display:block;background:var(--pri-s);border-left:3px solid var(--pri);border-radius:0 3px 3px 0;
-  padding:9px 14px;margin:0 0 12px;font-size:13px;line-height:1.6;color:var(--tx2);}
-
 /* ============ 第 2 步判断进度（v2.2.0 P1-2） ============ */
 .cfgprog{font-variant-numeric:tabular-nums;border-bottom:1px dashed var(--line);cursor:help;}
 .cfg-drafthint{font-size:12px;color:var(--tx3);margin-top:7px;}
@@ -1951,7 +1946,6 @@ body.wizard .pane{max-width:1120px;margin-left:auto;margin-right:auto;}
 
   <div class="card">
     <div id="ensBar"></div>
-    <div class="fillbar" id="fillBar"></div>
     <div class="cimbar">
       <button class="btn pri" id="aiBtn" onclick="aiFill()">AI 预填一版</button>
       <button class="btn" onclick="resetCim()">清空重来</button>
@@ -4679,7 +4673,7 @@ function renderCfgSteps(){
       <span class="n">${i<cfgStep?'✓':i+1}</span><span>${t}</span></div></div>`;
   });
   h+='</div><div class="rail-foot">'
-    +'<button class="btn sm" onclick="openResearch();cur=0;render();">去研究模式</button>'
+    +'<button class="btn sm" onclick="openResearch()">去研究模式</button>'
     +'</div>';
   document.getElementById('steps').innerHTML=h;
 }
@@ -4710,8 +4704,12 @@ function backToCmp(){ docPg=''; viewMode='home'; inCmp=true; render(); window.sc
    落在第 3 步会让旧结果看着像刚算出来的。 */
 function backToConfig(){
   afterFill='';
+  /* 显式按研究模式当前步落位（RES2CFG）：打分步回「确认设定」，检验页回「结果页」。
+     不依赖 openConfig 里那个 fromRes 判断——那是给顶栏来回切用的，
+     而「回情景配置」这个动作本身就是从研究模式回去，落点必须跟着 cur。 */
+  const back=cfgStepOfResearch();
   openConfig();
-  if(cfgChosen().length) cfgStep=1;
+  if(cfgChosen().length) cfgStep=back;
   render();
   window.scrollTo({top:0,behavior:'auto'});
 }
@@ -5059,6 +5057,18 @@ function cfgJudgedIn(ds){
    「含工程化移除」误当成基准档——结果页就会指着取最强档的变量说"取到中档"。 */
 function cfgBaseOf(nm){ const st=ST(nm); return st.length>1?st[1]:(st[0]||''); }
 function cfgMidOf(nm){ return cfgBaseOf(nm); }
+/* ================= 两个模式的对应关系 =================
+   配置三步与研究七步是同一套算法的两种走法：配置是「窄而快」，研究是「宽而深」。
+   两边的步骤有固定对应，切过去要落在对应的那一步，而不是永远回第一步。
+     配置 01 选政策   ↔ 研究 02 政策库与映射
+     配置 02 确认设定 ↔ 研究 05 交叉影响打分（判所在的那一步）
+     配置 03 看结果   ↔ 研究 07 检验与导出
+   研究 1–2 步（选择尺度、政策库）与 3–5 步（描述符/校验/打分）在配置里都归到
+   「选政策」与「确认设定」两段：它们决定的是"拿哪些变量、每档定在哪"。 */
+const CFG2RES=[1,4,6], RES2CFG=[0,0,1,1,1,1,2];
+function researchStepOfCfg(){ return CFG2RES[Math.max(0,Math.min(2,cfgStep|0))]; }
+function cfgStepOfResearch(){ return RES2CFG[Math.max(0,Math.min(6,cur|0))]; }
+
 function restoreCfgSel(){
   if(!cfgSaved) return;
   sel.desc=cfgSaved; cfgSaved=null;
@@ -5073,7 +5083,13 @@ function restoreCfgSel(){
     if(range.indexOf(s)<0) range.push(s);
     sel.desc[nm]={states:range,src:'情景配置 · 政策组合取值'};
   });
-  cimResult=null; BAYES=null; layeredResult=null; corrResult=null; profResult=null;
+  /* 刚在配置里算出的结果不能因为切模式就丢：同一批描述符、同一批判断，结果仍然有效。
+     只有在检算的那批描述符与研究模式这批不一致时才作废（否则会拿旧结果充数）。 */
+  const was=(cimResult&&cimResult.ds)?cimResult.ds.slice().sort().join('|'):'';
+  const now=Object.keys(sel.desc).sort().join('|');
+  if(!was||was!==now){
+    cimResult=null; BAYES=null; layeredResult=null; corrResult=null; profResult=null;
+  }
 }
 /* 配置->研究：把本轮参与变量写进 sel.desc，保证 key 存在，但不塌成单档。
    保留研究模式里已有的 states（范围），空仍为空（＝全部档位）。 */
@@ -5095,17 +5111,29 @@ function cfgSyncFromResearch(){
   });
 }
 function openConfig(){
+  const fromRes=(viewMode==='research'&&!docPg);
   cfgSyncFromResearch();
   docPg=''; viewMode='config'; inCmp=false;
-  /* 保留上次停的步骤：顶部导航来回切不该把人送回第一步。一条政策都没有时才回第一步。 */
+  /* 从研究切过来落在对应的一步（第 7 步→结果页、打分步→确认设定）；
+     本来就在配置里点顶栏则原地不动。一条政策都没有时才回第一步。 */
   if(!cfgChosen().length) cfgStep=0;
+  else if(fromRes) cfgStep=cfgStepOfResearch();
   render(); window.scrollTo({top:0,behavior:'smooth'});
 }
 function openResearch(){
+  const fromCfg=(viewMode==='config'&&!docPg);
   restoreCfgSel();
+  /* 从配置过来、而研究模式这边一无所有时，把参与的变量带进来。
+     之前只有跑过检验（cfgSaved 有快照）时 restoreCfgSel 才填 sel.desc，
+     第一次在「确认设定」直接切过来，第 5 步是一片空白——这正是一一对应断掉的地方。
+     只在 sel.desc 为空时补：研究模式里已经手工选过的东西不能被配置的选择覆盖
+     （test_v160/161 锁着这条：来回切必须原样还回去）。 */
+  if(fromCfg && !Object.keys(sel.desc).length) cfgSyncToResearch();
   cfgResearchBase=JSON.parse(JSON.stringify(sel.desc));
   docPg=''; viewMode='research'; inCmp=false;
-  /* 同样保留 cur：从配置点「一键去补」进来是第 5 步，切回配置再切回来仍停在第 5 步。 */
+  /* 从配置切过来落在对应的那一步；本来就在研究模式里点顶栏则原地不动。
+     （cfgGotoFillMissing 会在这之后覆写 cur=4，它的目标更明确。） */
+  if(fromCfg) cur=researchStepOfCfg();
   render(); window.scrollTo({top:0,behavior:'smooth'});
 }
 function cfgGo(n){
@@ -5597,15 +5625,6 @@ function fillRemain(){
     const c=cim[pr[0]+'>'+pr[1]];
     return !c||typeof c.v!=='number';
   }).length;
-}
-function renderFill(){
-  const box=document.getElementById('fillBar'); if(!box) return;
-  if(afterFill!=='cfg'||viewMode!=='research'||docPg||cur!==4){ box.className='fillbar'; box.innerHTML=''; return; }
-  /* 只说一件这里独有的信息：补完会自动跳回去。
-     还差几对、还剩哪几对，下方 #cimStat（应判/已判条数）与闸门清单已经写了；
-     再给一个「回去」按钮也是重复——工具条上本来就有「回情景配置 →」。 */
-  box.className='fillbar on';
-  box.innerHTML='<div class="fb-t">补完这几对会自动回结果页</div>';
 }
 /* 最后一对填完就自动回去；留 420ms 让用户看见这一格确实填上了。 */
 function fillTick(){
@@ -6200,7 +6219,7 @@ function clearCell(){
   if(ens&&ens.active<0){ toast('合并结果不能直接清：先在上方切到某位专家'); return; }
   delete cim[cimSelKey]; cimResult=null; BAYES=null;
   corrResult=null; profResult=null; layeredResult=null;
-  renderCim(); renderFill(); toast('已清空这一格，回到「未判断」');
+  renderCim(); toast('已清空这一格，回到「未判断」');
 }
 
 // 某个描述符当前选定的状态及其区间——打分时先看清两端分别落在什么数值范围
@@ -8154,6 +8173,7 @@ function renderBayes(){
    已有情景需要重新检验；省略 = 不动结果（只改界面、措辞、性能或新增旁路分析）。
    与 git 提交对应；此处只列入对外可讲、能被核对的事项。 */
 const CHANGELOG=[
+ {d:'2026-11-01',k:'界面',x:'两个模式接上：配置三步与研究七步一一对应',y:'原来两个模式只是「能互相跳」，跳过去落点却是乱的：左轨「去研究模式」写死回研究第 1 步，不管你在配置哪一步；从研究模式「回情景配置」又一律压到第 2 步，刚在检验页看到的结果回去就没了。更糟的是切模式时 cimResult 被清空，配置里刚算出的 27 种组合切到研究第 7 步会显示「还没有检验结果」。现在：① 两边按 CFG2RES=[1,4,6] / RES2CFG=[0,0,1,1,1,1,2] 固定对应，跨模式切换落位、同模式点顶栏原地不动；② 结果只在「检算的描述符集合变了」时作废，切模式不再丢结果；③ 配置结果页切到研究第 7 步直接显示同一份结果。顺带删掉补判断提示条整块（只剩自动返回，跳转前有 toast）。'},
  {d:'2026-11-01',k:'界面',x:'补判断提示条收成一句',y:'原来那句「这次是回结果页补判断：补完自动回去重跑，本次共 3 对」加一个「先带着现有判断回去」的按钮，用户指出都不有用。「带着判断回去」是在给一个不存在的选项起名——判断本来就在，「还差 3 对没判」又和下方应判／已判条数、闸门清单重复。现在只留「补完这几对会自动回结果页」一行，按钮删掉（工具条上本来就有「回情景配置 →」）。'},
  {d:'2026-11-01',k:'界面',x:'撤掉「载入一套预置情景」',y:'这个功能多余：它只是把三条政策、六个档位、六对判断一次性填进表单，让人少点几下，但结论本来就该由用户自己的政策与判断给出。全部删除——首页入口、第一步按钮与说明、DEMO_SCENARIO、cfgLoadScenario、demoActive 标记、结果页提示条与配套样式。第一步「一次选到能出结果的规模（4 个变量）」保留，那是覆盖变量不足时真正有用的出口。'},
  {d:'2026-10-31',k:'首次体验',x:'预置情景 / 第一步出口 / 结果页结论层级 / 补判断闭环 / 导出带来源',y:'新手第一次用要自己撞出七步：选政策 → 发现变量不够 → 看候选 → 定档 → 发现判断不够 → 去补 → 回来。这版把这条路缩到一次点击。① 首页与第一步各加一个预置情景入口：三条真实京津冀政策 + 6 对带梯度的判断 + 三个定档，一步到结果页，改一处即摘掉「预置」标记。② 覆盖变量不足时候选政策直接可点，另给「一次选到能出结果的规模（4 个变量）」——4 个变量＝81 种组合、判 12 对，穷举可跑。③ 结果页按结论层级重排：能否用 → 判不出的变量（提为一级结论）→ 你选的那组 → 差异 → 导出；空态统一成「一句人话 + 一个下一步按钮」，只有 1 组时说「没有可对比的对象」。④ 补判断闭环：从闸门进研究模式后，补完最后一对自动回结果页重跑。⑤ 第 2 步改给进度「已判 3 / 6 对（50%）」而不再说「够/不够」，统计条挪到打分来源之前。⑥ 四个导出入口都带来源块：版本、时间、判断来源、已判对数、穷举还是抽样、取档方式。⑦ 首页导语与入口卡给「描述符 / 枚举 / 自洽 / 互不冲突」加就地悬停。⑧ 产物文件名跟版本号同源，不再写死「原型v1.5」。'},
@@ -8916,6 +8936,15 @@ const VERSIONS=[
     ,'提示条只留一句「补完这几对会自动回结果页」，按钮删除（工具条上本来就有「回情景配置 →」）；CSS 从 flex 三件套收成一行'
     ,'自动返回逻辑不变：最后一对填完 420ms 后回结果页重跑'
    ]},
+  {v:'v2.3.0',d:'2026-11-01',tag:'',sum:'两个模式真正接上：配置三步与研究七步一一对应，切过去落在对应那一步，结果不因切模式丢失',ev:'本批提交',
+   items:[
+    '新增对应表 CFG2RES=[1,4,6] 与 RES2CFG=[0,0,1,1,1,1,2]：配置 01 选政策 ↔ 研究 02 政策库与映射，配置 02 确认设定 ↔ 研究 05 交叉影响打分，配置 03 看结果 ↔ 研究 07 检验与导出'
+    ,'openResearch() / openConfig() 跨模式切换时按表落位，同一模式里点顶栏则原地不动（原来顶栏保留位置、左轨却写死回第一步，两条路不一致）'
+    ,'左轨「去研究模式」原来写死 cur=0，永远落到研究第 1 步；改成走映射。研究模式「回情景配置」原来一律压到配置第 2 步，改成按 cur 映射——第 7 步回结果页、打分步回确认设定'
+    ,'restoreCfgSel 不再无条件清空 cimResult：切模式时若检算用的描述符集合没变，结果保留。配置结果页切到研究第 7 步能直接看到同一份结果（27 种里 3 组），不必重算；只有集合变了才作废，避免拿旧结果充数'
+    ,'从「确认设定」第一次切过去时把参与变量带进研究模式（openResearch 补一次 cfgSyncToResearch）：原先只有跑过检验、cfgSaved 有快照时 sel.desc 才会被填，第一次切过去研究第 5 步是一片空白——这正是一一对应断掉的地方'
+    ,'删掉补判断提示条整块（用户：没什么用）：renderFill、#fillBar、样式全删；最后一对填完仍会自动回结果页，跳转前有 toast 说明'
+   ]},
 ]
 /* 当前版本号只有一个来源：VERSIONS 的最后一条（数组按时间从旧到新排列）。
    2026-10-25 修：关于框里原先写死 v1.4，平台发到 v1.5.7 之后它还在对外显示旧版号。 */
@@ -9159,7 +9188,7 @@ function render(){
   syncExpCard();
   renderSteps(); renderCmp(); layerTable(); renderDescList(); renderP2Drawer();
   expDetail(); renderEnsBox(); scaleSum(); renderPolicy();
-  renderCim(); renderFill(); renderEnsBar(); modelDetail(); renderScopeBar(); checkResult(); renderLay(); renderFilt();
+  renderCim(); renderEnsBar(); modelDetail(); renderScopeBar(); checkResult(); renderLay(); renderFilt();
   renderTableau(); renderMap();
   confList(); timeline(); renderImpact(); renderPath(); renderProf(); renderCorr(); renderEnsPanel();
   renderRobust(); renderFW(); renderBayes();
