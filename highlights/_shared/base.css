@@ -1663,11 +1663,8 @@ body.wizard .pane{max-width:1120px;margin-left:auto;margin-right:auto;}
 
 /* ============ 补判断返回条（v2.2.0 P1-1） ============ */
 .fillbar{display:none;}
-.fillbar.on{display:flex;align-items:center;gap:14px;flex-wrap:wrap;
-  background:var(--pri-s);border-left:3px solid var(--pri);border-radius:0 3px 3px 0;
-  padding:11px 14px;margin:0 0 12px;}
-.fillbar .fb-t{flex:1;font-size:13px;line-height:1.6;color:var(--tx2);}
-.fillbar .fb-t b{color:var(--tx);font-weight:600;margin-right:8px;}
+.fillbar.on{display:block;background:var(--pri-s);border-left:3px solid var(--pri);border-radius:0 3px 3px 0;
+  padding:9px 14px;margin:0 0 12px;font-size:13px;line-height:1.6;color:var(--tx2);}
 
 /* ============ 第 2 步判断进度（v2.2.0 P1-2） ============ */
 .cfgprog{font-variant-numeric:tabular-nums;border-bottom:1px dashed var(--line);cursor:help;}
